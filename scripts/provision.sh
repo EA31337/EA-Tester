@@ -23,7 +23,7 @@ Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
 sudo dpkg --add-architecture i386
 sudo add-apt-repository -y ppa:ubuntu-wine
 sudo apt-get update
-sudo apt-get install -y wine wine-mono4.5.6\*
+sudo apt-get install -y wine wine-gecko2.36\* wine-mono4.5.6\*
 
 # Install dependencies.
 sudo apt-get install -y winbind
@@ -54,7 +54,11 @@ wget -O- https://www.dropbox.com/s/chw6mn9gq36f9lo/mt4-old.tgz | sudo tar zxvf -
 # - https://www.dropbox.com/s/mprcq2pc48ro8gd/mt5.tgz
 sudo chmod -R u+rwX,go+rX,go-w /opt
 sudo chown -R vagrant:vagrant /opt
-echo "Done."
 
-# Run terminal (for testing purposes).
-# wine ~/.wine/**/terminal.exe
+# Download backtest data files.
+TESTDIR="/opt/**/tester"
+wget -P $TESTDIR https://www.dropbox.com/s/fkjalsjhqk9p5vm/EURUSD1_0.fxt.gz
+wget -P $TESTDIR https://www.dropbox.com/s/rag8ky8kub9eum9/EURUSD1.hst.gz
+gunzip -vfd /opt/**/*.gz
+
+echo "Done."
