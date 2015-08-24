@@ -40,13 +40,13 @@ git clone https://github.com/jordansissel/xdotool && make -C xdotool
 #wget https://fx.instaforex.com/i/downloads/itc4setup.exe https://fx.instaforex.com/i/downloads/itc5setup.exe
 
 # @todo: 2. Install platform (use xdotool to fake keyboard to navigate through the installator).
-# export DISPLAY=:0
+#export DISPLAY=:0
 # wine mt4setup.exe
 #xdotool key Space n
 #wineserver -k # Kill leftover wine sessions.
 
 # Otherwise download already pre-installed platform.
-wget -O- https://www.dropbox.com/s/chw6mn9gq36f9lo/mt4-old.tgz | sudo tar zxvf - -C /opt
+wget -O- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | sudo tar zxvf - -C /opt
 # Other links:
 # - https://www.dropbox.com/s/1d38i4vwkfw89g9/mt4-old.tgz
 # - https://www.dropbox.com/s/udkwfvpxscb70kz/mt5-old.tgz
@@ -56,9 +56,14 @@ sudo chmod -R u+rwX,go+rX,go-w /opt
 sudo chown -R vagrant:vagrant /opt
 
 # Download backtest data files.
-TESTDIR="/opt/**/tester"
-wget -P $TESTDIR https://www.dropbox.com/s/fkjalsjhqk9p5vm/EURUSD1_0.fxt.gz
-wget -P $TESTDIR https://www.dropbox.com/s/rag8ky8kub9eum9/EURUSD1.hst.gz
-gunzip -vfd /opt/**/*.gz
+wget -P /opt/MetaTrader\ 4/tester/history https://www.dropbox.com/s/fkjalsjhqk9p5vm/EURUSD1_0.fxt.gz
+gunzip -vfd /opt/**/tester/history/*.gz
+
+wget -P /opt/MetaTrader\ 4/history/FX https://www.dropbox.com/s/rag8ky8kub9eum9/EURUSD1.hst.gz
+gunzip -vfd /opt/**/history/FX/*.gz
+
+# We need R+W access to .fxt files.
+sudo chown -R vagrant:vagrant /opt
+sudo chmod -R 777 /opt
 
 echo "Done."
