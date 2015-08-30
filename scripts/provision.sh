@@ -4,20 +4,33 @@
 # Provisioning script
 #
 
+# Initialize script.
 if [ ! -d "/vagrant/scripts" ]; then
   echo "This script needs to be run within vagrant VM."
   exit 1
 fi
 
-# Initialize script.
-shopt -s globstar
+shopt -s globstar # Enable globbing.
+
+# Perform an unattended installation of a Debian packages.
+sudo ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf
+sudo dpkg-reconfigure debconf -f noninteractive -p critical
+
+# Configure locale (http://serverfault.com/a/500778/130437).
+#export LANGUAGE=en_US.UTF-8
+#export LANG=en_US.UTF-8
+#export LC_ALL=en_US.UTF-8
+#sudo locale-gen en_US.UTF-8
+#sudo dpkg-reconfigure locales
+
+# Install the locale packate to prevent an invalid locale.
+sudo apt-get install -y language-pack-en
 
 # Install basic utils.
 sudo apt-get install -y links
 
 # Install and run X virtual framebuffer.
 sudo apt-get install -y Xvfb xdotool
-Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
 
 # Install wine
 sudo dpkg --add-architecture i386
@@ -46,7 +59,7 @@ git clone https://github.com/jordansissel/xdotool && make -C xdotool
 #wineserver -k # Kill leftover wine sessions.
 
 # Otherwise download already pre-installed platform.
-wget -O- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | sudo tar zxvf - -C /opt
+wget -qO- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | sudo tar zxvf - -C /opt
 # Other links:
 # - https://www.dropbox.com/s/1d38i4vwkfw89g9/mt4-old.tgz
 # - https://www.dropbox.com/s/udkwfvpxscb70kz/mt5-old.tgz
@@ -65,5 +78,8 @@ gunzip -vfd /opt/**/history/FX/*.gz
 # We need R+W access to .fxt files.
 sudo chown -R vagrant:vagrant /opt
 sudo chmod -R 777 /opt
+
+# Run X virtual framebuffer on screen 0.
+Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
 
 echo "Done."
