@@ -8,7 +8,7 @@ wget -nNP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.e
 
 # Copy and update the configuration file.
 cp -vf /vagrant/conf/mt4-tester.ini /opt/**/config/
-ex -s +"%s/^TestExpert=\zs.\+$/MACD/" -cwq /opt/**/config/mt4-tester.ini
+ex -s +"%s/^TestExpert=\zs.\+$/MACD/" +"%s/TestReplaceReport=\zs.\+$/true/" -cwq /opt/**/config/mt4-tester.ini
 
 # Monitor logs in the background.
 rm /opt/**/*.log # Remove old logs.
@@ -20,4 +20,4 @@ export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
 export DISPLAY=:0.0 # Select screen 0.
 
 # Run terminal.
-WINEDEBUG=warn+all wine /opt/**/terminal.exe config/mt4-tester.ini
+WINEDEBUG=warn+all wine /opt/**/terminal.exe config/mt4-tester.ini && html2text /opt/**/Report.htm

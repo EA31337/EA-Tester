@@ -27,7 +27,7 @@ sudo dpkg-reconfigure debconf -f noninteractive -p critical
 sudo apt-get install -y language-pack-en
 
 # Install basic utils.
-sudo apt-get install -y links
+sudo apt-get install -y links html2text
 
 # Install and run X virtual framebuffer.
 sudo apt-get install -y Xvfb xdotool
