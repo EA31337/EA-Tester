@@ -4,7 +4,7 @@
 shopt -s globstar
 
 # Download EA.
-wget -nNP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.ex4"
+wget -qNP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.ex4"
 
 # Copy and update the configuration file.
 cp -vf /vagrant/conf/mt4-tester.ini /opt/**/config/
