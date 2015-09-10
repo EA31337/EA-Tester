@@ -47,39 +47,7 @@ sudo apt-get install -y libx11-dev libxtst-dev libxinerama-dev libxkbcommon-dev
 # Install xdotool.
 git clone https://github.com/jordansissel/xdotool && make -C xdotool
 
-# Download and install MT4/MT5 platforms.
-# @todo: 1. Download platform.
-#wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
-#wget https://fx.instaforex.com/i/downloads/itc4setup.exe https://fx.instaforex.com/i/downloads/itc5setup.exe
-
-# @todo: 2. Install platform (use xdotool to fake keyboard to navigate through the installator).
-#export DISPLAY=:0
-# wine mt4setup.exe
-#xdotool key Space n
-#wineserver -k # Kill leftover wine sessions.
-
-# Otherwise download already pre-installed platform.
-wget -qO- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | sudo tar zxvf - -C /opt
-# Other links:
-# - https://www.dropbox.com/s/1d38i4vwkfw89g9/mt4-old.tgz
-# - https://www.dropbox.com/s/udkwfvpxscb70kz/mt5-old.tgz
-# - https://www.dropbox.com/s/plxv8xerc7y2686/mt4.tgz
-# - https://www.dropbox.com/s/mprcq2pc48ro8gd/mt5.tgz
-sudo chmod -R u+rwX,go+rX,go-w /opt
-sudo chown -R vagrant:vagrant /opt
-
-# Download backtest data files.
-wget -qP /opt/MetaTrader\ 4/tester/history https://www.dropbox.com/s/fkjalsjhqk9p5vm/EURUSD1_0.fxt.gz
-gunzip -vfd /opt/**/tester/history/*.gz
-
-wget -qP /opt/MetaTrader\ 4/history/FX https://www.dropbox.com/s/rag8ky8kub9eum9/EURUSD1.hst.gz
-gunzip -vfd /opt/**/history/FX/*.gz
-
-# We need R+W access to .fxt files.
-sudo chown -R vagrant:vagrant /opt
-sudo chmod -R 777 /opt
-
 # Run X virtual framebuffer on screen 0.
 Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
 
-echo "Done."
+echo "$0 done."

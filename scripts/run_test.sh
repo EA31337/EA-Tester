@@ -3,8 +3,14 @@
 # Enable globbing.
 shopt -s globstar
 
+# Check if terminal is present.
+find /opt/**/terminal.exe || source ./dl_mt4.sh
+
+# Check if backtest files are present.
+find /opt -name \*.fxt || source ./dl_bt_data.sh
+
 # Download EA.
-wget -qNP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.ex4"
+source ./dl_ea.sh
 
 # Copy and update the configuration file.
 cp -vf /vagrant/conf/mt4-tester.ini /opt/**/config/
