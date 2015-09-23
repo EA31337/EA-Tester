@@ -1,16 +1,20 @@
-#!/bin/bash -x
+#!/bin/bash -xe
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Enable globbing.
 shopt -s globstar
 
 # Check if terminal is present.
-find /opt/**/terminal.exe || source ./dl_mt4.sh
+[ "$(find /opt/**/terminal.exe)" ] || $CWD/dl_mt4.sh
 
 # Check if backtest files are present.
-find /opt -name \*.fxt || source ./dl_bt_data.sh
+[ "$(find /opt -name \*.fxt)" ] || $CWD/dl_bt_data.sh
 
 # Download EA.
-source ./dl_ea.sh
+$CWD/dl_ea.sh
+
+# Download set files.
+[ "$(find /opt -type d -name sets)" ] || $CWD/dl_sets.sh https://github.com/EA31337/EA31337-Sets
 
 # Copy and update the configuration file.
 cp -vf /vagrant/conf/mt4-tester.ini /opt/**/config/
@@ -24,6 +28,7 @@ trap "killall tail" EXIT # Clean up after exit.
 # Configure wine.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
 export DISPLAY=:0.0 # Select screen 0.
+export WINEDEBUG=warn+all # For debugging, try: WINEDEBUG=trace+all
 
 # Run terminal.
-WINEDEBUG=warn+all wine /opt/**/terminal.exe config/mt4-tester.ini && html2text /opt/**/Report.htm
+wine /opt/**/terminal.exe config/mt4-tester.ini && html2text /opt/**/Report.htm

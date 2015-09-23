@@ -1,7 +1,5 @@
 #!/bin/bash -x
-
-# Enable globbing.
-shopt -s globstar
+shopt -s globstar # Enable globbing.
 
 # Download EA.
 wget -qNP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.ex4"

@@ -36,7 +36,7 @@ sudo apt-get install -y Xvfb xdotool
 sudo dpkg --add-architecture i386
 sudo add-apt-repository -y ppa:ubuntu-wine
 sudo apt-get update
-sudo apt-get install -y wine wine-gecko2.36\* wine-mono4.5.6\*
+sudo apt-get install -y wine # wine-gecko2.36\* wine-mono4.5.6\*
 
 # Install dependencies.
 sudo apt-get install -y winbind
@@ -49,5 +49,8 @@ git clone https://github.com/jordansissel/xdotool && make -C xdotool
 
 # Run X virtual framebuffer on screen 0.
 Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
+
+# Give vagrant write permission for /opt.
+sudo chown vagrant:vagrant /opt
 
 echo "$0 done."
