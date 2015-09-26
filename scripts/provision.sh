@@ -27,7 +27,7 @@ sudo dpkg-reconfigure debconf -f noninteractive -p critical
 sudo apt-get install -y language-pack-en
 
 # Install basic utils.
-sudo apt-get install -y links html2text
+sudo apt-get install -y links html2text tree
 
 # Install and run X virtual framebuffer.
 sudo apt-get install -y Xvfb xdotool
@@ -50,7 +50,15 @@ git clone https://github.com/jordansissel/xdotool && make -C xdotool
 # Run X virtual framebuffer on screen 0.
 Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
 
+# Set-up git.
+git config --system user.name "Vagrant"
+git config --system user.email "vagrant@localhost"
+git config --system core.sharedRepository group
+
+# Add version control for /opt.
+git init /opt
+
 # Give vagrant write permission for /opt.
-sudo chown vagrant:vagrant /opt
+sudo chown -R vagrant:vagrant /opt
 
 echo "$0 done."

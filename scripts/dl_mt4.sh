@@ -1,5 +1,7 @@
 #!/bin/bash -x
 
+OUT="/opt"
+
 # Download and install MT4/MT5 platforms.
 # @todo: 1. Download platform.
 #wget https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
@@ -12,7 +14,7 @@
 #wineserver -k # Kill leftover wine sessions.
 
 # Otherwise download already pre-installed platform.
-wget -qO- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | tar zxvf - -C /opt
+wget -qO- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | tar zxvf - -C "$OUT"
 # Other links:
 # - https://www.dropbox.com/s/1d38i4vwkfw89g9/mt4-old.tgz
 # - https://www.dropbox.com/s/udkwfvpxscb70kz/mt5-old.tgz
@@ -21,5 +23,12 @@ wget -qO- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | tar zxvf - -C /opt
 
 #sudo chmod -R u+rwX,go+rX,go-w /opt
 #sudo chown -R vagrant:vagrant /opt
+
+# Clean up the logs.
+find "$OUT" '(' -name "*.log" -or -name "*.dat" ')' -delete
+
+# Add files to the git repository.
+git --git-dir=/opt/.git add -A
+git --git-dir=/opt/.git commit -m"$0: Downloaded MT4." -a
 
 echo "$0 done."
