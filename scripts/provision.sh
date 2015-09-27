@@ -10,6 +10,7 @@ if [ ! -d "/vagrant/scripts" ]; then
   exit 1
 fi
 
+whoami && pwd
 shopt -s globstar # Enable globbing.
 
 # Perform an unattended installation of a Debian packages.

@@ -14,7 +14,8 @@ OUT="/opt"
 #wineserver -k # Kill leftover wine sessions.
 
 # Otherwise download already pre-installed platform.
-wget -qO- https://www.dropbox.com/s/1obaq7wlk8h9sbu/mt4.tgz | tar zxvf - -C "$OUT"
+URL="https://www.dropbox.com/s/2te5670pkscf2eg/mt4-890.tgz"
+wget -qO- "$URL" | tar zxvf - -C "$OUT"
 # Other links:
 # - https://www.dropbox.com/s/1d38i4vwkfw89g9/mt4-old.tgz
 # - https://www.dropbox.com/s/udkwfvpxscb70kz/mt5-old.tgz
