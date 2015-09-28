@@ -14,36 +14,37 @@ whoami && pwd
 shopt -s globstar # Enable globbing.
 
 # Perform an unattended installation of a Debian packages.
-sudo ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf
-sudo dpkg-reconfigure debconf -f noninteractive -p critical
+ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf
+dpkg-reconfigure debconf -f noninteractive -p critical
 
 # Configure locale (http://serverfault.com/a/500778/130437).
 #export LANGUAGE=en_US.UTF-8
 #export LANG=en_US.UTF-8
 #export LC_ALL=en_US.UTF-8
-#sudo locale-gen en_US.UTF-8
-#sudo dpkg-reconfigure locales
+#locale-gen en_US.UTF-8
+#dpkg-reconfigure locales
 
 # Install the locale packate to prevent an invalid locale.
-sudo apt-get install -y language-pack-en
+apt-get install -y language-pack-en
 
 # Install basic utils.
-sudo apt-get install -y links html2text tree
+apt-get install -y links html2text tree
 
 # Install and run X virtual framebuffer.
-sudo apt-get install -y Xvfb xdotool
+apt-get install -y Xvfb xdotool
 
 # Install wine
-sudo dpkg --add-architecture i386
-sudo add-apt-repository -y ppa:ubuntu-wine
-sudo apt-get update
-sudo apt-get install -y wine # wine-gecko2.36\* wine-mono4.5.6\*
-
-# Install dependencies.
-sudo apt-get install -y winbind
+dpkg --add-architecture i386
+add-apt-repository -y ppa:ubuntu-wine
+apt-get update
+apt-get install -y wine # wine-gecko2.36\* wine-mono4.5.6\* winbind
 
 # Upgrade manually some packages from the source.
-sudo apt-get install -y libx11-dev libxtst-dev libxinerama-dev libxkbcommon-dev
+apt-get install -y libx11-dev libxtst-dev libxinerama-dev libxkbcommon-dev
+
+# Install composer (https://getcomposer.org/) via PHP.
+#apt-get install php5-cli
+#curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install xdotool.
 git clone https://github.com/jordansissel/xdotool && make -C xdotool
@@ -60,6 +61,12 @@ git config --system core.sharedRepository group
 git init /opt
 
 # Give vagrant write permission for /opt.
-sudo chown -R vagrant:vagrant /opt
+chown -R vagrant:vagrant /opt
+
+# Install VM specific binaries.
+install -v /vagrant/scripts/run_backtest.sh /usr/local/bin/run_backtest
+
+# Append extra settings into bashrc file.
+ex +':$s@$@\ralias run_backtest=/vagrant/scripts/run_backtest.sh@' -cwq /etc/bash.bashrc
 
 echo "$0 done."
