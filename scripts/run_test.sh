@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/bash -xe
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+OUT="/opt"
 
 REPORTDIR="$1"
 SETFILE="$2"
@@ -16,10 +18,17 @@ TO=$YEAR.01.02
 # Enable globbing.
 shopt -s globstar
 
-# Download EA.
-wget -NP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.ex4" # -O "/opt/MetaTrader 4/MQL4/Experts/EA31337-Advanced.ex4"
+# Check if terminal is present.
+[ "$(find $OUT/**/terminal.exe)" ] || $CWD/dl_mt4.sh
 
-cp /vagrant/MACD.ex4 "/opt/MetaTrader 4/MQL4/Experts/EA31337-Advanced.ex4"
+# Check if backtest files are present.
+[ "$(find "$OUT" -name \*.fxt)" ] || $CWD/dl_bt_data.sh
+
+# Download EA.
+$CWD/dl_ea.sh
+
+# Download set files.
+[ "$(find $OUT -type d -name sets)" ] || $CWD/dl_sets.sh https://github.com/EA31337/EA31337-Sets
 
 # Update configuration.
 ex -s +"%s/^TestExpert=\zs.\+$/$EXPERT/" -cwq /vagrant/conf/mt4-tester.ini
@@ -29,24 +38,22 @@ ex -s +"%s/^TestFromDate=\zs.\+$/$FROM/" -cwq /vagrant/conf/mt4-tester.ini
 ex -s +"%s/^TestToDate=\zs.\+$/$TO/" -cwq /vagrant/conf/mt4-tester.ini
 ex -s +"%s#^TestReport=\zs.\+$#$REPORTDIR#" -cwq /vagrant/conf/mt4-tester.ini
 
-cat /vagrant/conf/mt4-tester.ini | grep TestReport
-
+# Copy and update the configuration file.
+cp -vf /vagrant/conf/mt4-tester.ini $OUT/**/config/
 ex -s +"%s/^TestReplaceReport=\zs.\+$/true/" -cwq /vagrant/conf/mt4-tester.ini
 
 # Copying ini file to MT's directory so MT can find it.
 sudo cp /vagrant/conf/mt4-tester.ini /opt/MetaTrader\ 4/mt4-tester.ini
 
 # Monitor logs in the background.
-sleep 5 && tail -f /opt/**/*.log &
+find "$OUT" '(' -name "*.log" -or -name "*.dat" ')' -delete
+sleep 5 && tail -f $OUT/**/*.log &
+trap "killall tail" EXIT # Clean up after exit.
 
-# Disable gecko in wine.
-export WINEDLLOVERRIDES="mscoree,mshtml="
-
-# Run X virtual framebuffer on screen 0.
-Xvfb :0 -screen 0 1024x768x16 &
-
-# Select screen 0.
-export DISPLAY=:0.0
+# Configure wine.
+export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+export DISPLAY=:0.0 # Select screen 0.
+export WINEDEBUG=warn+all # For debugging, try: WINEDEBUG=trace+all
 
 # Run terminal.
-wine /opt/**/terminal.exe mt4-tester.ini
+wine $OUT/**/terminal.exe config/mt4-tester.ini && html2text $OUT/**/Report.htm
