@@ -65,6 +65,7 @@ chown -R vagrant:vagrant /opt
 
 # Install VM specific binaries.
 install -v /vagrant/scripts/run_backtest.sh /usr/local/bin/run_backtest
+install -v /vagrant/scripts/run_optimizer.sh /usr/local/bin/run_optimizer
 
 # Append extra settings into bashrc file.
 ex +':$s@$@\ralias run_backtest=/vagrant/scripts/run_backtest.sh@' -cwq /etc/bash.bashrc
