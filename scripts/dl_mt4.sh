@@ -1,5 +1,5 @@
-#!/bin/bash -x
-
+#!/usr/bin/env bash
+set -x
 OUT="/opt"
 
 # Download and install MT4/MT5 platforms.

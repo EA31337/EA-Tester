@@ -1,10 +1,11 @@
-#!/bin/bash -x
+#!/usr/bin/env bash
 
 #
 # Provisioning script
 #
 
 # Initialize script.
+set -x
 if [ ! -d "/vagrant/scripts" ]; then
   echo "This script needs to be run within vagrant VM."
   exit 1

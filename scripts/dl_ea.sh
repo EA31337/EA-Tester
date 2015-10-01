@@ -1,4 +1,5 @@
-#!/bin/bash -x
+#!/usr/bin/env bash
+set -x
 shopt -s globstar # Enable globbing.
 
 # Download EA.

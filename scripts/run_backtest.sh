@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)/.."
+set -x
+CWD="$(cd -P -- "$(dirname -- "$0")/../" && pwd -P)"
 OUT="/opt"
 TPL="/vagrant/conf/mt4-tester.ini"
 
@@ -18,8 +19,11 @@ EXPERT="$(find "$CWD" '(' -name "*$MODE*.ex4" -or -name "*$MODE*.ex5" ')' -print
 # Check if terminal is present.
 [ "$(find "$OUT" -name terminal.exe -print -quit)" ] || $CWD/scripts/dl_mt4.sh
 TERMINAL_EXE="$(find "$OUT" -name terminal.exe -print -quit)"
-TERMINAL_DIR="$(dirname "$TERMINAL")"
-TERMINAL_INI="$TERMINAL_DIR/config/$TPL"
+TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
+TERMINAL_INI="$TERMINAL_DIR/config/mt4-tester.ini"
+echo $TERMINAL_EXE
+echo $TERMINAL_DIR
+echo $TERMINAL_INI
 
 # Check if backtest files are present.
 [ "$(find "$OUT" -name '*.fxt')" ] || $CWD/scripts/dl_bt_data.sh
@@ -27,18 +31,15 @@ TERMINAL_INI="$TERMINAL_DIR/config/$TPL"
 # Download EA.
 $CWD/scripts/dl_ea.sh
 
-# Copy and update the configuration file.
-cp -vf $TPL $TERMINAL_INI
-[ ! -z "$EXPERT" ]    && ex -s +"%s/^TestExpert=\zs.\+$/$EXPERT/" -cwq $CONF
-[ ! -z "$SETFILE" ]   && ex -s +"%s/^TestExpertParameters=\zs.\+$/$SETFILE/" -cwq $CONF
-[ ! -z "$SYMBOL" ]    && ex -s +"%s/^TestSymbol=\zs.\+$/$SYMBOL/" -cwq $CONF
-[ ! -z "$FROM" ]      && ex -s +"%s/^TestFromDate=\zs.\+$/$FROM/" -cwq $CONF
-[ ! -z "$TO" ] 	      && ex -s +"%s/^TestToDate=\zs.\+$/$TO/" -cwq $CONF
-[ ! -z "$REPORTDIR" ] && ex -s +"%s#^TestReport=\zs.\+$#$REPORTDIR#" -cwq $CONF
-
-# Copying ini file to MT's directory so MT can find it.
-cp -v $TPL $TERMINAL_INI
-cp -v $SETFILE $TERMINAL_DIR/tester
+# Copy and update the configuration files, so platform can find it.
+cp -v "$TPL" "$TERMINAL_INI"
+[ -s "$SETFILE" ] && cp -v "$SETFILE" "$TERMINAL_DIR/tester"
+[ "$EXPERT" ]     && ex -s +"%s/^TestExpert=\zs.\+$/$EXPERT/" -cwq "$TERMINAL_INI"
+[ "$SETFILE" ]    && ex -s +"%s/^TestExpertParameters=\zs.\+$/$SETFILE/" -cwq "$TERMINAL_INI"
+[ "$SYMBOL" ]     && ex -s +"%s/^TestSymbol=\zs.\+$/$SYMBOL/" -cwq "$TERMINAL_INI"
+[ "$FROM" ]       && ex -s +"%s/^TestFromDate=\zs.\+$/$FROM/" -cwq "$TERMINAL_INI"
+[ "$TO" ] 	      && ex -s +"%s/^TestToDate=\zs.\+$/$TO/" -cwq "$TERMINAL_INI"
+[ "$REPORTDIR" ]  && ex -s +"%s#^TestReport=\zs.\+$#$REPORTDIR#" -cwq "$TERMINAL_INI"
 
 # Monitor logs in the background.
 find "$OUT" '(' -name "*.log" -or -name '*.dat' ')' -delete

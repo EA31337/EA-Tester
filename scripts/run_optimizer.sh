@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)/.."
 OUT="/opt"
 TPL="/vagrant/conf/mt4-tester.ini"
