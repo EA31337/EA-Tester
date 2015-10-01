@@ -1,0 +1,13 @@
+# Ignore swap files.
+.*.s??
+.*.*.s??
+
+# Ignore configuration files that may contain sensitive information.
+nbproject
+build.properties
+
+# Ignore Finder metadata files on Mac
+.DS_Store
+
+# Ignore Vagrant folder.
+.vagrant
