@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-set -x
-shopt -s globstar # Enable globbing.
+set -e
+type wget || { echo "Please install wget before continuing."; exit 1; }
+TERMINAL_EXE="$(find /opt -name terminal.exe -print -quit)"
+DIR="$(dirname "$TERMINAL_EXE")"
 
 # Download EA.
-wget -qNP /opt/**/MQL4/Experts "https://www.dropbox.com/s/gukjb229sv2ilpn/MACD.ex4"
+wget -qNP $DIR/MQL4/Experts $1
 
 # Add files to the git repository.
 git --git-dir=/opt/.git add -A
