@@ -22,7 +22,7 @@ before_install:
 
 install:
   - |
-    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7
+    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath
 
 
 before_script:
@@ -30,8 +30,10 @@ before_script:
     Xvfb :0 -screen 0 1024x768x16 &
     export DISPLAY=:0.0
     export WINEDLLOVERRIDES="mscoree,mshtml="
+    export PATH=${PATH//:\.\/node_modules\/\.bin/}
 
 
 script:
   - |
     ./scripts/install_mt4.sh
+    ./scripts/dl_bt_data.sh
