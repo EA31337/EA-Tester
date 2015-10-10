@@ -49,3 +49,4 @@ xdotool key --window $WINDOW_ID --delay 500 Escape Escape Alt+f x
 
 ls -l ~/.wine/drive_c/Program\ Files\ \(x86\)/MetaTrader\ 4/
 echo -e "\nMT4 platform was installed successfully!"
+echo "$0 done."
