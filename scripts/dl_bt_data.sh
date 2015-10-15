@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
-set -x
-TERMINAL_EXE="$(find /opt -name terminal.exe -print -quit)"
+set -e
+
+TERMINAL_EXE="$(find ~ -name terminal.exe -print -quit)"
 DIR="$(dirname "$TERMINAL_EXE")"
 
 # Download backtest data files.
-#FXT_URL="https://www.dropbox.com/s/fkjalsjhqk9p5vm/EURUSD1_0.fxt.gz" # Original
-FXT_DIR="$(realpath $DIR/tester/history)"
+FXT_DIR="$(realpath "$DIR"/tester/history)"
 FXT_URL="https://www.dropbox.com/s/31y3utndxjm1466/EURUSD1_0.fxt.gz"
-wget -qNP "$FXT_DIR" $FXT_URL
+wget -cNP "$FXT_DIR" $FXT_URL
 
-#HST_URL="https://www.dropbox.com/s/rag8ky8kub9eum9/EURUSD1.hst.gz" # Original
-HST_DIR="$(realpath $DIR/history/default)"
+HST_DIR="$(realpath "$DIR"/history/default)"
 HST_URL="https://www.dropbox.com/s/ovtyo5atjp3zbvz/EURUSD1.hst.gz"
-wget -qNP "$HST_DIR" $HST_URL # To test: --show-progress 
+wget -cNP "$HST_DIR" $HST_URL
 
 # Uncompress all .gz files.
 find "$DIR" -name "*.gz" -execdir gunzip -vfd "{}" ';'

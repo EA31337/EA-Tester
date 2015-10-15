@@ -1,0 +1,39 @@
+# Not using Python code, it's just a bone for Travis CI
+language: python
+python: 3.4
+
+sudo: required
+
+before_install:
+  - |
+    cat /etc/lsb-release | grep DISTRIB_DESCRIPTION && uname -a && whoami && pwd
+
+    # Perform an unattended installation of packages
+    sudo dpkg-reconfigure debconf -f noninteractive -p critical
+
+    # Add PPA/Wine repository
+    sudo add-apt-repository -y ppa:ubuntu-wine/ppa
+
+    # Skip unnecessary source indexes for a faster run
+    sudo sed -i'' 's/^deb-src/#deb-src/' /etc/apt/sources.list
+    sudo sed -i'' 's/^deb-src/#deb-src/' /etc/apt/sources.list.d/ubuntu-wine-ppa-precise.list
+    sudo apt-get update
+
+
+install:
+  - |
+    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath
+
+
+before_script:
+  - |
+    Xvfb :0 -screen 0 1024x768x16 &
+    export DISPLAY=:0.0
+    export WINEDLLOVERRIDES="mscoree,mshtml="
+    export PATH=${PATH//:\.\/node_modules\/\.bin/}
+
+
+script:
+  - |
+    ./scripts/install_mt4.sh
+    ./scripts/dl_bt_data.sh
