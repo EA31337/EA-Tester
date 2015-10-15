@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 # Set delay for periodic checks
 export DELAY=5
@@ -47,6 +49,5 @@ done
 echo "Sending application closer keystrokes..."
 xdotool key --window $WINDOW_ID --delay 500 Escape Escape Alt+f x
 
-ls -l ~/.wine/drive_c/Program\ Files\ \(x86\)/MetaTrader\ 4/
-echo -e "\nMT4 platform was installed successfully!"
+tree "`find ~/.wine -name MetaTrader* -type d -print | grep 'Program Files'`"
 echo "$0 done."
