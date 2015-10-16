@@ -3,10 +3,17 @@ language: python
 python: 3.4
 
 sudo: required
+env:
+  global:
+    - |
+      DISPLAY=:0.0
+      WINEDLLOVERRIDES="mscoree,mshtml="
+      PATH=${PATH//:\.\/node_modules\/\.bin/}    # Workaround for Travis issue #4862
+      CWD="$TRAVIS_BUILD_DIR"
 
 before_install:
   - |
-    cat /etc/lsb-release | grep DISTRIB_DESCRIPTION && uname -a && whoami && pwd
+    whoami && pwd
 
     # Perform an unattended installation of packages
     sudo dpkg-reconfigure debconf -f noninteractive -p critical
@@ -22,18 +29,15 @@ before_install:
 
 install:
   - |
-    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath
+    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath tree
 
 
 before_script:
   - |
     Xvfb :0 -screen 0 1024x768x16 &
-    export DISPLAY=:0.0
-    export WINEDLLOVERRIDES="mscoree,mshtml="
-    export PATH=${PATH//:\.\/node_modules\/\.bin/}
 
 
 script:
   - |
-    ./scripts/install_mt4.sh
-    ./scripts/dl_bt_data.sh
+    $CWD/scripts/install_mt4.sh
+    $CWD/scripts/dl_bt_data.sh
