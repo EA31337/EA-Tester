@@ -4,6 +4,7 @@ VDIR="/vagrant"
 OUT="/opt"
 CONF="mt4-tester.ini"
 TPL="$VDIR/conf/$CONF"
+FIND_EXCLUDES="-path *dosdevices* -prune -o"
 
 # Check dependencies.
 type realpath || { echo "The realpath is required."; exit 1; }
@@ -11,11 +12,11 @@ type realpath || { echo "The realpath is required."; exit 1; }
 # Define functions.
 
 clean_files() {
-  find -L "$OUT" '(' -name "*.log" -or -name '*.dat' -or -name '*.htm' ')' -delete # Remove old log, dat and htm files.
+  find -L "$OUT" $FIND_EXCLUDES '(' -name "*.log" -or -name '*.dat' -or -name '*.htm' ')' -delete # Remove old log, dat and htm files.
 }
 
 check_logs() {
-  find -L "$OUT"  -name "*.log" -exec tail "{}" ';'
+  find -L "$OUT" $FIND_EXCLUDES -name "*.log" -exec tail "{}" ';'
 }
 
 configure_wine() {
@@ -28,8 +29,8 @@ configure_wine() {
 on_success() {
   echo "Test succeded."
   check_logs
-  html2text $(find -L "$TERMINAL_DIR" -name "Report*.htm")
-  [ "$DEST" ] && find -L "$TERMINAL_DIR" -name "*Report*" -and -not -path "*templates/*" -execdir cp -v "{}" "$DEST" ';'
+  html2text $(find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "Report*.htm")
+  [ "$DEST" ] && find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "*Report*" -and -not -path "*templates/*" -execdir cp -v "{}" "$DEST" ';'
 }
 
 on_failure() {
@@ -38,8 +39,8 @@ on_failure() {
 }
 
 # Check if terminal is present.
-[ "$(find -L "$OUT" -name terminal.exe -print -quit)" ] || $VDIR/scripts/dl_mt4.sh
-TERMINAL_EXE="$(find -L "$OUT" -name terminal.exe -print -quit)"
+[ "$(find -L "$OUT" $FIND_EXCLUDES -name terminal.exe -print -quit)" ] || $VDIR/scripts/dl_mt4.sh
+TERMINAL_EXE="$(find -L "$OUT" $FIND_EXCLUDES -name terminal.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
 
@@ -66,7 +67,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     n) # EA name.
       EA_NAME=${OPTARG}
-      EA_PATH="$(find -L "$VDIR" '(' -name "*$EA_NAME*.ex4" -or -name "*$EA_NAME*.ex5" ')' -print -quit)"
+      EA_PATH="$(find -L "$VDIR" '(' $FIND_EXCLUDES -name "*$EA_NAME*.ex4" -or $FIND_EXCLUDES -name "*$EA_NAME*.ex5" ')' -print -quit)"
       [ -s "$EA_PATH" ]  && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
       [ "$EA_NAME" ]     && ex -s +"%s/^TestExpert=\zs.\+$/$EA_NAME/" -cwq "$TERMINAL_INI"
       ;;
@@ -97,7 +98,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
     b) # Backtest data to test.
       BT_SOURCE=${OPTARG}
       # @todo: Place the right backtest data into the right place and change the profile name.
-      [ "$(find -L "$OUT" -name '*.fxt')" ] || $VDIR/scripts/dl_bt_data.sh # Download backtest files if not present.
+      [ "$(find -L "$OUT" $FIND_EXCLUDES -name '*.fxt')" ] || $VDIR/scripts/dl_bt_data.sh # Download backtest files if not present.
       ;;
 
     D) # Destination directory to save test results.
