@@ -16,7 +16,7 @@ while : ; do
 	echo "Waiting for Wine to initialize..."
 	sleep $DELAY
 	set +e  # Workaround for xdotool issue #60
-	WINDOW_ID=`xdotool search --name "MetaTrader 4 Setup*"`
+	WINDOW_ID=$(xdotool search --name "MetaTrader 4 Setup*")
 	set -e  # Workaround for xdotool issue #60
 	[[ -z $WINDOW_ID ]] || break
 done
@@ -30,7 +30,7 @@ while : ; do
 	echo "Installing MT4 platform..."
 	sleep $DELAY
 	set +e  # Avoid script termination
-	PS=`ps | grep "mt4setup.exe"`
+	PS=$(ps | grep "mt4setup.exe")
 	set -e  # Avoid script termination
 	[[ ! -z $PS ]] || break
 done
@@ -40,7 +40,7 @@ while : ; do
 	echo "Waiting for MT4 platform to start..."
 	sleep $DELAY
 	set +e  # Workaround for xdotool issue #60
-	WINDOW_ID=`xdotool search -name "MetaTrader 4 - *"`
+	WINDOW_ID=$(xdotool search -name "MetaTrader 4 - *")
 	set -e  # Workaround for xdotool issue #60
 	[[ -z $WINDOW_ID ]] || break
 done
@@ -49,5 +49,5 @@ done
 echo "Sending application closer keystrokes..."
 xdotool key --window $WINDOW_ID --delay 500 Escape Escape Alt+f x
 
-tree "`find ~/.wine -name MetaTrader* -type d -print | grep 'Program Files'`"
+tree "$(find ~/.wine -name MetaTrader* -type d -print | grep 'Program Files')"
 echo "$0 done."
