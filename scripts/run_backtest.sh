@@ -12,7 +12,7 @@ type realpath || { echo "The realpath is required."; exit 1; }
 # Define functions.
 
 clean_files() {
-  find -L "$OUT" $FIND_EXCLUDES '(' -name "*.log" -or -name '*.dat' -or -name '*.htm' ')' -delete # Remove old log, dat and htm files.
+  find -L "$OUT" '(' $FIND_EXCLUDES -name "*.log" -or $FIND_EXCLUDES -name '*.dat' -or $FIND_EXCLUDES -name '*.htm' ')' -exec rm {} ';' # Remove old log, dat and htm files.
 }
 
 check_logs() {
@@ -29,7 +29,7 @@ configure_wine() {
 on_success() {
   echo "Test succeded."
   check_logs
-  html2text $(find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "Report*.htm")
+  html2text "$(find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "Report*.htm")"
   [ "$DEST" ] && find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "*Report*" -and -not -path "*templates/*" -execdir cp -v "{}" "$DEST" ';'
 }
 
