@@ -3,7 +3,7 @@
 set -e
 
 # Set delay for periodic checks
-export DELAY=5
+DELAY=5
 
 echo "Downloading MT4 installer..."
 wget -c -t0 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
