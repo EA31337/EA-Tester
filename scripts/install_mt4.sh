@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -e
 
 # Set delay for periodic checks
@@ -49,5 +48,4 @@ done
 echo "Sending application closer keystrokes..."
 xdotool key --window $WINDOW_ID --delay 500 Escape Escape Alt+f x
 
-tree "$(find ~/.wine -name MetaTrader* -type d -print | grep 'Program Files')"
 echo "$0 done."
