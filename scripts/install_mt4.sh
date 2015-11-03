@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-
 set -e
 
 # Set delay for periodic checks
-export DELAY=5
+DELAY=5
 
 echo "Downloading MT4 installer..."
-wget -c -t0 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
+wget -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
 
 echo "Starting MT4 Setup in Wine..."
-wine mt4setup.exe &
+wine mt4setup.exe &> ~/wine_mt4setup.exe.log &
 
 # Wait until Wine initializes
 while : ; do
@@ -49,5 +48,4 @@ done
 echo "Sending application closer keystrokes..."
 xdotool key --window $WINDOW_ID --delay 500 Escape Escape Alt+f x
 
-tree "$(find ~/.wine -name MetaTrader* -type d -print | grep 'Program Files')"
 echo "$0 done."
