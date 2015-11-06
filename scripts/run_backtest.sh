@@ -57,7 +57,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
       else
         REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
       fi
-      [ "$REPORT" ]  && ex -s +"%s#^TestReport=\zs.\+\$#$REPORT#" -cwq "$TERMINAL_INI"
+      [ "$REPORT" ] && ex -s +"%s#^TestReport=\zs.\+\$#$REPORT#" -cwq "$TERMINAL_INI"
       ;;
 
     f) # The set file to run the test.
@@ -69,13 +69,13 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
     n) # EA name.
       EA_NAME=${OPTARG}
       EA_PATH="$(find -L "$VDIR" '(' $FIND_EXCLUDES -name "*$EA_NAME*.ex4" -or $FIND_EXCLUDES -name "*$EA_NAME*.ex5" ')' -print -quit)"
-      [ -s "$EA_PATH" ]  && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
-      [ "$EA_NAME" ]     && ex -s +"%s/^TestExpert=\zs.\+$/$EA_NAME/" -cwq "$TERMINAL_INI"
+      [ -s "$EA_PATH" ] && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
+      [ "$EA_NAME" ]    && ex -s +"%s/^TestExpert=\zs.\+$/$EA_NAME/" -cwq "$TERMINAL_INI"
       ;;
 
     p) # Symbol pair to test.
       SYMBOL=${OPTARG}
-      [ "$SYMBOL" ]      && ex -s +"%s/^TestSymbol=\zs.\+$/$SYMBOL/" -cwq "$TERMINAL_INI"
+      [ "$SYMBOL" ] && ex -s +"%s/^TestSymbol=\zs.\+$/$SYMBOL/" -cwq "$TERMINAL_INI"
       ;;
 
     d) # Deposit amount to test.
@@ -91,8 +91,8 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
       YEAR=${OPTARG}
       FROM="$YEAR.01.01"
       TO="$YEAR.01.02"
-      [ "$FROM" ]       && ex -s +"%s/^TestFromDate=\zs.\+$/$FROM/" -cwq "$TERMINAL_INI"
-      [ "$TO" ] 	      && ex -s +"%s/^TestToDate=\zs.\+$/$TO/" -cwq "$TERMINAL_INI"
+      [ "$FROM" ] && ex -s +"%s/^TestFromDate=\zs.\+$/$FROM/" -cwq "$TERMINAL_INI"
+      [ "$TO" ]   && ex -s +"%s/^TestToDate=\zs.\+$/$TO/" -cwq "$TERMINAL_INI"
       ;;
 
     s) # Spread to test.
