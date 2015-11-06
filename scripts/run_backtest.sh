@@ -93,7 +93,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     s) # Spread to test.
       SPREAD=${OPTARG}
-      # @todo: Set the right spread for the test.
+      [ "$SPREAD" ] && ex -s +"%s/^Spread=\zs.\+$/$SPREAD/" -cwq "$TERMINAL_DIR/config/terminal.ini"
       ;;
 
     b) # Backtest data to test.
