@@ -80,7 +80,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     d) # Deposit amount to test.
       DEPOSIT=${OPTARG}
-      if [  ]; then
+      if [ -n "$DEPOSIT" ]; then
         DEPOSIT_PATTERN="Deposit="
         grep -q "^$DEPOSIT_PATTERN" "$TERMINAL_INI" && sed "s/\(^$DEPOSIT_PATTERN\).*/\1$DEPOSIT/" -i "$TERMINAL_INI" \
                                                     || echo -e "\n; Set deposit amount to test\n$DEPOSIT_PATTERN$DEPOSIT" >> "$TERMINAL_INI"
