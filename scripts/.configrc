@@ -1,0 +1,12 @@
+# .configrc: invoked by bash(1)
+#
+# Initialize variables.
+set -e
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+DIRS="/opt"
+
+# Determine platform paths.
+CONF="mt4-tester.ini"
+TERMINAL_EXE="$(find ~ $DIRS -name terminal.exe -print -quit)"
+TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
+TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
