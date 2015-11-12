@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-#set -x
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+. $CWD/.configrc
 VDIR="/vagrant"
 OUT="/opt"
 TPL="$VDIR/conf/$CONF"
 FIND_EXCLUDES="-path *dosdevices* -prune -o"
 
 # Check dependencies.
-type realpath || { echo "The realpath is required."; exit 1; }
+set -e
+type git realpath ex
 
 # Define functions.
 
@@ -100,8 +102,8 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     b) # Backtest data to test.
       BT_SOURCE=${OPTARG}
-      # @todo: Place the right backtest data into the right place and change the profile name.
-      [ "$(find -L "$OUT" $FIND_EXCLUDES -name '*.fxt')" ] || $VDIR/scripts/dl_bt_data.sh # Download backtest files if not present.
+      # Download backtest files if not present.
+      [ "$(find "$TERMINAL_DIR" -name '*.fxt')" ] || $VDIR/scripts/dl_bt_data.sh $SYMBOL $YEAR DS
       ;;
 
     D) # Destination directory to save test results.
