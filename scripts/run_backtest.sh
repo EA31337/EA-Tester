@@ -2,7 +2,6 @@
 #set -x
 VDIR="/vagrant"
 OUT="/opt"
-CONF="mt4-tester.ini"
 TPL="$VDIR/conf/$CONF"
 FIND_EXCLUDES="-path *dosdevices* -prune -o"
 
@@ -41,8 +40,7 @@ on_failure() {
 
 # Check if terminal is present.
 [ "$(find -L "$OUT" $FIND_EXCLUDES -name terminal.exe -print -quit)" ] || $VDIR/scripts/dl_mt4.sh
-TERMINAL_EXE="$(find -L "$OUT" $FIND_EXCLUDES -name terminal.exe -print -quit)"
-TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
+. .configrc
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
 
 # Copy the configuration file, so platform can find -L it.
