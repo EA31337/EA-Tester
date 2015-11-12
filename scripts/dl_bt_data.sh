@@ -23,12 +23,12 @@ zip -T "$dest/$symbol-$year.zip" || wget -cNP "$dest" "$bt_url"
 # Extract the backtest data.
 find "$dest" -name "*.zip" -execdir unzip -n {} ';'
 
-find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' | pv -s $(du -sb "$dest"/FX*-$year | awk '{print $1}') -N "Converting data" | sort > "$dest/$symbol-$year.csv"
+find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' | pv -N "Sorting data" -s $(du -sb "$dest"/*$symbol-$year | awk '{print $1}') | sort > "$dest/$symbol-$year.csv"
 "$dest/scripts/convert_csv_to_mt.py" -i "$dest/$symbol-$year.csv" -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
 "$dest/scripts/convert_csv_to_mt.py" -i "$dest/$symbol-$year.csv" -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
 
 # Make the backtest files read-only.
-find "$DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
 
 # Add files to the git repository.
 #if test -d "$DIR/.git"; then
