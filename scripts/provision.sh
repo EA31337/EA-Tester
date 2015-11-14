@@ -1,18 +1,20 @@
-#!/usr/bin/env bash
+#!/bin/sh -e
 
 #
 # Provisioning script
 #
 
 # Initialize script.
-set -ex
 if [ ! -d "/vagrant" ] && [ ! -d "/home/travis" ]; then
   echo "This script needs to be run within VM."
   exit 1
 fi
-
 whoami && pwd
-shopt -s globstar # Enable globbing.
+
+# Init variables.
+ARCH=$(dpkg --print-architecture)
+id travis  && USER="travis"
+id vagrant && USER="vagrant"
 
 # Perform an unattended installation of a Debian packages.
 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
@@ -29,13 +31,10 @@ apt-get install -y xvfb xdotool
 
 # Install wine
 #dpkg --add-architecture i386
-add-apt-repository -y ppa:ubuntu-wine
-find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
-apt-get install -y wine1.7
-#:$(dpkg --print-architecture)
-
-# Upgrade manually some packages from the source.
-apt-get install -y libx11-dev libxtst-dev libxinerama-dev libxkbcommon-dev
+add-apt-repository -y ppa:ubuntu-wine/ppa
+find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" ';'
+apt-get -d update
+apt-get install -y wine1.7 winetricks
 
 # Install composer (https://getcomposer.org/) via PHP.
 #apt-get install php5-cli
@@ -53,11 +52,7 @@ git config --system core.sharedRepository group
 # Add version control for /opt.
 git init /opt
 
-# Give vagrant write permission for /opt.
-chown -R vagrant:vagrant /opt
-
-# Install VM specific binaries.
-#install -v /vagrant/scripts/run_backtest.sh /usr/local/bin/run_backtest
-#install -v /vagrant/scripts/run_optimizer.sh /usr/local/bin/run_optimizer
+# Give user write permission for /opt.
+chown -R $USER /opt
 
 echo "$0 done."
