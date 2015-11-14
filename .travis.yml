@@ -29,7 +29,7 @@ before_install:
 
 install:
   - |
-    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath tree
+    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath tree pv
 
 
 before_script:
