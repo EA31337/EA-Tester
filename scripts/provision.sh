@@ -30,10 +30,9 @@ apt-get install -y xvfb xdotool
 # Install wine
 #dpkg --add-architecture i386
 add-apt-repository -y ppa:ubuntu-wine
-# Skip unnecessary source indexes for a faster run
-ex +'bufdo!%s/^deb-src/#deb-src/' -scxa /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu-wine-*.list
-apt-get update
-apt-get install -y wine
+find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
+apt-get install -y wine1.7
+#:$(dpkg --print-architecture)
 
 # Upgrade manually some packages from the source.
 apt-get install -y libx11-dev libxtst-dev libxinerama-dev libxkbcommon-dev
