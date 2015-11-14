@@ -9,7 +9,7 @@ echo "Downloading MT4 installer..."
 wget -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
 
 echo "Starting MT4 Setup in Wine..."
-wine mt4setup.exe &> ~/wine_mt4setup.exe.log &
+wine mt4setup.exe &
 
 # Wait until Wine initializes
 while : ; do
@@ -48,5 +48,8 @@ done
 # Close running MT4 instance, first the two login popup window, secondly application itself
 echo "Sending application closer keystrokes..."
 xdotool key --window $WINDOW_ID --delay 500 Escape Escape Alt+f x
+
+# Re-initialize settings.
+. $CWD/.configrc
 
 echo "$0 done."

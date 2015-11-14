@@ -21,11 +21,11 @@ id vagrant && USER="vagrant"
 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
 dpkg-reconfigure debconf -f noninteractive -p critical
 
-# Install the locale packate to prevent an invalid locale.
+# Install the locale packate to prevent invalid locale.
 apt-get install -y language-pack-en
 
 # Install basic utils.
-apt-get install -y links html2text tree
+apt-get install -y coreutils links html2text tree
 
 # Install and run X virtual framebuffer and X utils.
 apt-get install -y xvfb xdotool

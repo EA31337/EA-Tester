@@ -4,14 +4,10 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 # Check dependencies.
 type git realpath ex
 
-# Define functions.
-configure_wine() {
-# Configure wine.
-  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-  export DISPLAY=:0.0 # Select screen 0.
-  export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
-}
+# Initialize settings.
+. $CWD/.configrc
 
+# Define functions.
 on_success() {
   echo "Test succeded."
   show_logs
@@ -29,11 +25,8 @@ on_finish() {
   echo "$0 done."
 }
 
-# Initialize settings.
-. $CWD/.configrc
-
 # Check if terminal is present, otherwise install it.
-test -d "$TERMINAL_DIR" || { $SCR/install_mt4.sh && load_config; }
+test -d "$TERMINAL_DIR" || $SCR/install_mt4.sh
 
 # Copy the configuration file, so platform can find it.
 cp -v "$TPL" "$TERMINAL_INI"
@@ -105,7 +98,6 @@ done
 
 # Prepare before test run.
 clean_files
-configure_wine
 
 # Run the test with the platform.
 time wine "$TERMINAL_EXE" "config/$CONF" && on_success || on_failure

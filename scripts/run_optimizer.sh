@@ -6,13 +6,6 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 type git realpath ex
 
 # Define functions.
-configure_wine() {
-# Configure wine.
-  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-  export DISPLAY=:0.0 # Select screen 0.
-  export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
-}
-
 on_success() {
   echo "Test succeded."
   show_logs
@@ -45,7 +38,6 @@ cp -v "$TPL" "$TERMINAL_INI"
 
 # Prepare before test run.
 clean_files
-configure_wine
 
 # Run the test with the platform.
 time wine "$TERMINAL_EXE" "config/$CONF" && on_success || on_failure
