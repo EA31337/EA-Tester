@@ -23,4 +23,4 @@ before_script:
   - set -e
 
 script:
-  - run_backtest -p EURUSD -y $YEAR -s $SPREAD
+  - $CWD/scripts/run_backtest.sh -p $PAIR -y $YEAR -s $SPREAD

@@ -34,15 +34,13 @@ API_VERSION = "2"
 Vagrant.configure(API_VERSION) do |config|
 
   config.vm.box = "ubuntu/vivid64"
-  config.vm.box_version = "20150722.0.0"
   config.vm.network "private_network", ip: "192.168.22.22"
   config.vm.hostname = "vagrant"
-  config.vm.provision "shell",
-    path: "scripts/provision.sh"
+  config.vm.provision "shell", path: "scripts/provision.sh"
     # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
- #config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
+# config.ssh.pty = true # Use pty for provisioning. Could hang the script.
 
   config.vm.synced_folder ".", "/vagrant", id: "core",
     nfs: true

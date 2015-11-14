@@ -10,6 +10,7 @@ if [ ! -d "/vagrant" ] && [ ! -d "/home/travis" ]; then
   exit 1
 fi
 whoami && pwd
+type dpkg apt-get git
 
 # Init variables.
 ARCH=$(dpkg --print-architecture)
@@ -30,6 +31,7 @@ apt-get install -y links html2text tree
 apt-get install -y xvfb xdotool
 
 # Install wine
+dpkg --add-architecture i386 || true
 add-apt-repository -y ppa:ubuntu-wine/ppa
 find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
 apt-get -d update
@@ -48,6 +50,6 @@ git config --system core.sharedRepository group
 git init /opt
 
 # Give user write permission for /opt.
-chown -vR $USER /opt
+chown -R $USER /opt
 
 echo "$0 done."

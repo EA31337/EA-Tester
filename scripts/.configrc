@@ -2,11 +2,26 @@
 #
 # Initialize variables.
 set -e
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-DIRS="/opt"
+SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null)"
+DIRS="/opt ~/wine"
 
 # Determine platform paths.
+OUT="/opt"
 CONF="mt4-tester.ini"
+TPL="$ROOT/conf/$CONF"
 TERMINAL_EXE="$(find ~ $DIRS -name terminal.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
+
+# Define functions.
+show_logs() {
+  echo "Printing logs..."
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" ')' -exec tail "{}" ';'
+}
+
+clean_files() {
+  # Remove old log, dat, txt and htm files.
+  echo "Cleaning..."
+  find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.dat" -o -name "*.htm" ')' -print -delete
+}
