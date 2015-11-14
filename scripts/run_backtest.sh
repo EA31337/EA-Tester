@@ -26,7 +26,7 @@ on_finish() {
 }
 
 # Check if terminal is present, otherwise install it.
-test -d "$TERMINAL_DIR" || $SCR/install_mt4.sh
+test -f "$TERMINAL_EXE" || $SCR/install_mt4.sh
 
 # Copy the configuration file, so platform can find it.
 cp -v "$TPL" "$TERMINAL_INI"

@@ -25,7 +25,7 @@ dpkg-reconfigure debconf -f noninteractive -p critical
 apt-get install -y language-pack-en
 
 # Install basic utils.
-apt-get install -y coreutils links html2text tree
+apt-get install -y coreutils realpath links html2text tree
 
 # Install and run X virtual framebuffer and X utils.
 apt-get install -y xvfb xdotool

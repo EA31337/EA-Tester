@@ -9,12 +9,14 @@ ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null)"
 OUT="/opt"
 CONF="mt4-tester.ini"
 TPL="$ROOT/conf/$CONF"
-TERMINAL_EXE="$(find ~ '$OUT' -name terminal.exe -print -quit)"
-TERMINAL_DIR="$(dirname '$TERMINAL_EXE')"
+TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
+TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
 
-# Load environment variables.
-load_env
+# Configure wine.
+export DISPLAY=:0.0 # Select screen 0.
+export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
 
 # Define functions.
 show_logs() {
@@ -26,11 +28,4 @@ clean_files() {
   # Remove old log, dat, txt and htm files.
   echo "Cleaning..."
   find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.dat" -o -name "*.htm" ')' -print -delete
-}
-
-load_env() {
-  # Configure wine.
-  export DISPLAY=:0.0 # Select screen 0.
-  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-  export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
 }
