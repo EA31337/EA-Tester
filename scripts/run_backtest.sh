@@ -11,6 +11,9 @@ set -e
 type git realpath ex
 
 # Define functions.
+load_config() {
+  . $CWD/.configrc
+}
 
 clean_files() {
   find -L "$OUT" '(' $FIND_EXCLUDES -name "*.log" -or $FIND_EXCLUDES -name '*.dat' -or $FIND_EXCLUDES -name '*.htm' ')' -exec rm {} ';' # Remove old log, dat and htm files.
@@ -40,9 +43,11 @@ on_failure() {
   check_logs
 }
 
-# Check if terminal is present.
-[ "$(find -L "$OUT" $FIND_EXCLUDES -name terminal.exe -print -quit)" ] || $VDIR/scripts/dl_mt4.sh
-. .configrc
+# Initialize settings.
+load_config
+
+# Check if terminal is present, otherwise install it.
+test -d "$TERMINAL_DIR" || { $CWD/install_mt4.sh && load_config; }
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
 
 # Copy the configuration file, so platform can find -L it.

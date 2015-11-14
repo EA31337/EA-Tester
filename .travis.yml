@@ -8,36 +8,19 @@ env:
     - |
       DISPLAY=:0.0
       WINEDLLOVERRIDES="mscoree,mshtml="
-      PATH=${PATH//:\.\/node_modules\/\.bin/}    # Workaround for Travis issue #4862
+      PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
       CWD="$TRAVIS_BUILD_DIR"
+  matrix:
+    - PAIR=EURUSD YEAR=2014 SPREAD=10
 
 before_install:
-  - |
-    whoami && pwd
-
-    # Perform an unattended installation of packages
-    sudo dpkg-reconfigure debconf -f noninteractive -p critical
-
-    # Add PPA/Wine repository
-    sudo add-apt-repository -y ppa:ubuntu-wine/ppa
-
-    # Skip unnecessary source indexes for a faster run
-    sudo sed -i'' 's/^deb-src/#deb-src/' /etc/apt/sources.list
-    sudo sed -i'' 's/^deb-src/#deb-src/' /etc/apt/sources.list.d/ubuntu-wine-ppa-precise.list
-    sudo apt-get update
-
+  - whoami && pwd
 
 install:
-  - |
-    sudo apt-get install --force-yes xvfb xdotool winbind wine1.7 realpath tree pv
-
+  - sudo $CWD/scripts/provision.sh
 
 before_script:
-  - |
-    Xvfb :0 -screen 0 1024x768x16 &
-
+  - set -e
 
 script:
-  - |
-    $CWD/scripts/install_mt4.sh
-    $CWD/scripts/dl_bt_data.sh
+  - run_backtest -p EURUSD -y $YEAR -s $SPREAD

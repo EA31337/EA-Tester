@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+type wget xdotool
 
 # Set delay for periodic checks
 DELAY=5
