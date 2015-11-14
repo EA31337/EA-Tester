@@ -30,15 +30,10 @@ apt-get install -y links html2text tree
 apt-get install -y xvfb xdotool
 
 # Install wine
-#dpkg --add-architecture i386
 add-apt-repository -y ppa:ubuntu-wine/ppa
-find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" ';'
+find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
 apt-get -d update
 apt-get install -y wine1.7 winetricks
-
-# Install composer (https://getcomposer.org/) via PHP.
-#apt-get install php5-cli
-#curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Run X virtual framebuffer on screen 0.
 export DISPLAY=:0
@@ -53,6 +48,6 @@ git config --system core.sharedRepository group
 git init /opt
 
 # Give user write permission for /opt.
-chown -R $USER /opt
+chown -vR $USER /opt
 
 echo "$0 done."
