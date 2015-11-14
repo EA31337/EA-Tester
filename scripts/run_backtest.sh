@@ -4,9 +4,6 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 # Check dependencies.
 type git realpath ex
 
-# Initialize settings.
-. $CWD/.configrc
-
 # Define functions.
 on_success() {
   echo "Test succeded."
@@ -26,7 +23,10 @@ on_finish() {
 }
 
 # Check if terminal is present, otherwise install it.
-test -f "$TERMINAL_EXE" || $SCR/install_mt4.sh
+$CWD/install_mt4.sh
+
+# Initialize settings.
+. $CWD/.configrc
 
 # Copy the configuration file, so platform can find it.
 cp -v "$TPL" "$TERMINAL_INI"
