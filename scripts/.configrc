@@ -3,15 +3,15 @@
 # Initialize variables.
 set -e
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null)"
+export ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null)"
 
 # Determine platform paths.
 OUT="/opt"
 CONF="mt4-tester.ini"
 TPL="$ROOT/conf/$CONF"
-TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
-TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
-TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
+export TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
+export TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
+export TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
 
 # Configure wine.
 export DISPLAY=:0.0 # Select screen 0.

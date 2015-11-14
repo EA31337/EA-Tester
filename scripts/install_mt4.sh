@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+
+# Check dependencies.
 set -e
 type wget xdotool
 
