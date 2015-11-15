@@ -5,6 +5,20 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 type git realpath ex
 
 # Define functions.
+input_set() {
+  key="$1"
+  value="$2"
+  file="${3:SETFILE}"
+  ex -s +"%s/$key=\zs.\+$/$value/" -cwq "$file"
+}
+
+ini_set() {
+  key="$1"
+  value="$2"
+  file="${3:TERMINAL_INI}"
+  ex -s +"%s/^$key=\zs.\+$/$value/" -cwq "$file"
+}
+
 on_success() {
   echo "Test succeded."
   show_logs
@@ -43,12 +57,14 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
         REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
       fi
       [ "$REPORT" ] && ex -s +"%s#^TestReport=\zs.\+\$#$REPORT#" -cwq "$TERMINAL_INI"
+# ini_set "^TestReport" "$REPORT" $TERMINAL_INI # Test me.
       ;;
 
     f) # The set file to run the test.
       SETFILE=${OPTARG}
       [ -s "$SETFILE" ] && cp -v "$SETFILE" "$TERMINAL_DIR/tester"
       [ "$SETFILE" ]    && ex -s +"%s/^TestExpertParameters=\zs.\+$/$SETFILE/" -cwq "$TERMINAL_INI"
+# ini_set "^TestExpertParameters" "$SETFILE" $TERMINAL_INI # Test me.
       ;;
 
     n) # EA name.
