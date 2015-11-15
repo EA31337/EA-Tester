@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+set -x
 
 # Check dependencies.
 type git realpath ex
@@ -23,7 +24,8 @@ on_finish() {
 }
 
 # Check if terminal is present, otherwise install it.
-$CWD/install_mt4.sh
+echo "Checking platform dependencies..."
+[ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
 
 # Initialize settings.
 . $CWD/.configrc

@@ -9,14 +9,14 @@ export ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null)"
 OUT="/opt"
 CONF="mt4-tester.ini"
 TPL="$ROOT/conf/$CONF"
-export TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
-export TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
-export TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
+TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
+TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
+TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
 
 # Configure wine.
-export DISPLAY=:0.0 # Select screen 0.
-export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
+DISPLAY=:0.0 # Select screen 0.
+WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
 
 # Define functions.
 show_logs() {
