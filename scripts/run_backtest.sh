@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-set -x
 
 # Check dependencies.
 type git realpath ex
@@ -32,6 +31,7 @@ echo "Checking platform dependencies..."
 
 # Copy the configuration file, so platform can find it.
 cp -v "$TPL" "$TERMINAL_INI"
+cp -v "$TPL2" "$TERMINAL_INI2"
 
 # Parse the arguments.
 while getopts r:f:n:p:d:y:s:b:D: opts; do
@@ -82,7 +82,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     s) # Spread to test.
       SPREAD=${OPTARG}
-      [ "$SPREAD" ] && ex -s +"%s/^Spread=\zs.\+$/$SPREAD/" -cwq "$TERMINAL_DIR/config/terminal.ini"
+      [ "$SPREAD" ] && ex -s +"%s/^Spread=\zs.\+$/$SPREAD/" -cwq "$TERMINAL_INI2"
       ;;
 
     b) # Backtest data to test.
