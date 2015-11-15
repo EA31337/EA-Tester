@@ -1,34 +1,57 @@
 # .configrc: invoked by bash(1)
 #
 # Initialize variables.
-set -e
+set -ex
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-export ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null)"
+ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
 
 # Determine platform paths.
 OUT="/opt"
-CONF="mt4-tester.ini"
-CONF2="terminal.ini"
-TPL="$ROOT/conf/$CONF"
-TPL2="$ROOT/conf/$CONF2"
+CONF_TEST="mt4-tester.ini"
+CONF_TERM="terminal.ini"
+TPL_TEST="$ROOT/conf/$CONF_TEST"
+TPL_TERM="$ROOT/conf/$CONF_TERM"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
-TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
-TERMINAL_INI2="$TERMINAL_DIR/config/$CONF2"
+TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
+TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
+TESTER_DIR="$TERMINAL_DIR/tester"
 
-# Configure wine.
-DISPLAY=:0.0 # Select screen 0.
-WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
+# Configure display and wine.
+export DISPLAY=:0.0 # Select screen 0.
+export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
+set +x
 
-# Define functions.
+# Define common functions.
 show_logs() {
   echo "Printing logs..."
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" ')' -exec tail "{}" ';'
 }
 
 clean_files() {
-  # Remove old log, dat, txt and htm files.
+  # Remove previous log, dat, txt and htm files.
   echo "Cleaning..."
-  find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.dat" -o -name "*.htm" ')' -print -delete
+  find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.dat" -o -name "*.htm" -o -name "*.gif" ')' -print -delete
+}
+
+input_set() {
+  key="$1"
+  value="$2"
+  file="${3:-$(echo $SETFILE)}"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+}
+
+ini_set() {
+  key="$1"
+  value="$2"
+  file="${3:-$(echo $TESTER_INI)}"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+}
+
+ini_get() {
+  key="$1"
+  file="${2:-$(echo $TESTER_INI)}"
+  set -x
+  grep -w "$key" "$file" | cut -d= -f2-
 }
