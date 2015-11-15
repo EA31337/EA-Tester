@@ -1,64 +1,55 @@
-#!/usr/bin/env bash
+#!/bin/sh -e
 
 #
 # Provisioning script
 #
 
 # Initialize script.
-set -xe
-if [ ! -d "/vagrant/scripts" ]; then
-  echo "This script needs to be run within vagrant VM."
+if [ ! -d "/vagrant" ] && [ ! -d "/home/travis" ]; then
+  echo "This script needs to be run within VM."
   exit 1
 fi
-
 whoami && pwd
-shopt -s globstar # Enable globbing.
+type dpkg apt-get git
+
+# Init variables.
+ARCH=$(dpkg --print-architecture)
+id travis  && USER="travis"
+id vagrant && USER="vagrant"
 
 # Perform an unattended installation of a Debian packages.
-ex +"%s@DPkg@//DPkg" -cwq /etc/apt/apt.conf.d/70debconf
+ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
 dpkg-reconfigure debconf -f noninteractive -p critical
 
-# Install the locale packate to prevent an invalid locale.
+# Install the locale packate to prevent invalid locale.
 apt-get install -y language-pack-en
 
 # Install basic utils.
-apt-get install -y links html2text tree
+apt-get install -y coreutils realpath links html2text tree
 
-# Install and run X virtual framebuffer.
-apt-get install -y Xvfb xdotool
+# Install and run X virtual framebuffer and X utils.
+apt-get install -y xvfb xdotool
 
 # Install wine
-dpkg --add-architecture i386
-add-apt-repository -y ppa:ubuntu-wine
-apt-get update
-apt-get install -y wine # wine-gecko2.36\* wine-mono4.5.6\* winbind
-
-# Upgrade manually some packages from the source.
-apt-get install -y libx11-dev libxtst-dev libxinerama-dev libxkbcommon-dev
-
-# Install composer (https://getcomposer.org/) via PHP.
-#apt-get install php5-cli
-#curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Install xdotool.
-#git clone https://github.com/jordansissel/xdotool && make -C xdotool
+dpkg --add-architecture i386 || true
+add-apt-repository -y ppa:ubuntu-wine/ppa
+find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
+apt-get -d update
+apt-get install -y wine1.7 winetricks
 
 # Run X virtual framebuffer on screen 0.
-Xvfb :0 -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
+export DISPLAY=:0
+Xvfb $DISPLAY -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
 
 # Set-up git.
-git config --system user.name "Vagrant"
-git config --system user.email "vagrant@localhost"
+git config --system user.name $USER
+git config --system user.email "$USER@$HOSTNAME"
 git config --system core.sharedRepository group
 
 # Add version control for /opt.
 git init /opt
 
-# Give vagrant write permission for /opt.
-chown -R vagrant:vagrant /opt
-
-# Install VM specific binaries.
-install -v /vagrant/scripts/run_backtest.sh /usr/local/bin/run_backtest
-install -v /vagrant/scripts/run_optimizer.sh /usr/local/bin/run_optimizer
+# Give user write permission for /opt.
+chown -R $USER /opt
 
 echo "$0 done."

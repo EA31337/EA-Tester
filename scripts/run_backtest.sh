@@ -1,52 +1,37 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-. $CWD/.configrc
-VDIR="/vagrant"
-OUT="/opt"
-TPL="$VDIR/conf/$CONF"
-FIND_EXCLUDES="-path *dosdevices* -prune -o"
 
 # Check dependencies.
-set -e
 type git realpath ex
 
 # Define functions.
-
-clean_files() {
-  find -L "$OUT" '(' $FIND_EXCLUDES -name "*.log" -or $FIND_EXCLUDES -name '*.dat' -or $FIND_EXCLUDES -name '*.htm' ')' -exec rm {} ';' # Remove old log, dat and htm files.
-}
-
-check_logs() {
-  find -L "$OUT" $FIND_EXCLUDES -name "*.log" -exec tail "{}" ';'
-}
-
-configure_wine() {
-# Configure wine.
-  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-  export DISPLAY=:0.0 # Select screen 0.
-  #export WINEDEBUG=warn+all # For debugging, try: WINEDEBUG=trace+all
-}
-
 on_success() {
   echo "Test succeded."
-  wineserver -k
-  check_logs
-  html2text "$(find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "Report*.htm")"
-  [ "$DEST" ] && find -L "$TERMINAL_DIR" $FIND_EXCLUDES -name "*Report*" -and -not -path "*templates/*" -execdir cp -v "{}" "$DEST" ';'
+  show_logs
+  html2text "$(find "$TERMINAL_DIR" -name "Report*.htm")"
+  [ "$DEST" ] && find "$TERMINAL_DIR" -name "*Report*" -and -not -path "*templates/*" -execdir cp -v "{}" "$DEST" ';'
 }
 
 on_failure() {
   echo "Test failed."
-  check_logs
+  show_logs
 }
 
-# Check if terminal is present.
-[ "$(find -L "$OUT" $FIND_EXCLUDES -name terminal.exe -print -quit)" ] || $VDIR/scripts/dl_mt4.sh
-. .configrc
-TERMINAL_INI="$TERMINAL_DIR/config/$CONF"
+on_finish() {
+  wineserver -k
+  echo "$0 done."
+}
 
-# Copy the configuration file, so platform can find -L it.
+# Check if terminal is present, otherwise install it.
+echo "Checking platform dependencies..."
+[ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
+
+# Initialize settings.
+. $CWD/.configrc
+
+# Copy the configuration file, so platform can find it.
 cp -v "$TPL" "$TERMINAL_INI"
+cp -v "$TPL2" "$TERMINAL_INI2"
 
 # Parse the arguments.
 while getopts r:f:n:p:d:y:s:b:D: opts; do
@@ -68,7 +53,7 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     n) # EA name.
       EA_NAME=${OPTARG}
-      EA_PATH="$(find -L "$VDIR" '(' $FIND_EXCLUDES -name "*$EA_NAME*.ex4" -or $FIND_EXCLUDES -name "*$EA_NAME*.ex5" ')' -print -quit)"
+      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
       [ -s "$EA_PATH" ] && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
       [ "$EA_NAME" ]    && ex -s +"%s/^TestExpert=\zs.\+$/$EA_NAME/" -cwq "$TERMINAL_INI"
       ;;
@@ -97,13 +82,13 @@ while getopts r:f:n:p:d:y:s:b:D: opts; do
 
     s) # Spread to test.
       SPREAD=${OPTARG}
-      [ "$SPREAD" ] && ex -s +"%s/^Spread=\zs.\+$/$SPREAD/" -cwq "$TERMINAL_DIR/config/terminal.ini"
+      [ "$SPREAD" ] && ex -s +"%s/^Spread=\zs.\+$/$SPREAD/" -cwq "$TERMINAL_INI2"
       ;;
 
     b) # Backtest data to test.
       BT_SOURCE=${OPTARG}
       # Download backtest files if not present.
-      [ "$(find "$TERMINAL_DIR" -name '*.fxt')" ] || $VDIR/scripts/dl_bt_data.sh $SYMBOL $YEAR DS
+      [ "$(find "$TERMINAL_DIR" -name '*.fxt')" ] || $SCR/dl_bt_data.sh ${SYMBOL:EURUSD} ${YEAR:2014} DS
       ;;
 
     D) # Destination directory to save test results.
@@ -115,7 +100,7 @@ done
 
 # Prepare before test run.
 clean_files
-configure_wine
 
-# Run the test in the platform.
-time wine "$TERMINAL_EXE" "config/$CONF" &>> ~/wine_terminal.exe.log && on_success || on_failure
+# Run the test with the platform.
+time wine "$TERMINAL_EXE" "config/$CONF" && on_success || on_failure
+on_finish
