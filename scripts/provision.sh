@@ -18,10 +18,12 @@ id travis  && USER="travis"
 id vagrant && USER="vagrant"
 
 # Perform an unattended installation of a Debian packages.
+export DEBIAN_FRONTEND=noninteractive
 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
 dpkg-reconfigure debconf -f noninteractive -p critical
 
-# Install the locale packate to prevent invalid locale.
+# Install the language pack to prevent an invalid locale.
+echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
 apt-get install -y language-pack-en
 
 # Install basic utils.
