@@ -20,7 +20,7 @@ id vagrant && USER="vagrant"
 # Perform an unattended installation of a Debian packages.
 export DEBIAN_FRONTEND=noninteractive
 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
-dpkg-reconfigure debconf -f noninteractive -p critical
+dpkg-reconfigure debconf -f noninteractive
 
 # Install the language pack to prevent an invalid locale.
 echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
