@@ -20,7 +20,7 @@ TESTER_DIR="$TERMINAL_DIR/tester"
 # Configure display and wine.
 export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
+export WINEDEBUG="warn-all,fixme-all,alsa-all" # For debugging, try: WINEDEBUG=trace+all
 set +x
 trap finish EXIT
 
