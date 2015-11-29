@@ -13,6 +13,12 @@ env:
   matrix:
     - PAIR=EURUSD YEAR=2014 SPREAD=10
 
+cache:
+  apt: true
+  pip: true
+  directories:
+    - $HOME/.wine
+
 before_install:
   - whoami && pwd
 
