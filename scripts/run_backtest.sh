@@ -94,9 +94,9 @@ while getopts r:f:n:E:p:d:y:s:b:D: opts; do
       ;;
 
     b) # Backtest data to test.
-      BT_SOURCE=${OPTARG}
-      # Download backtest files if not present.
-      [ "$(find "$TERMINAL_DIR" -name '*.fxt')" ] || $SCR/dl_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} DS
+      BT_SRC=${OPTARG}
+      # Generate backtest files if not present.
+      [ "$(find "$TERMINAL_DIR" -name '*.fxt')" ] || $SCR/dl_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} $BT_SRC
       ;;
 
     D) # Destination directory to save test results.

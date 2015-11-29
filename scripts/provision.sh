@@ -37,7 +37,7 @@ dpkg --add-architecture i386 || true
 add-apt-repository -y ppa:ubuntu-wine/ppa
 find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
 apt-get -d update
-apt-get install -y wine1.7 winetricks
+apt-get install -y wine1.7 winetricks winbind
 
 # Run X virtual framebuffer on screen 0.
 export DISPLAY=:0

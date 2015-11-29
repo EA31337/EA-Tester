@@ -3,7 +3,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
 set -e
-type wget xdotool
+type wget xdotool xwininfo
 
 # Initialize settings.
 . $CWD/.configrc
@@ -16,23 +16,25 @@ wine "$OUT/mt4setup.exe" &
 
 echo "Waiting for Wine to initialize..."
 while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
-  sleep 1
+  sleep 2
 done
 
 echo "Sending installer keystrokes..."
 xdotool key --window $WID --delay 500 space Tab Tab Tab Return Tab Tab Tab space Alt+n
 
 echo "Waiting for installer to finish..."
-while pgrep -l mt4setup; do sleep 5; xwininfo -id $WID -tree; done
+xwininfo -id $WID -tree
+while pgrep -l mt4setup; do sleep 5; done
 
 echo "Waiting for MT4 platform to start..."
 while ! WID=$(xdotool search --name "MetaTrader 4 -"); do
-  sleep 1
+  sleep 2
 done
 
 # Close running MT4 instance, first the two login popup window, secondly application itself
-echo "Sending application closer keystrokes..."
+echo "Closing application..."
 xdotool key --window $WID --delay 500 Escape Escape Alt+f x
+sleep 1
 wineserver -k
 
 # Re-initialize settings.
