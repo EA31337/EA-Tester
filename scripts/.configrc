@@ -22,6 +22,7 @@ export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
 export WINEDEBUG="warn-all,fixme-all" # For debugging, try: WINEDEBUG=trace+all
 set +x
+trap finish EXIT
 
 # Define common functions.
 show_logs() {
@@ -42,6 +43,7 @@ input_set() {
   ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
 }
 
+# Set value in the file.
 ini_set() {
   key="$1"
   value="$2"
@@ -49,9 +51,15 @@ ini_set() {
   ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
 }
 
+# Get value in the file.
 ini_get() {
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
   set -x
   grep -w "$key" "$file" | cut -d= -f2-
+}
+
+# Cleanup code.
+finish() {
+  wineserver -k
 }
