@@ -11,7 +11,7 @@ env:
       PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
       CWD="$TRAVIS_BUILD_DIR"
   matrix:
-    - PAIR=EURUSD YEAR=2014 SPREAD=10
+    - PAIR=EURUSD YEAR=2014 SPREAD=10 BT=DS
 
 cache:
   apt: true
@@ -29,4 +29,4 @@ before_script:
   - set -e
 
 script:
-  - $CWD/scripts/run_backtest.sh -p $PAIR -y $YEAR -s $SPREAD
+  - $CWD/scripts/run_backtest.sh -p $PAIR -y $YEAR -s $SPREAD -b $BT
