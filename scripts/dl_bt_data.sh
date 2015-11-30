@@ -3,7 +3,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 . $CWD/.configrc
 
 # Check dependencies.
-set -e
+# set -e
 type git realpath wget zip unzip pv
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ]"; exit 1; }
 
@@ -26,9 +26,13 @@ find "$dest" -name "*.zip" -execdir unzip -qn {} ';'
 find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' | pv -N "Combining data" -s $(du -sb "$dest"/*$symbol-$year | awk '{print $1}') > "$dest/$symbol-$year.csv"
 echo "Converting data..."
 set -x
+free -m
 "$dest/scripts/convert_csv_to_mt.py" -v -i "$dest/$symbol-$year.csv" -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
+dmesg | egrep -i -B10 'killed process'
 "$dest/scripts/convert_csv_to_mt.py" -v -i "$dest/$symbol-$year.csv" -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
+dmesg | egrep -i -B10 'killed process'
 set +x
+exit;
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
