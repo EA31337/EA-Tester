@@ -20,7 +20,7 @@ TESTER_DIR="$TERMINAL_DIR/tester"
 # Configure display and wine.
 export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-export WINEDEBUG="warn-all,fixme-all,alsa-all" # For debugging, try: WINEDEBUG=trace+all
+export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
 set +x
 trap finish EXIT
 
@@ -63,6 +63,25 @@ ini_get() {
   file="${2:-$(echo $TESTER_INI)}"
   set -x
   grep -w "$key" "$file" | cut -d= -f2-
+}
+
+# Detect and configure proxy.
+configure_proxy() {
+  GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
+  curl -s localhost:3128 > /dev/null && export http_proxy="http://localhost:3128"
+  curl -s $GW:3128       > /dev/null && export http_proxy="http://$GW:3128"
+
+  # Set proxy for wine registry if present.
+  [ "$http_proxy" ] &&
+  cat << EOF | wine regedit -
+  Regedit4
+  [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
+  "MigrateProxy"=dword:00000001
+  "ProxyEnable"=dword:00000001
+  "ProxyHttp1.1"=dword:00000001
+  "ProxyServer"="$http_proxy"
+  "ProxyOverride"="<local>"
+EOF
 }
 
 # Cleanup code.
