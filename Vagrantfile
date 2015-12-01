@@ -29,9 +29,7 @@ end
 =end
 
 # Vagrantfile API/syntax version.
-API_VERSION = "2"
-
-Vagrant.configure(API_VERSION) do |config|
+Vagrant.configure(2) do |config|
 
   config.vm.box = "ubuntu/vivid64"
   config.vm.network "private_network", ip: "192.168.22.22"
@@ -42,8 +40,7 @@ Vagrant.configure(API_VERSION) do |config|
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
 
-  config.vm.synced_folder ".", "/vagrant", id: "core",
-    nfs: true
+  config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
   config.vm.provider "virtualbox" do |v|
     v.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
