@@ -2,8 +2,8 @@
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
-set -e
-type wget xdotool xwininfo
+set -ex
+type wget xdotool xwininfo wine
 
 # Initialize settings.
 . $CWD/.configrc
@@ -17,6 +17,7 @@ configure_proxy
 echo "Starting MT4 Setup in Wine..."
 wine "$OUT/mt4setup.exe" &
 
+set +e
 echo "Waiting for Wine to initialize..."
 while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
   sleep 2

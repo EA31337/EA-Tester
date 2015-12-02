@@ -68,8 +68,8 @@ ini_get() {
 # Detect and configure proxy.
 configure_proxy() {
   GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
-  curl -s localhost:3128 > /dev/null && export http_proxy="http://localhost:3128"
-  curl -s $GW:3128       > /dev/null && export http_proxy="http://$GW:3128"
+  curl -s localhost:3128 > /dev/null || true && export http_proxy="http://localhost:3128"
+  curl -s $GW:3128       > /dev/null || true && export http_proxy="http://$GW:3128"
 
   # Set proxy for wine registry if present.
   [ "$http_proxy" ] &&
@@ -88,4 +88,5 @@ EOF
 finish() {
   echo "Finishing..."
   wineserver -k
+  exit 1
 }
