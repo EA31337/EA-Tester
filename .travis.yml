@@ -32,4 +32,4 @@ before_script:
   - set -e
 
 script:
-  - $CWD/scripts/run_backtest.sh -p $PAIR -y $YEAR -s $SPREAD -b $BT
+  - travis_wait 30 $CWD/scripts/run_backtest.sh -p $PAIR -y $YEAR -s $SPREAD -b $BT

@@ -51,7 +51,7 @@ input_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $SETFILE)}"
-  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
 }
 
 # Set value in the file.
@@ -59,7 +59,8 @@ ini_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
-  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+  echo "Setting $key to $value in $file"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
 }
 
 # Get value in the file.
@@ -68,6 +69,7 @@ ini_get() {
   file="${2:-$(echo $TESTER_INI)}"
   set -x
   grep -w "$key" "$file" | cut -d= -f2-
+  echo "Getting $key from $file"
 }
 
 # Detect and configure proxy.
@@ -99,6 +101,7 @@ kill_wine() {
 onexit() {
   local exit_status=${1:-$?}
   kill_wine
+  set +x
   echo "Exiting $0 with $exit_status"
   exit $exit_status
 }
@@ -108,7 +111,7 @@ onexit() {
 onerror() {
   local exit_status=${1:-$?}
   local frame=0
-  kill_wine
+  set +x
   echo "ERROR: Exiting $0 with $exit_status"
   while caller $frame; do ((frame++)); done
   echo "$*"
