@@ -41,10 +41,6 @@ cp -v "$TPL_TERM" "$TERMINAL_INI"
 # Parse the arguments.
 while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
   case ${opts} in
-    h)
-      grep " .) #" $0 | grep -v grep
-      exit 0
-      ;;
     r) # The name of the test report file. A relative path can be specified
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
         REPORT="$(realpath --relative-to="${TERMINAL_DIR}" "${OPTARG}")" # ... treat as relative path
@@ -109,6 +105,10 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
 
     D) # Destination directory to save test results.
       DEST=${OPTARG}
+      ;;
+    \? | h | *)
+      grep " .) #" $0 | grep -v grep
+      exit 0
       ;;
 
   esac
