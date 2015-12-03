@@ -105,11 +105,13 @@ while getopts r:f:n:E:p:d:y:s:b:D: opts; do
 
   esac
 done
-set -x
 
 # Prepare before test run.
 clean_files
 
-# Run the test with the platform.
+# Run the test under the platform.
 set -x
-time wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success || on_failure
+PREFIX=""
+type travis_wait && PREFIX+="travis_wait 30 "
+type time && PREFIX+="time "
+$PREFIX wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success || on_failure
