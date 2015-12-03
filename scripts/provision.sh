@@ -27,6 +27,9 @@ export DEBIAN_FRONTEND=noninteractive
 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
 dpkg-reconfigure debconf -f noninteractive
 
+# Update apt-get.
+apt-get update
+
 # Install the language pack to prevent an invalid locale.
 echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
 apt-get install -qy language-pack-en
