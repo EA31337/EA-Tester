@@ -46,6 +46,7 @@ add-apt-repository -y ppa:ubuntu-wine/ppa
 find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
 apt-get -d update
 apt-get install -qy wine1.7 winetricks winbind
+find /usr/lib/i386-linux-gnu -type f -name 'libgnutls-deb0*' -exec ln -s {} "$(dirname {})/libgnutls.so.26" ';'
 
 # Run X virtual framebuffer on screen 0.
 export DISPLAY=:0
