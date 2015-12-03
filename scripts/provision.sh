@@ -50,7 +50,7 @@ find /usr/lib/i386-linux-gnu -type f -name 'libgnutls-deb0*' -exec ln -s {} "$(d
 
 # Run X virtual framebuffer on screen 0.
 export DISPLAY=:0
-Xvfb $DISPLAY -screen 0 1024x768x16 & # Run X virtual framebuffer on screen 0.
+Xvfb $DISPLAY -screen 0 1024x768x16 &
 
 # Set-up git.
 git config --system user.name $USER
