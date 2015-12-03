@@ -23,10 +23,13 @@ test -s "$dest/$symbol-$year.zip" || wget -cNP "$dest" "$bt_url"
 # Extract the backtest data.
 find "$dest" -name "*.zip" -execdir unzip -qn {} ';'
 
-find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' | pv -N "Combining data" -s $(du -sb "$dest"/*$symbol-$year | awk '{print $1}') > "$dest/$symbol-$year.csv"
 echo "Converting data..."
-"$dest/scripts/convert_csv_to_mt.py" -v -i "$dest/$symbol-$year.csv" -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
-"$dest/scripts/convert_csv_to_mt.py" -v -i "$dest/$symbol-$year.csv" -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
+find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' |
+  pv -N "Converting data" -s $(du -sb "$dest"/*$symbol-$year |
+  "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
+find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' |
+  pv -N "Converting data" -s $(du -sb "$dest"/*$symbol-$year |
+  "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
