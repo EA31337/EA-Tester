@@ -12,7 +12,7 @@ echo "Downloading MT4 installer..."
 wget -P "$OUT" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
 
 # Detect and configure proxy.
-configure_proxy
+#configure_proxy
 
 echo "Starting MT4 Setup in Wine..."
 wine "$OUT/mt4setup.exe" &
@@ -31,7 +31,7 @@ xwininfo -id $WID -tree
 while pgrep -l mt4setup; do sleep 5; done
 
 echo "Waiting for MT4 platform to start..."
-while ! WID=$(xdotool search --name "MetaTrader 4 -"); do
+while ! WID=$(xdotool search --name "MetaTrader 4 - *"); do
   sleep 2
 done
 

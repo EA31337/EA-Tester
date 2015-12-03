@@ -88,5 +88,5 @@ EOF
 finish() {
   echo "Finishing..."
   wineserver -k
-  exit 1
+  exit 0
 }
