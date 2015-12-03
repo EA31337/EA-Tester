@@ -31,7 +31,7 @@ xwininfo -id $WID -tree
 while pgrep -l mt4setup; do sleep 5; done
 
 echo "Waiting for MT4 platform to start..."
-while ! WID=$(xdotool search --name "MetaTrader 4 -"); do
+while ! WID=$(xdotool search --name "MetaTrader 4 - *"); do
   sleep 2
 done
 
