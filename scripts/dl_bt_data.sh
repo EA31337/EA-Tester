@@ -25,10 +25,10 @@ find "$dest" -name "*.zip" -execdir unzip -qn {} ';'
 
 echo "Converting data..."
 find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' |
-  pv -N "Converting data" -s $(du -sb "$dest"/*$symbol-$year |
+  pv -N "Converting data" -s $(du -sb "$dest"/*$symbol-$year | cut -f1) |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
 find "$TERMINAL_DIR" -name "*.csv" -exec cat {} ';' |
-  pv -N "Converting data" -s $(du -sb "$dest"/*$symbol-$year |
+  pv -N "Converting data" -s $(du -sb "$dest"/*$symbol-$year | cut -f1) |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
 
 # Make the backtest files read-only.
