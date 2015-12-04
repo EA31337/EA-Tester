@@ -5,6 +5,12 @@ set -ex
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
 
+# Handle bash errors. Exit on error. Trap exit.
+# Trap normal exit signal (exit on all errors).
+trap onexit EXIT
+# Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
+trap onerror 1 2 3 15 ERR
+
 # Determine platform paths.
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
@@ -22,7 +28,6 @@ export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
 export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
 set +x
-trap finish EXIT
 
 # Define common functions.
 show_logs() {
@@ -46,7 +51,7 @@ input_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $SETFILE)}"
-  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
 }
 
 # Set value in the file.
@@ -54,7 +59,8 @@ ini_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
-  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+  echo "Setting $key to $value in $file"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
 }
 
 # Get value in the file.
@@ -63,6 +69,7 @@ ini_get() {
   file="${2:-$(echo $TESTER_INI)}"
   set -x
   grep -w "$key" "$file" | cut -d= -f2-
+  echo "Getting $key from $file"
 }
 
 # Detect and configure proxy.
@@ -84,9 +91,29 @@ configure_proxy() {
 EOF
 }
 
-# Cleanup code.
-finish() {
-  echo "Finishing..."
-  wineserver -k
-  exit 0
+## Kill  the currently running wineserver.
+kill_wine() {
+  (wineserver -k || true)
+}
+
+#--- onexit()
+##  @param $1 integer  (optional) Exit status. If not set, use `$?'
+onexit() {
+  local exit_status=${1:-$?}
+  kill_wine
+  set +x
+  echo "Exiting $0 with $exit_status"
+  exit $exit_status
+}
+
+#--- onerror()
+##  @param $1 integer  (optional) Exit status. If not set, use `$?'
+onerror() {
+  local exit_status=${1:-$?}
+  local frame=0
+  set +x
+  echo "ERROR: Exiting $0 with $exit_status"
+  while caller $frame; do ((frame++)); done
+  echo "$*"
+  exit $exit_status
 }
