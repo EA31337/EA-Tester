@@ -41,8 +41,9 @@ clean_files() {
   find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.htm" -o -name "*.gif" ')' -print -delete
 }
 
+# Delete backtest data files.
 clean_bt() {
-  # Remove previous bactest files.
+  # Remove previous backtest files.
   echo "Cleaning backtest data..."
   find "$TERMINAL_DIR" '(' -name "*.hst"  -o -name "*.fxt" ')' -print -delete
 }

@@ -4,7 +4,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
 # set -e
-type git realpath wget zip unzip pv
+type git wget zip unzip pv
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ]"; exit 1; }
 
 symbol=$1

@@ -2,7 +2,7 @@
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
-type git realpath ex
+type git ex
 
 # Define functions.
 on_success() {
@@ -43,6 +43,7 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
   case ${opts} in
     r) # The name of the test report file. A relative path can be specified
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
+        type realpath
         REPORT="$(realpath --relative-to="${TERMINAL_DIR}" "${OPTARG}")" # ... treat as relative path
       else
         REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
@@ -113,9 +114,9 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
 
   esac
 done
-set -x
 
 # Prepare before test run.
+[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] || { echo "ERROR: Missing backtest data files."; exit 1; }
 clean_files
 
 # Run the test under the platform.
