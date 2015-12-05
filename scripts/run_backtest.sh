@@ -2,7 +2,7 @@
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
-type git realpath ex
+type git ex
 
 # Define functions.
 on_success() {
@@ -39,10 +39,11 @@ cp -v "$TPL_TEST" "$TESTER_INI"
 cp -v "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
-while getopts r:f:n:E:p:d:y:s:b:D: opts; do
+while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
   case ${opts} in
     r) # The name of the test report file. A relative path can be specified
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
+        type realpath
         REPORT="$(realpath --relative-to="${TERMINAL_DIR}" "${OPTARG}")" # ... treat as relative path
       else
         REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
@@ -93,6 +94,10 @@ while getopts r:f:n:E:p:d:y:s:b:D: opts; do
       ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
       ;;
 
+    c) # Clean previous backtest data.
+      clean_files
+      clean_bt
+      ;;
     b) # Backtest data to test.
       BT_SRC=${OPTARG}
       # Generate backtest files if not present.
@@ -102,13 +107,18 @@ while getopts r:f:n:E:p:d:y:s:b:D: opts; do
     D) # Destination directory to save test results.
       DEST=${OPTARG}
       ;;
+    \? | h | *)
+      grep " .) #" $0 | grep -v grep
+      exit 0
+      ;;
 
   esac
 done
 
 # Prepare before test run.
+[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] || { echo "ERROR: Missing backtest data files."; exit 1; }
 clean_files
 
-# Run the test with the platform.
+# Run the test under the platform.
 set -x
 time wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success || on_failure

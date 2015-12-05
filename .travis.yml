@@ -20,7 +20,7 @@ cache:
     - $HOME/.wine
 
 before_install:
-  - whoami && pwd
+  - ulimit -a && free -m
 
 install:
   - sudo $CWD/scripts/provision.sh

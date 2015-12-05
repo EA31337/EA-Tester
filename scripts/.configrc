@@ -5,6 +5,12 @@ set -ex
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
 
+# Handle bash errors. Exit on error. Trap exit.
+# Trap normal exit signal (exit on all errors).
+trap onexit EXIT
+# Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
+trap onerror 1 2 3 15 ERR
+
 # Determine platform paths.
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
@@ -20,9 +26,8 @@ TESTER_DIR="$TERMINAL_DIR/tester"
 # Configure display and wine.
 export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-export WINEDEBUG="warn-all,fixme-all,alsa-all" # For debugging, try: WINEDEBUG=trace+all
+export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
 set +x
-trap finish EXIT
 
 # Define common functions.
 show_logs() {
@@ -36,8 +41,9 @@ clean_files() {
   find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.htm" -o -name "*.gif" ')' -print -delete
 }
 
+# Delete backtest data files.
 clean_bt() {
-  # Remove previous bactest files.
+  # Remove previous backtest files.
   echo "Cleaning backtest data..."
   find "$TERMINAL_DIR" '(' -name "*.hst"  -o -name "*.fxt" ')' -print -delete
 }
@@ -46,7 +52,7 @@ input_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $SETFILE)}"
-  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
 }
 
 # Set value in the file.
@@ -54,7 +60,8 @@ ini_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
-  ex +"%s/$key=\zs.\+$/$value/" -scwq -V1 "$file"
+  echo "Setting $key to $value in $file"
+  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
 }
 
 # Get value in the file.
@@ -63,10 +70,51 @@ ini_get() {
   file="${2:-$(echo $TESTER_INI)}"
   set -x
   grep -w "$key" "$file" | cut -d= -f2-
+  echo "Getting $key from $file"
 }
 
-# Cleanup code.
-finish() {
-  echo "Finishing..."
-  wineserver -k
+# Detect and configure proxy.
+configure_proxy() {
+  GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
+  curl -s localhost:3128 > /dev/null || true && export http_proxy="http://localhost:3128"
+  curl -s $GW:3128       > /dev/null || true && export http_proxy="http://$GW:3128"
+
+  # Set proxy for wine registry if present.
+  [ "$http_proxy" ] &&
+  cat << EOF | wine regedit -
+  Regedit4
+  [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
+  "MigrateProxy"=dword:00000001
+  "ProxyEnable"=dword:00000001
+  "ProxyHttp1.1"=dword:00000001
+  "ProxyServer"="$http_proxy"
+  "ProxyOverride"="<local>"
+EOF
+}
+
+## Kill  the currently running wineserver.
+kill_wine() {
+  (wineserver -k || true)
+}
+
+#--- onexit()
+##  @param $1 integer  (optional) Exit status. If not set, use `$?'
+onexit() {
+  local exit_status=${1:-$?}
+  kill_wine
+  set +x
+  echo "Exiting $0 with $exit_status"
+  exit $exit_status
+}
+
+#--- onerror()
+##  @param $1 integer  (optional) Exit status. If not set, use `$?'
+onerror() {
+  local exit_status=${1:-$?}
+  local frame=0
+  set +x
+  echo "ERROR: Exiting $0 with $exit_status"
+  while caller $frame; do ((frame++)); done
+  echo "$*"
+  exit $exit_status
 }
