@@ -3,7 +3,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 . $CWD/.configrc
 
 # Check dependencies.
-# set -e
+set -e
 type git wget zip unzip pv
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ]"; exit 1; }
 
