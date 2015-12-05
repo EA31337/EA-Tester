@@ -2,12 +2,12 @@
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
-type git ex
+type git ex html2text
 
 # Define functions.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
-  echo "Test succeded."
+  echo "Test succeded." >&2
   show_logs
   find "$TERMINAL_DIR" -name "Report*.htm" -exec sh -c "html2text '{}' | head -n40"  ';'
   [ "$DEST" ] && find "$TERMINAL_DIR" -name "Report*" -execdir cp -v "{}" "$DEST" ';'
@@ -16,7 +16,7 @@ on_success() {
 }
 
 on_failure() {
-  echo "Test failed."
+  echo "Test failed." >&2
   show_logs
   on_finish
   exit 1
@@ -24,11 +24,11 @@ on_failure() {
 
 on_finish() {
   wineserver -k
-  echo "$0 done."
+  echo "$0 done." >&2
 }
 
 # Check if terminal is present, otherwise install it.
-echo "Checking platform dependencies..."
+echo "Checking platform dependencies..." >&2
 [ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
 
 # Initialize settings.
@@ -92,6 +92,8 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
     s) # Spread to test.
       SPREAD=${OPTARG}
       ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
+      #EA_NAME="$(ini_get TestExpert)"
+      #echo "spread=$SPREAD" >> "$TESTER_DIR/${EA_NAME}.ini"
       ;;
 
     c) # Clean previous backtest data.
@@ -116,7 +118,7 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
 done
 
 # Prepare before test run.
-[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] || { echo "ERROR: Missing backtest data files."; exit 1; }
+[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
 
 # Run the test under the platform.
