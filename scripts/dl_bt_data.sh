@@ -21,8 +21,8 @@ echo "Getting data..." >&2
 case $bt_src in
 
   "DS")
-    test -s "$dest/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
-    find "$dest" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
+    test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
+    find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
   ;;
   "T1")
     "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 1.0 4.0
@@ -45,16 +45,20 @@ case $bt_src in
 esac
 
 du -hs "$bt_csv" || { echo "ERROR: Missing backtest data."; exit 1; }
-bt_size="$(($(du -sk "$bt_csv" | cut -f1) * 1024))"
+bt_size=$(find "$bt_csv" -name '*.csv' -print0 | du -bc --files0-from=- | tail -n1 | cut -f1)  # Count only size of CSV files
 
+# Convert CSV tick files to backtest files.
 echo "Converting data..."
-find "$bt_csv" -name "*.csv" -exec cat {} ';' |
-  sort |
-  pv -c -N "Converting data" -s $bt_size |
+find "$bt_csv" -name '*.csv' -print0 |
+  sort -z |
+  xargs -r0 cat |
+  pv -N 'Converting FXT data' -s $bt_size |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
-find "$bt_csv" -name "*.csv" -exec cat {} ';' |
-  sort |
-  pv -c -N "Converting data" -s $bt_size |
+
+find "$bt_csv" -name '*.csv' -print0 |
+  sort -z |
+  xargs -r0 cat |
+  pv -N 'Converting HST data' -s $bt_size |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
 
 # Make the backtest files read-only.
