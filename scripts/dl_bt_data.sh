@@ -47,14 +47,18 @@ esac
 du -hs "$bt_csv" || { echo "ERROR: Missing backtest data."; exit 1; }
 bt_size="$(($(du -sk "$bt_csv" | cut -f1) * 1024))"
 
+# Convert CSV tick files to backtest files.
 echo "Converting data..."
-find "$bt_csv" -name "*.csv" -exec cat {} ';' |
-  sort |
-  pv -c -N "Converting data" -s $bt_size |
+find "$bt_csv" -name '*.csv' -print0 |
+  sort -z |
+  xargs -r0 cat |
+  pv -N 'Converting FXT data' -s $bt_size |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
-find "$bt_csv" -name "*.csv" -exec cat {} ';' |
-  sort |
-  pv -c -N "Converting data" -s $bt_size |
+
+find "$bt_csv" -name '*.csv' -print0 |
+  sort -z |
+  xargs -r0 cat |
+  pv -N 'Converting HST data' -s $bt_size |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
 
 # Make the backtest files read-only.
