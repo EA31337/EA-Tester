@@ -45,13 +45,16 @@ case $bt_src in
 esac
 
 du -hs "$bt_csv" || { echo "ERROR: Missing backtest data."; exit 1; }
+bt_size="$(($(du -sk "$bt_csv" | cut -f1) * 1024))"
 
 echo "Converting data..."
 find "$bt_csv" -name "*.csv" -exec cat {} ';' |
-  pv -c -Bk -N "Converting data" -s $(du -sk "$bt_csv" | cut -f1) |
+  sort |
+  pv -c -N "Converting data" -s $bt_size |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
 find "$bt_csv" -name "*.csv" -exec cat {} ';' |
-  pv -c -Bk -N "Converting data" -s $(du -sk "$bt_csv" | cut -f1) |
+  sort |
+  pv -c -N "Converting data" -s $bt_size |
   "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
 
 # Make the backtest files read-only.
