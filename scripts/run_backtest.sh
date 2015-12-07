@@ -92,6 +92,8 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
     s) # Spread to test.
       SPREAD=${OPTARG}
       ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
+      ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
+
       #EA_NAME="$(ini_get TestExpert)"
       #echo "spread=$SPREAD" >> "$TESTER_DIR/${EA_NAME}.ini"
       ;;
