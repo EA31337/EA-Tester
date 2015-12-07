@@ -52,14 +52,10 @@ echo "Converting data..."
 find "$bt_csv" -name '*.csv' -print0 |
   sort -z |
   xargs -r0 cat |
-  pv -N 'Converting FXT data' -s $bt_size |
-  "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history"
-
-find "$bt_csv" -name '*.csv' -print0 |
-  sort -z |
-  xargs -r0 cat |
-  pv -N 'Converting HST data' -s $bt_size |
-  "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default"
+  tee &> /dev/null \
+  >("$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history") \
+  >(pv -N 'Converting FXT & HST data' -s $bt_size |
+    "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default")
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
