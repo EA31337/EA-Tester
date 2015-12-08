@@ -39,7 +39,7 @@ cp -v "$TPL_TEST" "$TESTER_INI"
 cp -v "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
-while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
+while getopts :hr:f:e:E:p:d:y:s:cb:D: opts; do
   case ${opts} in
     r) # The name of the test report file. A relative path can be specified
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
@@ -57,7 +57,7 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 
-    n) # EA name.
+    e) # EA name.
       EA_NAME=${OPTARG}
       EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
       [ -s "$EA_PATH" ] && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
@@ -108,9 +108,11 @@ while getopts :hr:f:n:E:p:d:y:s:cb:D: opts; do
       test -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" || $SCR/dl_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} $BT_SRC
       ;;
 
-    D) # Destination directory to save test results.
+    D) # Destination directory to save the test results.
       DEST=${OPTARG}
+      find "$TERMINAL_DIR" -name "Report*.htm" -exec cp -v "{}" "$DEST/" ';'
       ;;
+
     \? | h | *)
       grep " .) #" $0 | grep -v grep
       exit 0
