@@ -42,6 +42,7 @@ apt-get install -qy xvfb xdotool
 
 # Install wine
 dpkg --add-architecture i386 || true
+# Add PPA/Wine repository.
 add-apt-repository -y ppa:ubuntu-wine/ppa
 find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
 apt-get -d update
