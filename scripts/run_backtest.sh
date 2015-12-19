@@ -10,7 +10,7 @@ on_success() {
   echo "Test succeded." >&2
   show_logs
   find "$TERMINAL_DIR" -name "Report*.htm" -exec sh -c "html2text '{}' | head -n40"  ';'
-  [ "$DEST" ] && find "$TERMINAL_DIR" -name "Report*" -execdir cp -v "{}" "$DEST" ';'
+  find "$TERMINAL_DIR" -name "Report*" -execdir cp -v "{}" "${DEST:-$(echo $CWD)}" ';'
   on_finish
   exit 0
 }
@@ -39,7 +39,7 @@ cp -v "$TPL_TEST" "$TESTER_INI"
 cp -v "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
-while getopts :hr:f:e:E:p:d:y:s:cb:D: opts; do
+while getopts :hr:f:e:E:p:d:y:s:oi:cb:D: opts; do
   case ${opts} in
     r) # The name of the test report file. A relative path can be specified
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
@@ -48,11 +48,13 @@ while getopts :hr:f:e:E:p:d:y:s:cb:D: opts; do
       else
         REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
       fi
+      echo "Setting test report..."
       ini_set "^TestReport" "$REPORT" "$TESTER_INI"
       ;;
 
-    f) # The set file to run the test.
+    f) # The .set file to run the test.
       SETFILE=${OPTARG}
+      echo "Setting EA parameters..."
       [ -s "$SETFILE" ] && cp -v "$SETFILE" "$TERMINAL_DIR/tester"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
@@ -67,11 +69,13 @@ while getopts :hr:f:e:E:p:d:y:s:cb:D: opts; do
     E) # EA settings.
       EA_OPTS=${OPTARG}
       EA_NAME="$(ini_get TestExpert)"
-      echo "$EA_OPTS" >> "$TESTER_DIR/${EA_NAME}.ini"
+      echo "Applying EA settings..."
+      echo "$EA_OPTS" | tee -a "$TESTER_DIR/${EA_NAME}.ini"
       ;;
 
     p) # Symbol pair to test.
       SYMBOL=${OPTARG}
+      echo "Setting symbol pair..."
       ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
       # EA_NAME="$(ini_get TestExpert)"
       # echo "currency=$SYMBOL" >> "$TESTER_DIR/${EA_NAME}.ini"
@@ -80,40 +84,55 @@ while getopts :hr:f:e:E:p:d:y:s:cb:D: opts; do
     d) # Deposit amount to test.
       DEPOSIT=${OPTARG}
       EA_NAME="$(ini_get TestExpert)"
+      echo "Setting deposit..."
       echo "deposit=$DEPOSIT" >> "$TESTER_DIR/${EA_NAME}.ini"
       ;;
 
     y) # Year to test.
       YEAR=${OPTARG}
+      echo "Setting period to test..."
       ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
       ini_set "^TestToDate"   "$YEAR.01.30" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
       SPREAD=${OPTARG}
+      echo "Setting spread to test..."
       ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
       ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
+      ;;
 
-      #EA_NAME="$(ini_get TestExpert)"
-      #echo "spread=$SPREAD" >> "$TESTER_DIR/${EA_NAME}.ini"
+    o) # Run optimization test.
+      OPTIMIZATION=true
+      echo "Setting optimization mode..."
+      ini_set "^TestOptimization" true "$TESTER_INI"
+      ;;
+
+    i) # Invoke file with custom rules.
+      INCLUDE=${OPTARG}
+      echo "Invoking includes..."
+      [ -s "$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
+      . "$INCLUDE"
       ;;
 
     c) # Clean previous backtest data.
       clean_files
       clean_bt
       ;;
+
     b) # Backtest data to test.
       BT_SRC=${OPTARG}
       # Generate backtest files if not present.
-      test -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" || $SCR/dl_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} $BT_SRC
+      echo "Checking backtest data..."
+      test -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" || $SCR/dl_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
 
     D) # Destination directory to save the test results.
       DEST=${OPTARG}
-      find "$TERMINAL_DIR" -name "Report*.htm" -exec cp -v "{}" "$DEST/" ';'
       ;;
 
     \? | h | *)
+      echo "$0 usage:"
       grep " .) #" $0 | grep -v grep
       exit 0
       ;;
