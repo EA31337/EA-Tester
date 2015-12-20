@@ -5,9 +5,14 @@
 # Ignore configuration files that may contain sensitive information.
 nbproject
 build.properties
+files
 
 # Ignore Finder metadata files on Mac
 .DS_Store
 
 # Ignore Vagrant folder.
 .vagrant
+
+# Ignore EA binary files.
+.ex4
+.ex5
