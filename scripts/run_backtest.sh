@@ -39,8 +39,12 @@ cp -v "$TPL_TEST" "$TESTER_INI"
 cp -v "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
-while getopts :hr:f:e:E:p:d:y:s:oi:cb:D: opts; do
+while getopts :xr:f:e:E:p:d:y:s:oi:cb:D:h opts; do
   case ${opts} in
+    x) # Run the script in debug mode.
+      set -x
+      ;;
+
     r) # The name of the test report file. A relative path can be specified
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
         type realpath
@@ -53,9 +57,10 @@ while getopts :hr:f:e:E:p:d:y:s:oi:cb:D: opts; do
       ;;
 
     f) # The .set file to run the test.
-      SETFILE=${OPTARG}
       echo "Setting EA parameters..."
-      [ -s "$SETFILE" ] && cp -v "$SETFILE" "$TERMINAL_DIR/tester"
+      EA_NAME="$(ini_get TestExpert)"
+      SETFILE="${EA_NAME}.set"
+      test -s "$TESTER_DIR/$SETFILE" || cp -vf "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 

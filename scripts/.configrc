@@ -51,9 +51,9 @@ clean_bt() {
 input_set() {
   key="$1"
   value="$2"
-  file="${3:-$(echo $SETFILE)}"
+  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
   [ -s "$file" ] &&
-  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
+  ex +"%s/$key=\zs.*$/$value/" -scwq "$file"
 }
 
 # Set value in the file.
@@ -63,7 +63,7 @@ ini_set() {
   file="${3:-$(echo $TESTER_INI)}"
   echo "Setting $key to $value in $(basename "$file")" >&2
   [ -s "$file" ] &&
-  ex +"%s/$key=\zs.\+$/$value/" -scwq "$file"
+  ex +"%s/$key=\zs.*$/$value/" -scwq "$file"
 }
 
 # Get value in the file.
@@ -99,9 +99,9 @@ kill_wine() {
   (wineserver -k || true)
 }
 
+# Show simple stack trace.
 show_trace() {
-  while caller $frame; do ((frame++)); done
-  echo "$*" >&2
+  while caller $((n++)); do :; done; >&2
 }
 
 #--- onexit()
