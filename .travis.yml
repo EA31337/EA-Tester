@@ -11,9 +11,13 @@ env:
       PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
       CWD="$TRAVIS_BUILD_DIR"
   matrix:
-    - DEPOSIT=2000 PAIR=EURUSD YEAR=2014 SPREAD=10 BT=DS
-    - DEPOSIT=4000 PAIR=EURUSD YEAR=2014 SPREAD=20 BT=W2
-    - DEPOSIT=8000 PAIR=EURUSD YEAR=2015 SPREAD=30 BT=Z3
+    - TEST_ARGS="-x -f /etc/hosts -h"
+    - TEST_ARGS="-d 2000 -p EURUSD -y 2012 -s 10 -b W2"
+    - TEST_ARGS="-d 4000 -p EURUSD -y 2013 -s 20 -b Z3"
+    - TEST_ARGS="-d 8000 -p EURUSD -y 2014 -s 30 -b DS"
+
+matrix:
+  fast_finish: true
 
 cache:
   apt: true
@@ -37,4 +41,4 @@ before_script:
   - set -e
 
 script:
-  - $CWD/scripts/run_backtest.sh -d $DEPOSIT -p $PAIR -y $YEAR -s $SPREAD -b $BT
+  - $CWD/scripts/run_backtest.sh $TEST_ARGS

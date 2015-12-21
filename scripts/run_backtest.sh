@@ -116,7 +116,7 @@ while getopts :xr:f:e:E:p:d:y:s:oi:cb:D:h opts; do
     i) # Invoke file with custom rules.
       INCLUDE=${OPTARG}
       echo "Invoking includes..."
-      [ -s "$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
+      [ -s "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
       . "$INCLUDE"
       ;;
 
