@@ -39,7 +39,7 @@ cp -v "$TPL_TEST" "$TESTER_INI"
 cp -v "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
-while getopts :xr:f:e:E:p:d:y:s:oi:cb:D:h opts; do
+while getopts :xr:e:f:E:p:d:y:s:oi:cb:D:h opts; do
   case ${opts} in
     x) # Run the script in debug mode.
       set -x
@@ -56,19 +56,19 @@ while getopts :xr:f:e:E:p:d:y:s:oi:cb:D:h opts; do
       ini_set "^TestReport" "$REPORT" "$TESTER_INI"
       ;;
 
+    e) # EA name.
+      EA_NAME=${OPTARG}
+      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
+      [ -s "$EA_PATH" ] && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
+      ini_set "^TestExpert" "$EA_NAME" "$TESTER_INI"
+      ;;
+
     f) # The .set file to run the test.
       echo "Setting EA parameters..."
       EA_NAME="$(ini_get TestExpert)"
       SETFILE="${EA_NAME}.set"
       test -s "$TESTER_DIR/$SETFILE" || cp -vf "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-      ;;
-
-    e) # EA name.
-      EA_NAME=${OPTARG}
-      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
-      [ -s "$EA_PATH" ] && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
-      ini_set "^TestExpert" "$EA_NAME" "$TESTER_INI"
       ;;
 
     E) # EA settings.
