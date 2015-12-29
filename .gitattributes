@@ -1,0 +1,5 @@
+# @see http://www.kernel.org/pub/software/scm/git/docs/gitattributes.html
+# @see http://drupal.org/node/1542048
+
+# Auto-detect text files, ensure they use LF.
+*         text=auto eol=lf
