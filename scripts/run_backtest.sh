@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+ARGS=":xr:e:f:E:p:d:y:s:oi:cb:tD:vh"
 
 # Check dependencies.
-type git ex html2text
+type git ex
 
-# Define functions.
+## Define functions. ##
+# Invoke on test success.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
   echo "Test succeded." >&2
+  parse_reports $@
   show_logs
-  find "$TERMINAL_DIR" -name "Report*.htm" -exec sh -c "html2text '{}' | head -n40"  ';'
-  find "$TERMINAL_DIR" -name "Report*" -execdir cp -v "{}" "${DEST:-$(echo $CWD)}" ';'
   on_finish
   exit 0
 }
 
+# Invoke on test failure.
 on_failure() {
   echo "Test failed." >&2
   show_logs
@@ -22,9 +24,32 @@ on_failure() {
   exit 1
 }
 
+# Invoke on test finish.
 on_finish() {
   wineserver -k
   echo "$0 done." >&2
+}
+
+# Parse report files.
+parse_reports() {
+  local OPTIND
+  [ $VERBOSE ] && PRINT_ARG="-print"
+  while getopts $ARGS arg; do
+    case $arg in
+      t)
+        echo "Converting report files..."
+        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec html2text -o "{}".txt "{}" ';';
+        ;;
+      D)
+        echo "Copying report files..."
+        find "$TERMINAL_DIR" -name "Report*" $PRINT_ARG -execdir cp -v "{}" "${DEST:-$(echo $CWD)}" ';';
+        ;;
+      v)
+        echo "Printing test report..."
+        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec sh -c "html2text '{}'" ';';
+        ;;
+    esac
+  done
 }
 
 # Check if terminal is present, otherwise install it.
@@ -39,13 +64,13 @@ cp -v "$TPL_TEST" "$TESTER_INI"
 cp -v "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
-while getopts :xr:e:f:E:p:d:y:s:oi:cb:D:h opts; do
+while getopts $ARGS opts; do
   case ${opts} in
     x) # Run the script in debug mode.
       set -x
       ;;
 
-    r) # The name of the test report file. A relative path can be specified
+    r) # The name of the test report file. A relative path can be specified.
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
         type realpath
         REPORT="$(realpath --relative-to="${TERMINAL_DIR}" "${OPTARG}")" # ... treat as relative path
@@ -129,11 +154,19 @@ while getopts :xr:e:f:E:p:d:y:s:oi:cb:D:h opts; do
       BT_SRC=${OPTARG}
       # Generate backtest files if not present.
       echo "Checking backtest data..."
-      test -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" || $SCR/dl_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
+      test -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" || $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
+      ;;
+
+    t) # Convert Report files into text format.
+      type html2text
       ;;
 
     D) # Destination directory to save the test results.
       DEST=${OPTARG}
+      ;;
+
+    v) # Verbose mode.
+      VERBOSE=1
       ;;
 
     \? | h | *)
@@ -146,9 +179,9 @@ while getopts :xr:e:f:E:p:d:y:s:oi:cb:D:h opts; do
 done
 
 # Prepare before test run.
-[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
+[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] \
+  || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
 
 # Run the test under the platform.
-set -x
-time wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success || on_failure
+time wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success $@ || on_failure

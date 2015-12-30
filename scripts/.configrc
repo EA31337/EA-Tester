@@ -28,11 +28,12 @@ export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
 export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
 set +x
+xdpyinfo -display $DISPLAY || Xvfb $DISPLAY -screen 0 1024x768x16 &
 
 # Define common functions.
 show_logs() {
   echo "Printing logs..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" ')' -exec tail "{}" ';'
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" ')' -print -exec tail "{}" ';'
 }
 
 clean_files() {
@@ -61,7 +62,7 @@ ini_set() {
   key="$1"
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
-  echo "Setting $key to $value in $(basename "$file")" >&2
+  echo "Setting '$key' to '$value' in $(basename "$file")" >&2
   [ -s "$file" ] &&
   ex +"%s/$key=\zs.*$/$value/" -scwq "$file"
 }
@@ -71,7 +72,7 @@ ini_get() {
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
   value="$(grep -w "$key" "$file" | cut -d= -f2-)"
-  echo "Getting $key from $(basename "$file"): $value" >&2
+  echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
 
