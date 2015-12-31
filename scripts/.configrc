@@ -76,6 +76,12 @@ ini_get() {
   echo $value
 }
 
+# Get all values from the file.
+get_values() {
+  file="$1"
+  grep -o '\S\+[^_]=[^;]\+' "$file"
+}
+
 # Detect and configure proxy.
 configure_proxy() {
   GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)

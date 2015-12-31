@@ -38,7 +38,7 @@ parse_reports() {
     case $arg in
       t)
         echo "Converting report files..."
-        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec html2text -o "{}".txt "{}" ';';
+        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec html2text -width 180 -o "{}".txt "{}" ';';
         ;;
       D)
         echo "Copying report files..."
@@ -46,7 +46,7 @@ parse_reports() {
         ;;
       v)
         echo "Printing test report..."
-        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec sh -c "html2text '{}'" ';';
+        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec sh -c "html2text -width 180 '{}'" ';';
         ;;
     esac
   done
@@ -167,6 +167,7 @@ while getopts $ARGS opts; do
 
     v) # Verbose mode.
       VERBOSE=1
+      type html2text
       ;;
 
     \? | h | *)
