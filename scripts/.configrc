@@ -73,11 +73,11 @@ ini_set() {
   ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
 }
 
-# Get value in the file.
+# Get value from the file.
 ini_get() {
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -w "$key" "$file" | cut -d= -f2-)"
+  value="$(grep -om1 "$key=[.0-9a-zA-Z]\+" "$file" | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
