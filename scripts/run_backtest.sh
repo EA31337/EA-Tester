@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":xr:e:f:E:p:d:y:s:oi:cb:tD:vh"
+ARGS=":r:e:f:E:p:d:y:s:oi:cb:tD:vxh"
 
-# Check dependencies.
+## Check dependencies.
 type git ex
 
-## Define functions. ##
+## Define functions.
 # Invoke on test success.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
-  echo "Test succeded." >&2
-  parse_reports $@
   show_logs
+  echo "Test succeded." >&2
+  parse_results $@
   on_finish
   exit 0
 }
@@ -31,26 +31,53 @@ on_finish() {
 }
 
 # Parse report files.
-parse_reports() {
+parse_results() {
   local OPTIND
-  [ $VERBOSE ] && PRINT_ARG="-print"
+  REPORT_BASE="$(basename "$(ini_get TestReport)")"
+  REPORT_FILE=$(find "$TERMINAL_DIR" -name "$REPORT_BASE.htm")
   while getopts $ARGS arg; do
     case $arg in
       t)
         echo "Converting report files..."
-        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec html2text -width 180 -o "{}".txt "{}" ';';
+        html2text -width 180 -o "$REPORT_BASE.txt" "$REPORT_FILE"
         ;;
       D)
         echo "Copying report files..."
-        find "$TERMINAL_DIR" -name "Report*" $PRINT_ARG -execdir cp -v "{}" "${DEST:-$(echo $CWD)}" ';';
+        DEST="${DEST:-$(echo $CWD)}"
+        cp $VFLAG "$TERMINAL_DIR/$(basename "${REPORT_FILE%.*}")".* "$DEST"
+        find "$TERMINAL_DIR/tester/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
       v)
-        echo "Printing test report..."
-        find "$TERMINAL_DIR" -name "Report*.htm" $PRINT_ARG -exec sh -c "html2text -width 180 '{}'" ';';
+        echo "Printing test reports..."
+        html2text -width 180 "$REPORT_FILE" | sed /Graph/q
+        find "$TERMINAL_DIR/tester/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" ';'
         ;;
-    esac
+      o)
+        echo "Saving optimization results..."
+        if [ -z "$input_values" ]; then
+          echo 123
+          # ini_get "^todo"
+          # ini_set "^todo" true "$SETORG"
+        fi
+        ;;
+      esac
   done
 }
+
+# Parse the initial arguments.
+while getopts $ARGS opts; do
+  case ${opts} in
+    v) # Verbose mode.
+      VERBOSE=1
+      VFLAG="-v"
+      VPRINT="-print"
+      type html2text sed
+      ;;
+    x) # Run the script in debug mode.
+      set -x
+      ;;
+  esac
+done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform dependencies..." >&2
@@ -60,16 +87,13 @@ echo "Checking platform dependencies..." >&2
 . $CWD/.configrc
 
 # Copy the configuration file, so platform can find it.
-cp -v "$TPL_TEST" "$TESTER_INI"
-cp -v "$TPL_TERM" "$TERMINAL_INI"
+cp $VFLAG "$TPL_TEST" "$TESTER_INI"
+cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 
 # Parse the arguments.
+OPTIND=1
 while getopts $ARGS opts; do
   case ${opts} in
-    x) # Run the script in debug mode.
-      set -x
-      ;;
-
     r) # The name of the test report file. A relative path can be specified.
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
         type realpath
@@ -84,15 +108,16 @@ while getopts $ARGS opts; do
     e) # EA name.
       EA_NAME=${OPTARG}
       EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
-      [ -s "$EA_PATH" ] && { cp -v "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "$EA_PATH")"; }
+      [ -s "$EA_PATH" ] && { cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "${EA_PATH%.*}")"; }
       ini_set "^TestExpert" "$EA_NAME" "$TESTER_INI"
       ;;
 
     f) # The .set file to run the test.
       echo "Setting EA parameters..."
+      SETORG="$OPTARG"
       EA_NAME="$(ini_get TestExpert)"
       SETFILE="${EA_NAME}.set"
-      test -s "$TESTER_DIR/$SETFILE" || cp -vf "$OPTARG" "$TESTER_DIR/$SETFILE"
+      [ -f "$TESTER_DIR/$SETFILE" ] || cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 
@@ -122,7 +147,7 @@ while getopts $ARGS opts; do
       YEAR=${OPTARG}
       echo "Setting period to test..."
       ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
-      ini_set "^TestToDate"   "$YEAR.01.30" "$TESTER_INI"
+      ini_set "^TestToDate"   "$YEAR.02.30" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
@@ -141,7 +166,8 @@ while getopts $ARGS opts; do
     i) # Invoke file with custom rules.
       INCLUDE=${OPTARG}
       echo "Invoking includes..."
-      [ -s "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
+      SETFILE="$(ini_get TestExpert).set"
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
       . "$INCLUDE"
       ;;
 
@@ -154,7 +180,7 @@ while getopts $ARGS opts; do
       BT_SRC=${OPTARG}
       # Generate backtest files if not present.
       echo "Checking backtest data..."
-      test -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" || $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
+      [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
 
     t) # Convert Report files into text format.
@@ -165,14 +191,16 @@ while getopts $ARGS opts; do
       DEST=${OPTARG}
       ;;
 
-    v) # Verbose mode.
-      VERBOSE=1
-      type html2text
+    v)
+      # Verbose flag.
+      ;;
+    x)
+      # Debug flag.
       ;;
 
     \? | h | *)
       echo "$0 usage:"
-      grep " .) #" $0 | grep -v grep
+      grep " .)\ #" $0
       exit 0
       ;;
 
