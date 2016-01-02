@@ -55,9 +55,11 @@ parse_results() {
       o)
         echo "Saving optimization results..."
         if [ -z "$input_values" ]; then
-          echo 123
-          # ini_get "^todo"
-          # ini_set "^todo" true "$SETORG"
+          for input in ${param_list[@]}; do
+            value=$(ini_get "$input" "$REPORT_FILE")
+            echo "Setting '$input' to '$value' in '$(basename $SETORG)'"
+            ini_set "^$input" "$value" "$SETORG"
+          done
         fi
         ;;
       esac
