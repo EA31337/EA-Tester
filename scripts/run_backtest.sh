@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:p:d:y:s:oi:I:cb:tD:vxh"
+ARGS=":r:e:f:E:c:p:d:y:s:oi:I:Cb:tD:vxh"
 
 ## Check dependencies.
 type git ex
@@ -144,7 +144,7 @@ while getopts $ARGS arg; do
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 
-    E) # EA settings.
+    E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
       echo "Applying EA settings..."
       EA_OPTS=${OPTARG}
       IFS='=' ea_option=($in)
@@ -152,20 +152,24 @@ while getopts $ARGS arg; do
       ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
       ;;
 
-    p) # Symbol pair to test.
+    c) # Base currency for test (e.g. USD).
+      CURRENCY=${OPTARG}
+      ini_set "^currency" "$CURRENCY" "$EA_INI"
+      ;;
+
+    p) # Symbol pair to test (e.g. EURUSD).
       echo "Setting symbol pair..."
       SYMBOL=${OPTARG}
       ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
-      ini_set "^currency" "$SYMBOL" "$EA_INI"
       ;;
 
-    d) # Deposit amount to test.
+    d) # Deposit amount to test (e.g. 2000).
       echo "Setting deposit..."
       DEPOSIT=${OPTARG}
       ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
-    y) # Year to test.
+    y) # Year to test (e.g. 2014).
       echo "Setting period to test..."
       YEAR=${OPTARG}
       ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
@@ -193,7 +197,7 @@ while getopts $ARGS arg; do
       . "$INCLUDE"
       ;;
 
-    c) # Clean previous backtest data.
+    C) # Clear previous backtest data files.
       clean_files
       clean_bt
       ;;
