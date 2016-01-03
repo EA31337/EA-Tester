@@ -59,10 +59,14 @@ input_set() {
   value="$2"
   file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
   vargs="-u NONE"
-  [ "$VERBOSE" ] && vargs+=" -V1"
-  echo "Setting '$key' to '$value' in $(basename "$file")" >&2
   [ -f "$file" ]
-  ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  if [ ! -z "$value" ]; then
+    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+  else
+    echo "Value for '$key' is empty, ignoring."
+  fi
 }
 
 # Get input value from the SET file.
@@ -84,10 +88,14 @@ ini_set() {
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
   vargs="-u NONE"
-  [ "$VERBOSE" ] && vargs+=" -V1"
-  echo "Setting '$key' to '$value' in $(basename "$file")" >&2
   [ -f "$file" ]
-  ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  if [ ! -z "$value" ]; then
+    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+  else
+    echo "Value for '$key' is empty, ignoring."
+  fi
 }
 
 # Get value from the INI/HTM file.
