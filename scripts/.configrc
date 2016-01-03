@@ -15,8 +15,10 @@ trap onerror 1 2 3 15 ERR
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
 CONF_TERM="terminal.ini"
+CONF_EA="ea.ini"
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
+TPL_EA="$ROOT/conf/$CONF_EA"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
@@ -52,32 +54,48 @@ clean_bt() {
 
 # Set input value in the SET file.
 input_set() {
+  local value
   key="$1"
   value="$2"
   file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
   vargs="-u NONE"
   [ "$VERBOSE" ] && vargs+=" -V1"
-  [ -f "$file" ] &&
+  echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+  [ -f "$file" ]
   ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+}
+
+# Get input value from the SET file.
+input_get() {
+  local value
+  key="$1"
+  value="$2"
+  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
+  vargs="-u NONE"
+  [ -f "$file" ]
+  value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
+  echo $value
 }
 
 # Set value in the INI file.
 ini_set() {
+  local value
   key="$1"
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
   vargs="-u NONE"
   [ "$VERBOSE" ] && vargs+=" -V1"
   echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-  [ -f "$file" ] &&
+  [ -f "$file" ]
   ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
 }
 
 # Get value from the INI/HTM file.
 ini_get() {
+  local value
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -om1 "$key=[.0-9a-zA-Z]\+" "$file" | cut -d= -f2-)"
+  value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }

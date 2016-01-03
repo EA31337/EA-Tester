@@ -49,7 +49,7 @@ parse_results() {
         ;;
       v)
         echo "Printing test reports..."
-        html2text -width 180 "$REPORT_FILE" | sed /Graph/q
+        html2text -width 180 "$REPORT_FILE" | sed "/\[Graph\]/q"
         find "$TERMINAL_DIR/tester/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" ';'
         ;;
       o)
@@ -67,8 +67,8 @@ parse_results() {
 }
 
 # Parse the initial arguments.
-while getopts $ARGS opts; do
-  case ${opts} in
+while getopts $ARGS arg; do
+  case ${arg} in
     v) # Verbose mode.
       VERBOSE=1
       VFLAG="-v"
@@ -92,76 +92,87 @@ echo "Checking platform dependencies..." >&2
 cp $VFLAG "$TPL_TEST" "$TESTER_INI"
 cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 
-# Parse the arguments.
+# Parse the primary arguments.
 OPTIND=1
-while getopts $ARGS opts; do
-  case ${opts} in
+while getopts $ARGS arg; do
+  case ${arg} in
+    e) # EA name.
+      EA_NAME=${OPTARG}
+      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
+      [ -f "$EA_PATH" ]
+      cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
+      ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+      ;;
+  esac
+done
+
+# Configure EA.
+EA_NAME="$(ini_get TestExpert)"
+EA_INI="$TESTER_DIR/$EA_NAME.ini"
+cp $VFLAG "$TPL_EA" "$EA_INI"
+
+# Parse the secondary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
     r) # The name of the test report file. A relative path can be specified.
+      echo "Setting test report..."
       if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
         type realpath
         REPORT="$(realpath --relative-to="${TERMINAL_DIR}" "${OPTARG}")" # ... treat as relative path
       else
         REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
       fi
-      echo "Setting test report..."
       ini_set "^TestReport" "$REPORT" "$TESTER_INI"
-      ;;
-
-    e) # EA name.
-      EA_NAME=${OPTARG}
-      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
-      [ -s "$EA_PATH" ] && { cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts"; EA_NAME="$(basename "${EA_PATH%.*}")"; }
-      ini_set "^TestExpert" "$EA_NAME" "$TESTER_INI"
       ;;
 
     f) # The .set file to run the test.
       echo "Setting EA parameters..."
       SETORG="$OPTARG"
-      EA_NAME="$(ini_get TestExpert)"
       SETFILE="${EA_NAME}.set"
-      [ -f "$TESTER_DIR/$SETFILE" ] || cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
+      [ -f "$SETORG" ]
+      [ ! -f "$TESTER_DIR/$SETFILE" ] && cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 
     E) # EA settings.
-      EA_OPTS=${OPTARG}
-      EA_NAME="$(ini_get TestExpert)"
       echo "Applying EA settings..."
-      echo "$EA_OPTS" | tee -a "$TESTER_DIR/${EA_NAME}.ini"
+      EA_OPTS=${OPTARG}
+      IFS='=' ea_option=($in)
+      [ -f "$EA_INI" ]
+      ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
       ;;
 
     p) # Symbol pair to test.
-      SYMBOL=${OPTARG}
       echo "Setting symbol pair..."
+      SYMBOL=${OPTARG}
       ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
-      # EA_NAME="$(ini_get TestExpert)"
-      # echo "currency=$SYMBOL" >> "$TESTER_DIR/${EA_NAME}.ini"
+      ini_set "^currency" "$SYMBOL" "$EA_INI"
       ;;
 
     d) # Deposit amount to test.
-      DEPOSIT=${OPTARG}
-      EA_NAME="$(ini_get TestExpert)"
       echo "Setting deposit..."
-      echo "deposit=$DEPOSIT" >> "$TESTER_DIR/${EA_NAME}.ini"
+      DEPOSIT=${OPTARG}
+      ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
     y) # Year to test.
-      YEAR=${OPTARG}
       echo "Setting period to test..."
+      YEAR=${OPTARG}
       ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
-      ini_set "^TestToDate"   "$YEAR.02.30" "$TESTER_INI"
+      ini_set "^TestToDate"   "$YEAR.12.30" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
-      SPREAD=${OPTARG}
       echo "Setting spread to test..."
+      SPREAD=${OPTARG}
       ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
       ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
       ;;
 
     o) # Run optimization test.
-      OPTIMIZATION=true
       echo "Setting optimization mode..."
+      OPTIMIZATION=true
       ini_set "^TestOptimization" true "$TESTER_INI"
       ;;
 
@@ -179,9 +190,9 @@ while getopts $ARGS opts; do
       ;;
 
     b) # Backtest data to test.
+      echo "Checking backtest data..."
       BT_SRC=${OPTARG}
       # Generate backtest files if not present.
-      echo "Checking backtest data..."
       [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
 
@@ -191,16 +202,16 @@ while getopts $ARGS opts; do
 
     D) # Destination directory to save the test results.
       DEST=${OPTARG}
+      echo "Checking if destination exists..."
+      [ -d "$DEST" ]
       ;;
 
-    v)
-      # Verbose flag.
-      ;;
-    x)
-      # Debug flag.
-      ;;
+    # Placeholders.
+    e) ;;
+    v) ;;
+    x) ;;
 
-    \? | h | *)
+    \? | h | *) # Display help.
       echo "$0 usage:"
       grep " .)\ #" $0
       exit 0
