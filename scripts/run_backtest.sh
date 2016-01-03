@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:p:d:y:s:oi:cb:tD:vxh"
+ARGS=":r:e:f:E:p:d:y:s:oi:I:cb:tD:vxh"
 
 ## Check dependencies.
 type git ex
@@ -13,6 +13,15 @@ on_success() {
   echo "Test succeded." >&2
   parse_results $@
   on_finish
+  local OPTIND
+  while getopts $ARGS arg; do
+    case $arg in
+      I) # Invoke file after successful test.
+        echo "Invoking file after test..."
+        . "$OPTARG"
+        ;;
+      esac
+  done
   exit 0
 }
 
@@ -177,8 +186,8 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      INCLUDE=${OPTARG}
       echo "Invoking includes..."
+      INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
       . "$INCLUDE"
@@ -208,6 +217,7 @@ while getopts $ARGS arg; do
 
     # Placeholders.
     e) ;;
+    I) ;;
     v) ;;
     x) ;;
 
