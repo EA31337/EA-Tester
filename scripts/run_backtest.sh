@@ -9,8 +9,9 @@ type git ex
 # Invoke on test success.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
+  echo "Printing logs..." >&2
   show_logs
-  echo "Test succeded." >&2
+  echo "TEST succeded." >&2
   parse_results $@
   on_finish
   local OPTIND
@@ -27,8 +28,9 @@ on_success() {
 
 # Invoke on test failure.
 on_failure() {
-  echo "Test failed." >&2
+  echo "Printing logs..." >&2
   show_logs
+  echo "TEST failed." >&2
   on_finish
   exit 1
 }
@@ -59,7 +61,7 @@ parse_results() {
       v)
         echo "Printing test reports..."
         html2text -width 180 "$REPORT_FILE" | sed "/\[Graph\]/q"
-        find "$TERMINAL_DIR/tester/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" ';'
+        find "$TERMINAL_DIR/tester/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       o)
         echo "Saving optimization results..."
@@ -140,7 +142,7 @@ while getopts $ARGS arg; do
       SETORG="$OPTARG"
       SETFILE="${EA_NAME}.set"
       [ -f "$SETORG" ]
-      [ ! -f "$TESTER_DIR/$SETFILE" ] && cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
+      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 

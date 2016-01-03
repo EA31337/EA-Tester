@@ -33,8 +33,7 @@ xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 
 # Define common functions.
 show_logs() {
-  echo "Printing logs..." >&2
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" ';'
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
 }
 
 # Clean files.
