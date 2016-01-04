@@ -6,7 +6,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 set -e
 type git wget zip unzip pv xargs tee
 xargs=$(which gxargs || which xargs)
-[ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1/W1/C1/Z1/R1]"; exit 1; }
+[ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5]"; exit 1; }
 symbol=$1
 year=$2
 bt_src=$3
@@ -27,24 +27,34 @@ case $bt_src in
   ;;
   "N0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "N1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 0.1 1.0 ;;
-  "N2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 1.0 2.0 -v2 ;;
-  "N3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 3.0 1.0 -v3 ;;
+  "N2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
+  "N3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 3.0 1.0 -v30 ;;
+  "N4") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 1.0 3.0 -v40 ;;
+  "N5") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 5.0 1.0 -v50 ;;
   "W0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "W1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 0.1 1.0 ;;
-  "W2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 1.0 2.0 -v2 ;;
-  "W3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 3.0 1.0 -v3 ;;
+  "W2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
+  "W3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 3.0 1.0 -v30 ;;
+  "W4") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 1.0 4.0 -v40 ;;
+  "W5") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p wave "$year.01.01" "$year.12.30" 5.0 1.0 -v50 ;;
   "C0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "C1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 0.1 1.0 ;;
-  "C2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 1.0 2.0 -v2 ;;
-  "C3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 3.0 1.0 -v3 ;;
+  "C2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
+  "C3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 3.0 1.0 -v30 ;;
+  "C4") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 1.0 4.0 -v40 ;;
+  "C5") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p curve "$year.01.01" "$year.12.30" 5.0 1.0 -v50 ;;
   "Z0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "Z1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 1.0 2.0 ;;
-  "Z2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 1.0 2.0 -v2 ;;
-  "Z3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 3.0 1.0 -v3 ;;
+  "Z2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
+  "Z3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 3.0 1.0 -v30 ;;
+  "Z4") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 1.0 4.0 -v40 ;;
+  "Z5") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p zigzag "$year.01.01" "$year.12.30" 5.0 1.0 -v50 ;;
   "R0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "R1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 0.1 1.0 ;;
-  "R2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 1.0 2.0 -v2 ;;
-  "R3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 3.0 1.0 -v3 ;;
+  "R2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
+  "R3") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 3.0 1.0 -v30 ;;
+  "R4") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 1.0 4.0 -v40 ;;
+  "R5") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p random "$year.01.01" "$year.12.30" 5.0 1.0 -v50 ;;
   *)
     echo "ERROR: Unknown backtest data type: $bt_src" >&2
     exit 1

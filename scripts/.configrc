@@ -1,7 +1,7 @@
 # .configrc: invoked by bash(1)
 #
 # Initialize variables.
-set -ex
+set -e
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
 
@@ -15,8 +15,10 @@ trap onerror 1 2 3 15 ERR
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
 CONF_TERM="terminal.ini"
+CONF_EA="ea.ini"
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
+TPL_EA="$ROOT/conf/$CONF_EA"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
@@ -27,52 +29,88 @@ TESTER_DIR="$TERMINAL_DIR/tester"
 export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
 export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
-set +x
+xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 
 # Define common functions.
 show_logs() {
-  echo "Printing logs..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" ')' -exec tail "{}" ';'
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
 }
 
+# Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.
-  echo "Cleaning previous data..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.log"  -o -name "*.txt" -o -name "*.htm" -o -name "*.gif" ')' -print -delete
+  echo "Cleaning previous test data..." >&2
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' $VPRINT -delete
+  find "$TERMINAL_DIR/tester/files" -type f $VPRINT -delete
 }
 
 # Delete backtest data files.
 clean_bt() {
   # Remove previous backtest files.
   echo "Cleaning backtest data..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.hst"  -o -name "*.fxt" ')' -print -delete
+  find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
 }
 
+# Set input value in the SET file.
 input_set() {
+  local value
   key="$1"
   value="$2"
   file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
-  [ -s "$file" ] &&
-  ex +"%s/$key=\zs.*$/$value/" -scwq "$file"
+  vargs="-u NONE"
+  [ -f "$file" ]
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  if [ ! -z "$value" ]; then
+    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+  else
+    echo "Value for '$key' is empty, ignoring."
+  fi
 }
 
-# Set value in the file.
+# Get input value from the SET file.
+input_get() {
+  local value
+  key="$1"
+  value="$2"
+  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
+  vargs="-u NONE"
+  [ -f "$file" ]
+  value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
+  echo $value
+}
+
+# Set value in the INI file.
 ini_set() {
+  local value
   key="$1"
   value="$2"
   file="${3:-$(echo $TESTER_INI)}"
-  echo "Setting $key to $value in $(basename "$file")" >&2
-  [ -s "$file" ] &&
-  ex +"%s/$key=\zs.*$/$value/" -scwq "$file"
+  vargs="-u NONE"
+  [ -f "$file" ]
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  if [ ! -z "$value" ]; then
+    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+  else
+    echo "Value for '$key' is empty, ignoring."
+  fi
 }
 
-# Get value in the file.
+# Get value from the INI/HTM file.
 ini_get() {
+  local value
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -w "$key" "$file" | cut -d= -f2-)"
-  echo "Getting $key from $(basename "$file"): $value" >&2
+  value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
+  echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
+}
+
+# Get all values from the INI/HTM file.
+get_values() {
+  file="$1"
+  grep -o '\S\+[^_]=[^;]\+' "$file"
 }
 
 # Detect and configure proxy.

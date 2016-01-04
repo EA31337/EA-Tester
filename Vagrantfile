@@ -39,13 +39,16 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
-
   config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
   config.vm.provider "virtualbox" do |v|
     v.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
     v.memory = 2048
     v.cpus = 2
+  end
+
+  if Vagrant.has_plugin?("vagrant-timezone")
+    config.timezone.value = :host
   end
 
 end
