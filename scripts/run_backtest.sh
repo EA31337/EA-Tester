@@ -52,7 +52,7 @@ parse_results() {
       t)
         echo "Converting report into text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        html2text -width 180 -o "$REPORT_TXT" "$REPORT_HTM"
+        html2text -width 105 -o "$REPORT_TXT" "$REPORT_HTM"
         ;;
       D)
         echo "Copying report files..."
