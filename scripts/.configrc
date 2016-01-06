@@ -40,7 +40,7 @@ show_logs() {
 clean_files() {
   # Remove previous log, dat, txt and htm files.
   echo "Cleaning previous test data..." >&2
-  find "$TESTER_DIR" -name "*.htm" $VPRINT -delete
+  find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' $VPRINT -delete
   find "$TESTER_DIR/files" -type f $VPRINT -delete
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' $VPRINT -delete
 }
@@ -103,7 +103,7 @@ ini_get() {
   local value
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -om1 "$key=[./0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
+  value="$(grep -om1 "$key=[./0-9a-zA-Z_-]\+" "$file" | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }

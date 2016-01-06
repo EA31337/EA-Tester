@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:c:p:d:y:s:oi:I:Cb:tD:vxh"
+ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tD:vxh"
 
 ## Check dependencies.
 type git ex
@@ -116,6 +116,9 @@ while getopts $ARGS arg; do
       cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
       ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
       ;;
+    m) # How many months to test.
+      MONTHS=${OPTARG}
+      ;;
   esac
 done
 
@@ -172,7 +175,7 @@ while getopts $ARGS arg; do
       echo "Setting period to test..."
       YEAR=${OPTARG}
       ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
-      ini_set "^TestToDate"   "$YEAR.12.30" "$TESTER_INI"
+      ini_set "^TestToDate"   "$YEAR.${MONTHS:-12}.30" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
@@ -218,11 +221,8 @@ while getopts $ARGS arg; do
       [ -d "$DEST" ] || mkdir -p "$DEST"
       ;;
 
-    # Placeholders.
-    e) ;;
-    I) ;;
-    v) ;;
-    x) ;;
+    # Placeholders for parameters used somewhere else.
+    m | e | I | v | x) ;;
 
     \? | h | *) # Display help.
       echo "$0 usage:"
