@@ -40,8 +40,9 @@ show_logs() {
 clean_files() {
   # Remove previous log, dat, txt and htm files.
   echo "Cleaning previous test data..." >&2
+  find "$TESTER_DIR" -name "*.htm" $VPRINT -delete
+  find "$TESTER_DIR/files" -type f $VPRINT -delete
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' $VPRINT -delete
-  find "$TERMINAL_DIR/tester/files" -type f $VPRINT -delete
 }
 
 # Delete backtest data files.
@@ -91,7 +92,7 @@ ini_set() {
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file"
+    ex +'%s#'$key'=\zs.*$#'$value'#' -scwq $vargs "$file"
   else
     echo "Value for '$key' is empty, ignoring."
   fi
@@ -102,7 +103,7 @@ ini_get() {
   local value
   key="$1"
   file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
+  value="$(grep -om1 "$key=[./0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
@@ -143,7 +144,7 @@ show_trace() {
 }
 
 #--- onexit()
-##  @param $1 integer  (optional) Exit status. If not set, use `$?'
+##  @param $1 integer  (optional) Exit status. If not set, use '$?'
 onexit() {
   local exit_status=${1:-$?}
   kill_wine
@@ -153,7 +154,7 @@ onexit() {
 }
 
 #--- onerror()
-##  @param $1 integer  (optional) Exit status. If not set, use `$?'
+##  @param $1 integer  (optional) Exit status. If not set, use '$?'
 onerror() {
   local exit_status=${1:-$?}
   local frame=0

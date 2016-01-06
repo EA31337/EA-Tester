@@ -45,29 +45,31 @@ on_finish() {
 parse_results() {
   local OPTIND
   REPORT_BASE="$(basename "$(ini_get TestReport)")"
-  REPORT_FILE=$(find "$TERMINAL_DIR" -name "$REPORT_BASE.htm")
+  REPORT_HTM=$(find "$TERMINAL_DIR" -name "$REPORT_BASE.htm")
+  [ -f "$REPORT_HTM" ]
   while getopts $ARGS arg; do
     case $arg in
       t)
-        echo "Converting report files..."
-        html2text -width 180 -o "$REPORT_BASE.txt" "$REPORT_FILE"
+        echo "Converting report into text file..."
+        REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
+        html2text -width 105 -o "$REPORT_TXT" "$REPORT_HTM"
         ;;
       D)
         echo "Copying report files..."
         DEST="${DEST:-$(echo $CWD)}"
-        cp $VFLAG "$TERMINAL_DIR/$(basename "${REPORT_FILE%.*}")".* "$DEST"
+        cp $VFLAG "$TERMINAL_DIR/tester/$(basename "${REPORT_HTM%.*}")".* "$DEST"
         find "$TERMINAL_DIR/tester/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
       v)
         echo "Printing test reports..."
-        html2text -width 180 "$REPORT_FILE" | sed "/\[Graph\]/q"
+        html2text -width 180 "$REPORT_HTM" | sed "/\[Graph\]/q"
         find "$TERMINAL_DIR/tester/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       o)
         echo "Saving optimization results..."
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
-            value=$(ini_get "$input" "$REPORT_FILE")
+            value=$(ini_get "$input" "$REPORT_HTM")
             echo "Setting '$input' to '$value' in '$(basename $SETORG)'"
             ini_set "^$input" "$value" "$SETORG"
           done
@@ -126,14 +128,9 @@ cp $VFLAG "$TPL_EA" "$EA_INI"
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
-    r) # The name of the test report file. A relative path can be specified.
+    r) # The name of the test report file.
       echo "Setting test report..."
-      if [ -s "$(dirname "${OPTARG}")" ]; then # If base folder exists,
-        type realpath
-        REPORT="$(realpath --relative-to="${TERMINAL_DIR}" "${OPTARG}")" # ... treat as relative path
-      else
-        REPORT="$(basename "${OPTARG}")" # ... otherwise, it's a filename.
-      fi
+      REPORT="tester/$(basename "${OPTARG}")"
       ini_set "^TestReport" "$REPORT" "$TESTER_INI"
       ;;
 
@@ -217,8 +214,8 @@ while getopts $ARGS arg; do
 
     D) # Destination directory to save the test results.
       DEST=${OPTARG}
-      echo "Checking if destination exists..."
-      [ -d "$DEST" ]
+      echo "Checking destination ..."
+      [ -d "$DEST" ] || mkdir -p "$DEST"
       ;;
 
     # Placeholders.
