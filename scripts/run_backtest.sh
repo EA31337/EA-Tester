@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tD:vxh"
+ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tTD:vxh"
 
 ## Check dependencies.
 type git ex
@@ -49,10 +49,15 @@ parse_results() {
   [ -f "$REPORT_HTM" ]
   while getopts $ARGS arg; do
     case $arg in
-      t)
+      t) # Convert test report file into brief text format.
+        echo "Converting report into short text file..."
+        REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
+        html2text -width 105 "$REPORT_HTM" | sed "/\[Graph\]/q" > "$REPORT_TXT" && rm -v "$REPORT_HTM"
+        ;;
+      T) # Convert test report file into full detailed text format.
         echo "Converting report into text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        html2text -width 105 -o "$REPORT_TXT" "$REPORT_HTM"
+        html2text -width 105 -o "$REPORT_TXT" "$REPORT_HTM" && rm -v "$REPORT_HTM"
         ;;
       D)
         echo "Copying report files..."
@@ -211,7 +216,7 @@ while getopts $ARGS arg; do
       [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
 
-    t) # Convert Report files into text format.
+    t)
       type html2text
       ;;
 
