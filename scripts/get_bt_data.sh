@@ -7,16 +7,18 @@ set -e
 type git wget zip unzip pv xargs tee
 xargs=$(which gxargs || which xargs)
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5]"; exit 1; }
+[ "$TRACE" ] && set -x
 symbol=$1
 year=$2
 bt_src=$3
+bt_key="$1-$2-$3"
 
 bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%d.zip" $symbol $bt_src $symbol $year)
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_src-$symbol-$year"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
-mkdir -v "$bt_csv" || true
+mkdir $VFLAG "$bt_csv" || true
 
 echo "Getting data..." >&2
 case $bt_src in
@@ -75,6 +77,9 @@ find "$bt_csv" -name '*.csv' -print0 |
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+
+# Store the backtest data type.
+ini_set "bt_data" "$bt_key" "$CUSTOM_INI" || echo "bt_data=$bt_key" >> "$CUSTOM_INI"
 
 # Add files to the git repository.
 #if test -d "$DIR/.git"; then

@@ -45,7 +45,7 @@ on_finish() {
 parse_results() {
   local OPTIND
   REPORT_BASE="$(basename "$(ini_get TestReport)")"
-  REPORT_HTM=$(find "$TERMINAL_DIR" -name "$REPORT_BASE.htm")
+  REPORT_HTM=$(find "$TERMINAL_DIR" -name "${REPORT_BASE}.htm")
   [ -f "$REPORT_HTM" ]
   while getopts $ARGS arg; do
     case $arg in
@@ -94,6 +94,7 @@ while getopts $ARGS arg; do
       type html2text sed
       ;;
     x) # Run the script in debug mode.
+      TRACE=1
       set -x
       ;;
   esac
@@ -212,8 +213,13 @@ while getopts $ARGS arg; do
     b) # Backtest data to test.
       echo "Checking backtest data..."
       BT_SRC=${OPTARG}
+      bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-N1}"
       # Generate backtest files if not present.
-      [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
+      if [ ! -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+        $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
+      else
+        echo "Skipping, as $bt_key already exists..."
+      fi
       ;;
 
     t)
