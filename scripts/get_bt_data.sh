@@ -67,13 +67,28 @@ bt_size=$(find "$bt_csv" -name '*.csv' -print0 | du -bc --files0-from=- | tail -
 
 # Convert CSV tick files to backtest files.
 echo "Converting data..."
-find "$bt_csv" -name '*.csv' -print0 |
-  sort -z |
-  $xargs -r0 cat |
-  tee &> /dev/null \
-  >(pv -N 'Converting FXT & HST data' -s $bt_size |
-    "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default") \
-  >("$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history")
+conv=$dest/scripts/convert_csv_to_mt.py
+conv_args="-v -i /dev/stdin  -S default -s $symbol -p 10 -S default"
+find "$bt_csv" -name '*.csv' -print0 | sort -z | $xargs -r0 cat | tee      \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M1  ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M5  ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M15 ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M30 ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t H1  ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t H4  ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t D1  ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t W1  ) \
+  >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t MN  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M1  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M5  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M15 ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M30 ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t H1  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t H4  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t D1  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t W1  ) \
+  >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t MN  ) \
+  | pv -N 'Converting FXT & HST data' -s $bt_size &>/dev/null
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
