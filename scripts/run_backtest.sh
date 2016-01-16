@@ -45,8 +45,8 @@ on_finish() {
 parse_results() {
   local OPTIND
   REPORT_BASE="$(basename "$(ini_get TestReport)")"
-  REPORT_HTM=$(find "$TERMINAL_DIR" -name "${REPORT_BASE}.htm")
-  [ -f "$REPORT_HTM" ]
+  REPORT_HTM=$(find "$TESTER_DIR" -name "${REPORT_BASE}.htm")
+  test -f "$REPORT_HTM" || exit 1
   while getopts $ARGS arg; do
     case $arg in
       t) # Convert test report file into brief text format.
@@ -62,13 +62,13 @@ parse_results() {
       D)
         echo "Copying report files..."
         DEST="${DEST:-$(echo $CWD)}"
-        cp $VFLAG "$TERMINAL_DIR/tester/$(basename "${REPORT_HTM%.*}")".* "$DEST"
-        find "$TERMINAL_DIR/tester/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
+        cp $VFLAG "$TESTER_DIR/$(basename "${REPORT_HTM%.*}")".* "$DEST"
+        find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
       v)
         echo "Printing test reports..."
         html2text -width 180 "$REPORT_HTM" | sed "/\[Graph\]/q"
-        find "$TERMINAL_DIR/tester/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
+        find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       o)
         echo "Saving optimization results..."
