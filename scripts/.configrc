@@ -10,12 +10,16 @@ ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..
 trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
+# Activate trace when expected.
+[ "$TRACE" ] && set -x
 
 # Determine platform paths.
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
 CONF_TERM="terminal.ini"
+CONF_LAST="lastparameters.ini"
 CONF_EA="ea.ini"
+CONF_CUSTOM="custom.ini"
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
@@ -24,6 +28,8 @@ TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
 TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
 TESTER_DIR="$TERMINAL_DIR/tester"
+LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
+CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
 
 # Configure display and wine.
 export DISPLAY=:0.0 # Select screen 0.
