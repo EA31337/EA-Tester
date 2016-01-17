@@ -7,16 +7,18 @@ set -e
 type git wget zip unzip pv xargs tee
 xargs=$(which gxargs || which xargs)
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5]"; exit 1; }
+[ "$TRACE" ] && set -x
 symbol=$1
 year=$2
 bt_src=$3
+bt_key="$1-$2-$3"
 
 bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%d.zip" $symbol $bt_src $symbol $year)
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_src-$symbol-$year"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
-mkdir -v "$bt_csv" || true
+mkdir $VFLAG "$bt_csv" || true
 
 echo "Getting data..." >&2
 case $bt_src in
@@ -65,16 +67,34 @@ bt_size=$(find "$bt_csv" -name '*.csv' -print0 | du -bc --files0-from=- | tail -
 
 # Convert CSV tick files to backtest files.
 echo "Converting data..."
-find "$bt_csv" -name '*.csv' -print0 |
-  sort -z |
-  $xargs -r0 cat |
-  tee &> /dev/null \
-  >(pv -N 'Converting FXT & HST data' -s $bt_size |
-    "$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f hst4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/history/default") \
-  >("$dest/scripts/convert_csv_to_mt.py" -v -i /dev/stdin -f fxt4 -s $symbol -t M1 -p 10 -S default -d "$TERMINAL_DIR/tester/history")
+conv=$dest/scripts/convert_csv_to_mt.py
+conv_args="-v -i /dev/stdin  -S default -s $symbol -p 10 -S default"
+find "$bt_csv" -name '*.csv' -print0 | sort -z | $xargs -r0 cat |          \
+  pv -N 'Converting FXT & HST data' -s $bt_size | tee &>/dev/null          \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M1  ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M5  ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M15 ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t M30 ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t H1  ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t H4  ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t D1  ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t W1  ) \
+    >("$conv" $conv_args -f hst4 -d "$TERMINAL_DIR/history/default" -t MN  ) \
+    >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M1  )
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M5  ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M15 ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t M30 ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t H1  ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t H4  ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t D1  ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t W1  ) \
+#   >("$conv" $conv_args -f fxt4 -d "$TERMINAL_DIR/tester/history"  -t MN  ) \
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+
+# Store the backtest data type.
+ini_set "bt_data" "$bt_key" "$CUSTOM_INI" || echo "bt_data=$bt_key" >> "$CUSTOM_INI"
 
 # Add files to the git repository.
 #if test -d "$DIR/.git"; then

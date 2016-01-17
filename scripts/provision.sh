@@ -35,7 +35,7 @@ echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select tr
 apt-get install -qy language-pack-en
 
 # Install basic utils.
-apt-get install -qy git coreutils realpath links html2text tree pv
+apt-get install -qy git coreutils moreutils realpath links html2text tree pv
 
 # Install and run X virtual framebuffer and X utils.
 apt-get install -qy xvfb xdotool
