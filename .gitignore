@@ -3,6 +3,7 @@
 .*.*.s??
 
 # Ignore configuration files that may contain sensitive information.
+EA
 nbproject
 build.properties
 files
