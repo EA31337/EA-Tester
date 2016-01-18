@@ -74,7 +74,7 @@ parse_results() {
         echo "Saving optimization results..."
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
-            value=$(ini_get "$input" "$REPORT_HTM")
+            value=$(ini_get "^$input" "$REPORT_HTM")
             echo "Setting '$input' to '$value' in '$(basename $SETORG)'"
             ini_set "^$input" "$value" "$SETORG"
           done
