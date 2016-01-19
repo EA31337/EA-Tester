@@ -47,6 +47,20 @@ Vagrant.configure(2) do |config|
     v.cpus = 2
   end
 
+  config.vm.provider :aws do |aws, override|
+    aws.tags = {
+      'Name' => 'MT4',
+    }
+    aws.instance_type = "m3.medium"
+    aws.access_key_id = ENV['AWS_ACCESS_ID']
+    aws.secret_access_key = ENV['AWS_SECRET_ACCESS_ID']
+    # aws.session_token = "SESSION TOKEN"
+    # aws.keypair_name = "KEYPAIR NAME"
+
+    # override.ssh.username = "ubuntu"
+    # override.ssh.private_key_path = "PATH TO YOUR PRIVATE KEY"
+  end
+
   if Vagrant.has_plugin?("vagrant-timezone")
     config.timezone.value = :host
   end
