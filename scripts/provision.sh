@@ -5,11 +5,12 @@
 #
 
 # Initialize script.
-if [ ! -d "/vagrant" ] && [ ! -d "/home/travis" ]; then
+if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
   echo "This script needs to be run within VM."
   exit 1
 fi
 whoami && pwd
+type curl || apt-get -y install curl
 type dpkg apt-get
 
 # Init variables.
@@ -39,6 +40,9 @@ apt-get install -qy git coreutils moreutils realpath links html2text tree pv
 
 # Install and run X virtual framebuffer and X utils.
 apt-get install -qy xvfb xdotool
+
+# Install Apt dependencies (required for a docker image).
+apt-get install -qy software-properties-common python-software-properties
 
 # Install wine
 dpkg --add-architecture i386 || true
