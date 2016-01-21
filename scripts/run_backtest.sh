@@ -9,6 +9,8 @@ type git ex
 # Invoke on test success.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
+  echo "Checking and saving time..." >&2
+  save_time
   echo "Printing logs..." >&2
   show_logs
   echo "TEST succeded." >&2
@@ -250,4 +252,4 @@ done
 clean_files
 
 # Run the test under the platform.
-time wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success $@ || on_failure
+(time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure
