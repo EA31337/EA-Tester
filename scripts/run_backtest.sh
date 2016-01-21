@@ -9,8 +9,6 @@ type git ex
 # Invoke on test success.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
-  echo "Checking and saving time..." >&2
-  save_time
   echo "Printing logs..." >&2
   show_logs
   echo "TEST succeded." >&2
@@ -49,6 +47,8 @@ parse_results() {
   REPORT_BASE="$(basename "$(ini_get TestReport)")"
   REPORT_HTM=$(find "$TESTER_DIR" -name "${REPORT_BASE}.htm")
   test -f "$REPORT_HTM" || exit 1
+  echo "Checking and saving time..." >&2
+  save_time
   while getopts $ARGS arg; do
     case $arg in
       t) # Convert test report file into brief text format.
