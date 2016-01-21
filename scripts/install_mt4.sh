@@ -9,13 +9,13 @@ type wget xdotool xwininfo wine
 . $CWD/.configrc
 
 echo "Downloading MT4 installer..."
-[ ! -f "$OUT/mt4setup.exe" ] && wget -P "$OUT" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
+[ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
 
 # Detect and configure proxy.
 #configure_proxy
 
 echo "Starting MT4 Setup in Wine..."
-wine "$OUT/mt4setup.exe" &
+wine "$HOME/mt4setup.exe" &
 
 set +e
 echo "Waiting for Wine to initialize..."
