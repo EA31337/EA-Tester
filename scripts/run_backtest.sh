@@ -47,6 +47,8 @@ parse_results() {
   REPORT_BASE="$(basename "$(ini_get TestReport)")"
   REPORT_HTM=$(find "$TESTER_DIR" -name "${REPORT_BASE}.htm")
   test -f "$REPORT_HTM" || exit 1
+  echo "Checking and saving time..." >&2
+  save_time
   while getopts $ARGS arg; do
     case $arg in
       t) # Convert test report file into brief text format.
@@ -250,4 +252,4 @@ done
 clean_files
 
 # Run the test under the platform.
-time wine "$TERMINAL_EXE" "config/$CONF_TEST" && on_success $@ || on_failure
+(time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure
