@@ -28,8 +28,10 @@ TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
 TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
 TESTER_DIR="$TERMINAL_DIR/tester"
+TERMINAL_LOG="$TESTER_DIR/logs/terminal.log"
 LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
 CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
+CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 
 # Configure display and wine.
 export DISPLAY=:0.0 # Select screen 0.
@@ -114,10 +116,40 @@ ini_get() {
   echo $value
 }
 
+# Set tag value in the file.
+tag_set() {
+  local value
+  key="$1"
+  value="$2"
+  file="${3:-$(echo $INCLUDE)}"
+  vargs="-u NONE"
+  [ -f "$file" ]
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  if [ ! -z "$value" ]; then
+    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+    ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
+  else
+    echo "Value for '$key' is empty, ignoring."
+  fi
+}
+
 # Get all values from the INI/HTM file.
 get_values() {
   file="$1"
   grep -o '\S\+[^_]=[^;]\+' "$file"
+}
+
+# Get time from terminal log in h.
+get_time() {
+  MTIME=$(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
+  echo $MTIME
+}
+
+# Save time and store in rule file if exists.
+save_time() {
+  HTIME=$(($(eval get_time) / 60))
+  [ "$VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
+  [ -f "$INCLUDE" ] && tag_set ETA $HTIME "$INCLUDE"
 }
 
 # Detect and configure proxy.
