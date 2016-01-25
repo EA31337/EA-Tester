@@ -140,23 +140,23 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
     r) # The name of the test report file.
-      echo "Setting test report..."
       REPORT="tester/$(basename "${OPTARG}")"
+      echo "Setting test report ($REPORT)..."
       ini_set "^TestReport" "$REPORT" "$TESTER_INI"
       ;;
 
     f) # The .set file to run the test.
-      echo "Setting EA parameters..."
       SETORG="$OPTARG"
       SETFILE="${EA_NAME}.set"
+      echo "Setting EA parameters ($SETFILE)..."
       [ -f "$SETORG" ]
       cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ;;
 
     E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
-      echo "Applying EA settings..."
       EA_OPTS=${OPTARG}
+      echo "Applying EA settings ($EA_OPTS)..."
       IFS='=' ea_option=($in)
       [ -f "$EA_INI" ]
       ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
@@ -164,44 +164,45 @@ while getopts $ARGS arg; do
 
     c) # Base currency for test (e.g. USD).
       CURRENCY=${OPTARG}
+      echo "Setting base currency to $CURRENCY..."
       ini_set "^currency" "$CURRENCY" "$EA_INI"
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
-      echo "Setting symbol pair..."
       SYMBOL=${OPTARG}
+      echo "Setting symbol pair to $SYMBOL..."
       ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
       ;;
 
     d) # Deposit amount to test (e.g. 2000).
-      echo "Setting deposit..."
       DEPOSIT=${OPTARG}
+      echo "Setting deposit to $DEPOSIT..."
       ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
     y) # Year to test (e.g. 2014).
-      echo "Setting period to test..."
       YEAR=${OPTARG}
+      echo "Setting period to test ($YEAR.01.01-$YEAR.${MONTHS:-12}.30)..."
       ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
       ini_set "^TestToDate"   "$YEAR.${MONTHS:-12}.30" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
-      echo "Setting spread to test..."
       SPREAD=${OPTARG}
+      echo "Setting spread to test ($SPREAD)..."
       ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
       ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
       ;;
 
     o) # Run optimization test.
-      echo "Setting optimization mode..."
       OPTIMIZATION=true
+      echo "Setting optimization mode..."
       ini_set "^TestOptimization" true "$TESTER_INI"
       ;;
 
     i) # Invoke file with custom rules.
-      echo "Invoking includes..."
       INCLUDE=${OPTARG}
+      echo "Invoking include file ($INCLUDE)..."
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
       . "$INCLUDE"
@@ -213,8 +214,8 @@ while getopts $ARGS arg; do
       ;;
 
     b) # Backtest data to test.
-      echo "Checking backtest data..."
       BT_SRC=${OPTARG}
+      echo "Checking backtest data ($BT_SRC)..."
       bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-N1}"
       # Generate backtest files if not present.
       if [ ! -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
@@ -230,7 +231,7 @@ while getopts $ARGS arg; do
 
     D) # Destination directory to save the test results.
       DEST=${OPTARG}
-      echo "Checking destination ..."
+      echo "Checking destination ($DEST)..."
       [ -d "$DEST" ] || mkdir -p "$DEST"
       ;;
 
