@@ -54,12 +54,12 @@ parse_results() {
       t) # Convert test report file into brief text format.
         echo "Converting report into short text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        html2text -width 105 "$REPORT_HTM" | sed "/\[Graph\]/q" > "$REPORT_TXT" && rm -v "$REPORT_HTM"
+        grep -v mso-number "$REPORT_HTM" | html2text -width 105 | sed "/\[Graph\]/q" > "$REPORT_TXT" && rm -v "$REPORT_HTM"
         ;;
       T) # Convert test report file into full detailed text format.
         echo "Converting report into text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        html2text -width 105 -o "$REPORT_TXT" "$REPORT_HTM" && rm -v "$REPORT_HTM"
+        grep -v mso-number "$REPORT_HTM" | html2text -width 105 -o "$REPORT_TXT" && rm -v "$REPORT_HTM"
         ;;
       D)
         echo "Copying report files..."
@@ -69,7 +69,7 @@ parse_results() {
         ;;
       v)
         echo "Printing test reports..."
-        html2text -width 180 "$REPORT_HTM" | sed "/\[Graph\]/q"
+        grep -v mso-number "$REPORT_HTM" | html2text -width 180 | sed "/\[Graph\]/q"
         find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       o)
