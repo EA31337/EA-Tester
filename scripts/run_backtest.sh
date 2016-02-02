@@ -203,9 +203,10 @@ while getopts $ARGS arg; do
 
     i) # Invoke file with custom rules.
       type bc
-      echo "Invoking include file ($INCLUDE)..."
+      INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
+      echo "Invoking include file ($INCLUDE)..."
       . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
