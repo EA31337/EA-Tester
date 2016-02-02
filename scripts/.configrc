@@ -36,7 +36,7 @@ CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 # Configure display and wine.
 export DISPLAY=:0.0 # Select screen 0.
 export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
+export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all,toolbar-all" # For debugging, try: WINEDEBUG=trace+all
 xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 
 # Define common functions.
