@@ -65,7 +65,7 @@ input_set() {
   local value
   key="$1"
   value="$2"
-  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
+  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
@@ -82,7 +82,7 @@ input_get() {
   local value
   key="$1"
   value="$2"
-  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
+  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   vargs="-u NONE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
@@ -104,6 +104,19 @@ ini_set() {
   else
     echo "Value for '$key' is empty, ignoring."
   fi
+}
+
+# Set inputs in the EA INI file.
+ini_set_inputs() {
+  local value
+  sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
+  dfile="${2:-$(echo $EA_INI)}"
+  vargs="-u NONE"
+  [ -f "$sfile" ]
+  [ -f "$dfile" ]
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
+  ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
 
 # Get value from the INI/HTM file.
