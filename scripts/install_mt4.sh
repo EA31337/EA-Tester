@@ -44,4 +44,6 @@ wineserver -k
 # Re-initialize settings.
 . $CWD/.configrc
 
+find ~ "$OUT" -name terminal.exe -print -quit
+echo "Installation successful.'
 echo "$0 done."

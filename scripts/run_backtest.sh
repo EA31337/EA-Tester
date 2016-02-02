@@ -152,6 +152,7 @@ while getopts $ARGS arg; do
       [ -f "$SETORG" ]
       cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
 
     E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
@@ -201,11 +202,12 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      INCLUDE=${OPTARG}
+      type bc
       echo "Invoking include file ($INCLUDE)..."
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
       . "$INCLUDE"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
 
     C) # Clear previous backtest data files.
