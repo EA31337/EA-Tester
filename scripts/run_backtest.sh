@@ -3,9 +3,10 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tTD:vxh"
 
 ## Check dependencies.
-type git ex
+type git ex xdpyinfo
 
 ## Define functions.
+
 # Invoke on test success.
 on_success() {
   ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
@@ -256,4 +257,5 @@ done
 clean_files
 
 # Run the test under the platform.
+configure_display
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure
