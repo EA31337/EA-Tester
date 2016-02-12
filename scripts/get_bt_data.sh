@@ -113,6 +113,7 @@ if [ $convert -eq 1 ]; then csv2data; fi
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
 
 # Store the backtest data type.
+[ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"
 ini_set "bt_data" "$bt_key" "$CUSTOM_INI"
 
 echo "$0 done."
