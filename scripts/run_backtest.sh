@@ -186,9 +186,11 @@ while getopts $ARGS arg; do
 
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
-      echo "Setting period to test ($YEAR.01.01-$YEAR.${MONTHS:-12}.30)..."
-      ini_set "^TestFromDate" "$YEAR.${MONTHS[0]:-01}.01" "$TESTER_INI"
-      ini_set "^TestToDate"   "$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30" "$TESTER_INI"
+      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
+      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+      echo "Setting test period ($START_DATE-$END_DATE)..."
+      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
+      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
