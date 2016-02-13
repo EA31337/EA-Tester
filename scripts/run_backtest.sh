@@ -125,8 +125,9 @@ while getopts $ARGS arg; do
       cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
       ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
       ;;
-    m) # How many months to test.
-      MONTHS=${OPTARG}
+    m) # Which months to test (default: 1-12)
+      IFS='-' MONTHS=(${OPTARG})
+      IFS=$' \t\n' # Restore IFS.
       ;;
   esac
 done
@@ -159,7 +160,8 @@ while getopts $ARGS arg; do
     E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
       EA_OPTS=${OPTARG}
       echo "Applying EA settings ($EA_OPTS)..."
-      IFS='=' ea_option=($in)
+      IFS='='; ea_option=($EA_OPTS)
+      IFS=$' \t\n' # Restore IFS.
       [ -f "$EA_INI" ]
       ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
       ;;
@@ -185,8 +187,8 @@ while getopts $ARGS arg; do
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
       echo "Setting period to test ($YEAR.01.01-$YEAR.${MONTHS:-12}.30)..."
-      ini_set "^TestFromDate" "$YEAR.01.01" "$TESTER_INI"
-      ini_set "^TestToDate"   "$YEAR.${MONTHS:-12}.30" "$TESTER_INI"
+      ini_set "^TestFromDate" "$YEAR.${MONTHS[0]:-01}.01" "$TESTER_INI"
+      ini_set "^TestToDate"   "$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30" "$TESTER_INI"
       ;;
 
     s) # Spread to test.
