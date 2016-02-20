@@ -35,6 +35,11 @@ LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
 CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
 CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 
+# Set constants.
+TRUE=0
+FALSE=1
+FXT_OFF_SPREAD=$((16#FC))
+
 ## Define common functions. ##
 
 # Configure display and wine.
@@ -148,7 +153,7 @@ tag_set() {
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
   else
-    echo "Value for '$key' is empty, ignoring."
+    echo "Value for '$key' is empty, ignoring." >&2
   fi
 }
 
@@ -156,6 +161,55 @@ tag_set() {
 get_values() {
   file="$1"
   grep -o '\S\+[^_]=[^;]\+' "$file"
+}
+
+# Read decimal value at given offset from the file.
+read_value() {
+  file="$1"
+  offset="$2"
+  [ -n "$file" ]
+  [ -n "$offset" ]
+  echo $((16#$(xxd -p -l1 -s $offset "$file")))
+}
+
+# Read bytes in hex format at given offset from the file.
+read_data() {
+  file="$1"
+  offset="$2"
+  count="$3:-1"
+  xxd -p -l $count -s $offset "$file"
+}
+
+# Modify binary file given value in hex format at given offset.
+write_data() {
+  file="$1"
+  value="$2" # In hex format.
+  offset="$3"
+  len="${4:-1}"
+  writable=$(test -w "$file"; echo $?)
+  [ -n "$file" ]
+  [ -n "$value" ]
+  [ -n "$offset" ]
+  [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
+  xxd -r -p <<<$value | dd if=/dev/stdin of="$file" seek=$offset bs=1 count=$len conv=notrunc status=noxfer
+  [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
+}
+
+# Set spread in ini and FXT files.
+set_spread() {
+  spread="$1"
+  [ -n "$spread" ]
+  ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
+  ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
+  # Change spread in all FXT files at offset 0xFC.
+  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      prev_spread=$(read_value "$file" $FXT_OFF_SPREAD)
+      write_data "$FXT_FILE" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
+      next_spread=$(read_value "$file" $FXT_OFF_SPREAD)
+      echo "Changed spread in $base from $prev_spread into $next_spread" >&2
+      [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
+  done
 }
 
 # Get time from terminal log in h.

@@ -133,92 +133,6 @@ while getopts $ARGS arg; do
       IFS='-' MONTHS=(${OPTARG})
       IFS=$' \t\n' # Restore IFS.
       ;;
-  esac
-done
-
-# Configure EA.
-EA_NAME="$(ini_get TestExpert)"
-EA_INI="$TESTER_DIR/$EA_NAME.ini"
-cp $VFLAG "$TPL_EA" "$EA_INI"
-
-# Parse the secondary arguments.
-OPTIND=1
-while getopts $ARGS arg; do
-  case ${arg} in
-    r) # The name of the test report file.
-      REPORT="tester/$(basename "${OPTARG}")"
-      echo "Setting test report ($REPORT)..."
-      ini_set "^TestReport" "$REPORT" "$TESTER_INI"
-      ;;
-
-    f) # The .set file to run the test.
-      SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
-      echo "Setting EA parameters ($SETFILE)..."
-      [ -f "$SETORG" ]
-      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      ;;
-
-    E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
-      EA_OPTS=${OPTARG}
-      echo "Applying EA settings ($EA_OPTS)..."
-      IFS='='; ea_option=($EA_OPTS)
-      IFS=$' \t\n' # Restore IFS.
-      [ -f "$EA_INI" ]
-      ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
-      ;;
-
-    c) # Base currency for test (e.g. USD).
-      CURRENCY=${OPTARG}
-      echo "Setting base currency to $CURRENCY..."
-      ini_set "^currency" "$CURRENCY" "$EA_INI"
-      ;;
-
-    p) # Symbol pair to test (e.g. EURUSD).
-      SYMBOL=${OPTARG}
-      echo "Setting symbol pair to $SYMBOL..."
-      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
-      ;;
-
-    d) # Deposit amount to test (e.g. 2000).
-      DEPOSIT=${OPTARG}
-      echo "Setting deposit to $DEPOSIT..."
-      ini_set "^deposit" "$DEPOSIT" "$EA_INI"
-      ;;
-
-    y) # Year to test (e.g. 2014).
-      YEAR=${OPTARG}
-      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
-      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
-      echo "Setting test period ($START_DATE-$END_DATE)..."
-      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
-      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
-      ;;
-
-    s) # Spread to test.
-      SPREAD=${OPTARG}
-      echo "Setting spread to test ($SPREAD)..."
-      ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
-      ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
-      ;;
-
-    o) # Run optimization test.
-      OPTIMIZATION=true
-      echo "Setting optimization mode..."
-      ini_set "^TestOptimization" true "$TESTER_INI"
-      ;;
-
-    i) # Invoke file with custom rules.
-      type bc
-      INCLUDE=${OPTARG}
-      SETFILE="$(ini_get TestExpert).set"
-      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)."; exit 1; }
-      echo "Invoking include file ($INCLUDE)..."
-      . "$INCLUDE"
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      ;;
 
     C) # Clear previous backtest data files.
       clean_files
@@ -236,6 +150,94 @@ while getopts $ARGS arg; do
         echo "Skipping, as $bt_key already exists..."
       fi
       ;;
+  esac
+done
+
+# Configure EA.
+EA_NAME="$(ini_get TestExpert)"
+EA_INI="$TESTER_DIR/$EA_NAME.ini"
+cp $VFLAG "$TPL_EA" "$EA_INI"
+
+# Assign variables.
+FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
+
+# Parse the secondary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
+    r) # The name of the test report file.
+      REPORT="tester/$(basename "${OPTARG}")"
+      echo "Setting test report ($REPORT)..." >&2
+      ini_set "^TestReport" "$REPORT" "$TESTER_INI"
+      ;;
+
+    f) # The .set file to run the test.
+      SETORG="$OPTARG"
+      SETFILE="${EA_NAME}.set"
+      echo "Setting EA parameters ($SETFILE)..." >&2
+      [ -f "$SETORG" ]
+      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
+      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ;;
+
+    E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
+      EA_OPTS=${OPTARG}
+      echo "Applying EA settings ($EA_OPTS)..." >&2
+      IFS='='; ea_option=($EA_OPTS)
+      IFS=$' \t\n' # Restore IFS.
+      [ -f "$EA_INI" ]
+      ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
+      ;;
+
+    c) # Base currency for test (e.g. USD).
+      CURRENCY=${OPTARG}
+      echo "Setting base currency to $CURRENCY..." >&2
+      ini_set "^currency" "$CURRENCY" "$EA_INI"
+      ;;
+
+    p) # Symbol pair to test (e.g. EURUSD).
+      SYMBOL=${OPTARG}
+      echo "Setting symbol pair to $SYMBOL..." >&2
+      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
+      ;;
+
+    d) # Deposit amount to test (e.g. 2000).
+      DEPOSIT=${OPTARG}
+      echo "Setting deposit to $DEPOSIT..." >&2
+      ini_set "^deposit" "$DEPOSIT" "$EA_INI"
+      ;;
+
+    y) # Year to test (e.g. 2014).
+      YEAR=${OPTARG}
+      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
+      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+      echo "Setting test period ($START_DATE-$END_DATE)..." >&2
+      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
+      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
+      ;;
+
+    s) # Spread to test.
+      SPREAD=${OPTARG}
+      echo "Setting spread to test ($SPREAD)..." >&2
+      set_spread $SPREAD
+      ;;
+
+    o) # Run optimization test.
+      OPTIMIZATION=true
+      echo "Setting optimization mode..." >&2
+      ini_set "^TestOptimization" true "$TESTER_INI"
+      ;;
+
+    i) # Invoke file with custom rules.
+      type bc
+      INCLUDE=${OPTARG}
+      SETFILE="$(ini_get TestExpert).set"
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)." >&2; exit 1; }
+      echo "Invoking include file ($INCLUDE)..."
+      . "$INCLUDE"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ;;
 
     t)
       type html2text
@@ -243,16 +245,16 @@ while getopts $ARGS arg; do
 
     D) # Destination directory to save the test results.
       DEST=${OPTARG}
-      echo "Checking destination ($DEST)..."
+      echo "Checking destination ($DEST)..." >&2
       [ -d "$DEST" ] || mkdir -p "$DEST"
       ;;
 
     # Placeholders for parameters used somewhere else.
-    m | e | I | v | x) ;;
+    e | m | C | b | I | v | x) ;;
 
     \? | h | *) # Display help.
-      echo "$0 usage:"
-      grep " .)\ #" $0
+      echo "$0 usage:" >&2
+      grep " .)\ #" $0 >&2
       exit 0
       ;;
 
