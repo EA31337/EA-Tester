@@ -209,7 +209,7 @@ set_spread() {
       next_spread=$(read_value "$file" $FXT_OFF_SPREAD)
       echo "Changed spread in $base from $prev_spread into $next_spread" >&2
       [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
-  done
+  done || true
 }
 
 # Get time from terminal log in h.
