@@ -27,31 +27,20 @@ curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="htt
 export DEBIAN_FRONTEND=noninteractive
 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
 dpkg-reconfigure debconf -f noninteractive
+echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
 
-# Update apt-get.
+dpkg --add-architecture i386                                                          # Add i386 architecture for Wine
+add-apt-repository -y ppa:ubuntu-wine/ppa                                             # Add PPA/Wine repository
+sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
+
+# Update APT repositories
 apt-get update
 
-# Install the language pack to prevent an invalid locale.
-echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
-apt-get install -qy language-pack-en
-
-# Install basic utils.
-apt-get install -qy git coreutils moreutils realpath links html2text tree pv
-
-# Install and run X virtual framebuffer and X utils.
-apt-get install -qy xvfb xdotool
-
-# Install Apt dependencies (required for a docker image).
-apt-get install -qy software-properties-common python-software-properties
-
-# Install wine
-dpkg --add-architecture i386 || true
-# Add PPA/Wine repository.
-add-apt-repository -y ppa:ubuntu-wine/ppa
-find /etc/apt/sources.list.d -type f -name '*.list' -exec apt-get update -o Dir::Etc::sourcelist="{}" ';'
-apt-get -d update
-apt-get install -qy wine1.7 winetricks winbind
-find /usr/lib/i386-linux-gnu -type f -name 'libgnutls-deb0*' -execdir ln -s {} libgnutls.so.26 ';'  # Fix for some VM & PPA/Wine compinations
+# Install necessary packages
+apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale
+apt-get install -qy git coreutils moreutils realpath links html2text tree pv  # Basic utils
+apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image)
+apt-get install -qy wine1.8 winbind xvfb xdotool                              # Wine from PPA/Wine and tools for MT4 installer
 
 # Set-up git.
 git config --system user.name $USER
