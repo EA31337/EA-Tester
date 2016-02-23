@@ -15,6 +15,7 @@ echo "Downloading MT4 installer..."
 #configure_proxy
 
 echo "Starting MT4 Setup in Wine..."
+configure_display
 wine "$HOME/mt4setup.exe" &
 
 set +e
