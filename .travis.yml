@@ -5,8 +5,6 @@ dist: trusty
 env:
   global:
     - |
-      DISPLAY=:0.0
-      WINEDLLOVERRIDES="mscoree,mshtml="
       PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
       CWD="$TRAVIS_BUILD_DIR"
   matrix:
