@@ -1,8 +1,7 @@
-# Not using Python code, it's just a bone for Travis CI
-language: python
-python: 3.4
+language: generic
 
 sudo: required
+dist: trusty
 env:
   global:
     - |
