@@ -53,10 +53,6 @@ apt-get -d update
 apt-get install -qy wine1.7 winetricks winbind
 find /usr/lib/i386-linux-gnu -type f -name 'libgnutls-deb0*' -execdir ln -s {} libgnutls.so.26 ';'  # Fix for some VM & PPA/Wine compinations
 
-# Run X virtual framebuffer on screen 0.
-export DISPLAY=:0
-Xvfb $DISPLAY -screen 0 1024x768x16 &
-
 # Set-up git.
 git config --system user.name $USER
 git config --system user.email "$USER@$HOSTNAME"
