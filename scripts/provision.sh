@@ -20,8 +20,8 @@ id vagrant && USER="vagrant"
 
 # Detect proxy.
 GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
-curl -s localhost:3128 > /dev/null && export http_proxy="http://localhost:3128"
-curl -s $GW:3128       > /dev/null && export http_proxy="http://$GW:3128"
+curl -s localhost:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://localhost:3128"
+curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://$GW:3128"
 
 # Perform an unattended installation of a Debian packages.
 export DEBIAN_FRONTEND=noninteractive
