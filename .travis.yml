@@ -1,13 +1,10 @@
-# Not using Python code, it's just a bone for Travis CI
-language: python
-python: 3.4
+language: generic
 
 sudo: required
+dist: trusty
 env:
   global:
     - |
-      DISPLAY=:0.0
-      WINEDLLOVERRIDES="mscoree,mshtml="
       PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
       CWD="$TRAVIS_BUILD_DIR"
   matrix:
@@ -36,6 +33,7 @@ before_install:
 
 install:
   - sudo $CWD/scripts/provision.sh
+  - sudo $CWD/scripts/secur32_fix.sh
 
 before_script:
   - set -e

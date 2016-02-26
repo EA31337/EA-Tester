@@ -28,18 +28,29 @@ TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
 TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
 TESTER_DIR="$TERMINAL_DIR/tester"
+HISTORY_DIR="$TERMINAL_DIR/history/default"
+TICKDATA_DIR="$TERMINAL_DIR/tester/history"
 TERMINAL_LOG="$TESTER_DIR/logs/terminal.log"
 LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
 CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
 CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 
-# Configure display and wine.
-export DISPLAY=:0.0 # Select screen 0.
-export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all" # For debugging, try: WINEDEBUG=trace+all
-xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
+# Set constants.
+TRUE=0
+FALSE=1
+FXT_OFF_SPREAD=$((16#FC))
 
-# Define common functions.
+## Define common functions. ##
+
+# Configure display and wine.
+configure_display() {
+  export DISPLAY=:0.0 # Select screen 0.
+  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+  export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all,toolbar-all" # For debugging, try: WINEDEBUG=trace+all
+  xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
+}
+
+# Display recent logs.
 show_logs() {
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
 }
@@ -65,7 +76,7 @@ input_set() {
   local value
   key="$1"
   value="$2"
-  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
+  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
@@ -82,7 +93,7 @@ input_get() {
   local value
   key="$1"
   value="$2"
-  file="${3:-$(echo "$TESTER_DIR/$SETFILE")}"
+  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   vargs="-u NONE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
@@ -100,10 +111,23 @@ ini_set() {
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file"
+    ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || echo "$key=$value" >> "$file"
   else
     echo "Value for '$key' is empty, ignoring."
   fi
+}
+
+# Set inputs in the EA INI file.
+ini_set_inputs() {
+  local value
+  sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
+  dfile="${2:-$(echo $EA_INI)}"
+  vargs="-u NONE"
+  [ -f "$sfile" ]
+  [ -f "$dfile" ]
+  [ "$VERBOSE" ] && vargs+=" -V1"
+  echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
+  ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
 
 # Get value from the INI/HTM file.
@@ -129,7 +153,7 @@ tag_set() {
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
   else
-    echo "Value for '$key' is empty, ignoring."
+    echo "Value for '$key' is empty, ignoring." >&2
   fi
 }
 
@@ -137,6 +161,55 @@ tag_set() {
 get_values() {
   file="$1"
   grep -o '\S\+[^_]=[^;]\+' "$file"
+}
+
+# Read decimal value at given offset from the file.
+read_value() {
+  file="$1"
+  offset="$2"
+  [ -n "$file" ]
+  [ -n "$offset" ]
+  echo $((16#$(xxd -p -l1 -s $offset "$file")))
+}
+
+# Read bytes in hex format at given offset from the file.
+read_data() {
+  file="$1"
+  offset="$2"
+  count="$3:-1"
+  xxd -p -l $count -s $offset "$file"
+}
+
+# Modify binary file given value in hex format at given offset.
+write_data() {
+  file="$1"
+  value="$2" # In hex format.
+  offset="$3"
+  len="${4:-1}"
+  writable=$(test -w "$file"; echo $?)
+  [ -n "$file" ]
+  [ -n "$value" ]
+  [ -n "$offset" ]
+  [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
+  xxd -r -p <<<$value | dd if=/dev/stdin of="$file" seek=$offset bs=1 count=$len conv=notrunc status=noxfer
+  [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
+}
+
+# Set spread in ini and FXT files.
+set_spread() {
+  spread="$1"
+  [ -n "$spread" ]
+  ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
+  ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
+  # Change spread in all FXT files at offset 0xFC.
+  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      prev_spread=$(read_value "$file" $FXT_OFF_SPREAD)
+      write_data "$FXT_FILE" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
+      next_spread=$(read_value "$file" $FXT_OFF_SPREAD)
+      echo "Changed spread in $base from $prev_spread into $next_spread" >&2
+      [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
+  done || true
 }
 
 # Get time from terminal log in h.
