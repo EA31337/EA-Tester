@@ -31,7 +31,7 @@ end
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "ubuntu/vivid64"
+  config.vm.box = "ubuntu/wily64"
   config.vm.network "private_network", ip: "192.168.22.22"
   config.vm.hostname = "vagrant"
   config.vm.provision "shell", path: "scripts/provision.sh"
@@ -42,6 +42,7 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
   config.vm.provider "virtualbox" do |v|
+    v.name = "mt-tester.local"
     v.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
     v.memory = 4096
     v.cpus = 2
