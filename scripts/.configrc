@@ -34,6 +34,7 @@ TERMINAL_LOG="$TESTER_DIR/logs/terminal.log"
 LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
 CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
 CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
+LOG_DIR="$TERMINAL_DIR/MQL4/Logs"
 
 # Set constants.
 TRUE=0
@@ -244,6 +245,12 @@ configure_proxy() {
 EOF
 }
 
+## Clean up.
+clean_up() {
+  kill_wine
+  [ "$(jobs -p)" ] && kill $(jobs -p) # Kill any background jobs.
+}
+
 ## Kill  the currently running wineserver.
 kill_wine() {
   (wineserver -k || true)
@@ -258,7 +265,7 @@ show_trace() {
 ##  @param $1 integer  (optional) Exit status. If not set, use '$?'
 onexit() {
   local exit_status=${1:-$?}
-  kill_wine
+  clean_up
   set +x
   echo "Exiting $0 with $exit_status" >&2
   exit $exit_status

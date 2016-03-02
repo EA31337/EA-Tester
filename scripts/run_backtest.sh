@@ -3,8 +3,8 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tTD:vxh"
 
 ## Check dependencies.
-type git ex xdpyinfo
-
+type git ex xdpyinfo pgrep
+ 
 ## Define functions.
 
 # Invoke on test success.
@@ -268,4 +268,5 @@ clean_files
 
 # Run the test under the platform.
 configure_display
+(sleep 20 && tail -f "$LOG_DIR"/*.log) &
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
