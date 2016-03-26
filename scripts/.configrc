@@ -1,7 +1,6 @@
 # .configrc: invoked by bash(1)
 #
 # Initialize variables.
-set -e
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
 
@@ -10,8 +9,10 @@ ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..
 trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
-# Activate trace when expected.
+# Activate trace on demand.
 [ "$TRACE" ] && set -x
+[ ! "$NOFAIL" ] && set -e
+set -e
 
 # Determine platform paths.
 OUT="/opt"
@@ -253,7 +254,7 @@ EOF
 ## Clean up.
 clean_up() {
   kill_wine
-  [ "$(jobs -p)" ] && kill $(jobs -p) # Kill any background jobs.
+  kill $$ $(jobs -p) # Kill any background jobs.
 }
 
 ## Kill  the currently running wineserver.
