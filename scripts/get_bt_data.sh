@@ -31,10 +31,9 @@ csv2data() {
   find "$bt_csv" -name '*.csv' -print0 | sort -z | $xargs -r0 cat > "$tmpfile"
   bt_size=$(du -b "$tmpfile" | cut -f1)  # Count only size of CSV files
   alias pv="pv -N 'Converting FXT & HST data' -s $bt_size"
-  for tf in M1 M5 M15 M30 H1 H4 D1 W1 MN; do
-    cat "$tmpfile" | pv | "$conv" $conv_args -t $tf -f hst4 -d "$HISTORY_DIR"
-    cat "$tmpfile" | pv | "$conv" $conv_args -t $tf -f fxt4 -d "$TICKDATA_DIR"
-  done
+  type pv
+  cat "$tmpfile" | pv | "$conv" $conv_args -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR"
+  cat "$tmpfile" | pv | "$conv" $conv_args -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
   rm -v "$tmpfile"
 }
 

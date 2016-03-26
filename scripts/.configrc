@@ -43,6 +43,11 @@ FXT_OFF_SPREAD=$((16#FC))
 
 ## Define common functions. ##
 
+# Init shell settings.
+initialize() {
+  shopt -s expand_aliases
+}
+
 # Configure display and wine.
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
@@ -281,3 +286,5 @@ onerror() {
   show_trace
   exit $exit_status
 }
+
+initialize
