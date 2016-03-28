@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Script to run backtest test.
+# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -D "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tTD:vxh"
 
@@ -59,12 +61,12 @@ parse_results() {
       t) # Convert test report file into brief text format.
         echo "Converting report into short text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        grep -v mso-number "$REPORT_HTM" | html2text -width 105 | sed "/\[Graph\]/q" > "$REPORT_TXT" && rm -v "$REPORT_HTM"
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" > "$REPORT_TXT" && rm -v "$REPORT_HTM"
         ;;
       T) # Convert test report file into full detailed text format.
         echo "Converting report into text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        grep -v mso-number "$REPORT_HTM" | html2text -width 105 -o "$REPORT_TXT" && rm -v "$REPORT_HTM"
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT" && rm -v "$REPORT_HTM"
         ;;
       D)
         echo "Copying report files..."
@@ -74,7 +76,7 @@ parse_results() {
         ;;
       v)
         echo "Printing test reports..."
-        grep -v mso-number "$REPORT_HTM" | html2text -width 180 | sed "/\[Graph\]/q"
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
         find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       o)
