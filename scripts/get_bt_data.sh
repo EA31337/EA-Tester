@@ -41,6 +41,8 @@ csv2data() {
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
 mkdir $VFLAG "$bt_csv" || true
 
+echo "Checking permissions..."
+set_write_perms
 echo "Getting data..." >&2
 case $bt_src in
 
@@ -96,9 +98,6 @@ esac
 
 # Convert CSV tick files to backtest files.
 csv2data
-
-# Make the backtest files read-only.
-find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
 
 # Store the backtest data type.
 [ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"
