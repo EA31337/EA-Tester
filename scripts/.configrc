@@ -232,6 +232,17 @@ save_time() {
   [ -f "$INCLUDE" ] && tag_set ETA $HTIME "$INCLUDE"
 }
 
+# Set read permissions for test files.
+set_read_perms() {
+  # Make the backtest files read-only.
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+}
+
+# Set write permissions for test files.
+set_write_perms() {
+  chmod -vR u+w "$HISTORY_DIR" "$TICKDATA_DIR"
+}
+
 # Detect and configure proxy.
 configure_proxy() {
   GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
