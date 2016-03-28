@@ -23,6 +23,7 @@ fxt_files=( ${symbol}1_0.fxt )
 hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
 
 csv2data() {
+  if [ $convert -eq 0 ]; then return; fi
   echo "Converting data..."
   du -hs "$bt_csv" || { echo "ERROR: Missing backtest data."; exit 1; }
   conv=$dest/scripts/convert_csv_to_mt.py
@@ -94,7 +95,7 @@ case $bt_src in
 esac
 
 # Convert CSV tick files to backtest files.
-if [ $convert -eq 1 ]; then csv2data; fi
+csv2data
 
 # Make the backtest files read-only.
 find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'

@@ -144,11 +144,11 @@ while getopts $ARGS arg; do
       echo "Checking backtest data ($BT_SRC)..."
       bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-N1}"
       # Generate backtest files if not present.
-      if [ ! -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-        $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
-      else
+      if [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] && [ "$(ini_get "bt_data" "$CUSTOM_INI")" = "$bt_key" ]; then
         echo "Skipping, as $bt_key already exists..."
+        break;
       fi
+      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
   esac
 done

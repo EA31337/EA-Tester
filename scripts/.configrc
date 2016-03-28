@@ -254,7 +254,7 @@ EOF
 ## Clean up.
 clean_up() {
   kill_wine
-  kill $$ $(jobs -p) # Kill any background jobs.
+# kill $$ $(jobs -p) # Kill any background jobs.
 }
 
 ## Kill  the currently running wineserver.
