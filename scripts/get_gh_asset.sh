@@ -30,7 +30,9 @@ curl -o /dev/null -sH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or 
 response=$(curl -sH "$AUTH" $GH_TAGS)
 # Get ID of the asset based on given name.
 echo "Fetching asset ID..." >&2
-eval $(echo "$response" | grep -C3 "name.:.\+$name" | grep -w id | tr : = | tr -cd '[[:alnum:]]=')
+id=$(echo "$response" | grep -C3 "name.:.\+$name" | grep -w id | head -n1)
+echo $id
+eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
 [ "$id" ] || { echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2; exit 1; }
 GH_ASSET="$GH_REPO/releases/assets/$id"
 
