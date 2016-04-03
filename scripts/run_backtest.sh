@@ -59,23 +59,23 @@ parse_results() {
   while getopts $ARGS arg; do
     case $arg in
       t) # Convert test report file into brief text format.
-        echo "Converting report into short text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
+        echo "Converting HTML report ($REPORT_HTM) into short text file ($REPORT_TXT)..."
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" > "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
-        echo "Converting report into text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
+        echo "Converting full HTML report ($REPORT_HTM) into short text file ($REPORT_TXT)..."
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
         ;;
       D)
-        echo "Copying report files..."
+        echo "Copying report files ($REPORT_HTM)..."
         DEST="${DEST:-$(echo $CWD)}"
         cp $VFLAG "$TESTER_DIR/$(basename "${REPORT_HTM%.*}")".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
       v)
-        echo "Printing test reports..."
+        echo "Printing test report ($REPORT_HTM)..."
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
         find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
