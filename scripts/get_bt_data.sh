@@ -54,10 +54,10 @@ case $bt_src in
     cd -
     convert=0
   ;;
-  "DS-raw")
-    test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
-    find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
-  ;;
+# "DS-raw") @fixme: 404 Not Found
+#   test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
+#   find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
+# ;;
   "N0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "N1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 0.1 1.0 ;;
   "N2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
