@@ -2,7 +2,7 @@
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -D "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tTD:vxh"
+ARGS=":r:e:f:E:c:p:d:m:y:b:s:oi:I:CtTD:vxh"
 
 ## Check dependencies.
 type git ex xdpyinfo pgrep
@@ -136,9 +136,13 @@ while getopts $ARGS arg; do
       IFS=$' \t\n' # Restore IFS.
       ;;
 
-    C) # Clear previous backtest data files.
-      clean_files
-      clean_bt
+    y) # Year to test (e.g. 2014).
+      YEAR=${OPTARG}
+      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
+      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+      echo "Setting test period ($START_DATE-$END_DATE)..." >&2
+      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
+      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
       ;;
 
     b) # Backtest data to test.
@@ -152,6 +156,12 @@ while getopts $ARGS arg; do
       fi
       $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
+
+    C) # Clear previous backtest data files.
+      clean_files
+      clean_bt
+      ;;
+
   esac
 done
 
@@ -159,6 +169,7 @@ done
 EA_NAME="$(ini_get TestExpert)"
 EA_INI="$TESTER_DIR/$EA_NAME.ini"
 cp $VFLAG "$TPL_EA" "$EA_INI"
+
 
 # Assign variables.
 FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -210,15 +221,6 @@ while getopts $ARGS arg; do
       ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
-    y) # Year to test (e.g. 2014).
-      YEAR=${OPTARG}
-      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
-      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
-      echo "Setting test period ($START_DATE-$END_DATE)..." >&2
-      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
-      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
-      ;;
-
     s) # Spread to test.
       SPREAD=${OPTARG}
       echo "Setting spread to test ($SPREAD)..." >&2
@@ -252,7 +254,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | m | C | b | I | v | x) ;;
+    e | m | y | C | b | I | v | x) ;;
 
     \? | h | *) # Display help.
       echo "$0 usage:" >&2
