@@ -102,10 +102,12 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       type html2text sed
       ;;
+
     x) # Run the script in debug mode.
       TRACE=1
       set -x
       ;;
+
   esac
 done
 
@@ -124,6 +126,7 @@ cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
+
     e) # EA name.
       EA_NAME=${OPTARG}
       EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
@@ -131,10 +134,24 @@ while getopts $ARGS arg; do
       cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
       ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
       ;;
+
+    C) # Clear previous backtest data files.
+      clean_files
+      clean_bt
+      ;;
+
     m) # Which months to test (default: 1-12)
       IFS='-' MONTHS=(${OPTARG})
       IFS=$' \t\n' # Restore IFS.
       ;;
+
+  esac
+done
+
+# Parse the secondary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
 
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
@@ -144,6 +161,15 @@ while getopts $ARGS arg; do
       ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
       ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
       ;;
+
+  esac
+done
+
+
+# Parse the tertiary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
 
     b) # Backtest data to test.
       BT_SRC=${OPTARG}
@@ -155,11 +181,6 @@ while getopts $ARGS arg; do
         break;
       fi
       $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
-      ;;
-
-    C) # Clear previous backtest data files.
-      clean_files
-      clean_bt
       ;;
 
   esac
@@ -174,7 +195,7 @@ cp $VFLAG "$TPL_EA" "$EA_INI"
 # Assign variables.
 FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 
-# Parse the secondary arguments.
+# Parse the main arguments.
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
