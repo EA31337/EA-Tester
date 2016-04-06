@@ -129,7 +129,7 @@ while getopts $ARGS arg; do
 
     e) # EA name.
       EA_NAME=${OPTARG}
-      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
+      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.mq?" -o -name "*$EA_NAME*.ex?" ')' -print -quit)"
       [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
       cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
       ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
