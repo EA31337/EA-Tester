@@ -61,7 +61,7 @@ parse_results() {
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..."
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" > "$REPORT_TXT"
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" | grep -v '^\s.*;' > "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
