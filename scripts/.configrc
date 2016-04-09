@@ -26,6 +26,7 @@ TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
+MTEDITOR_EXE="$(find ~ "$OUT" -name metaeditor.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
 TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
@@ -37,6 +38,8 @@ LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
 CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
 CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 LOG_DIR="$TERMINAL_DIR/MQL4/Logs"
+EXPERTS_DIR="MQL4/Experts"
+SCRIPTS_DIR="MQL4/Scripts"
 
 # Set constants.
 TRUE=0
@@ -286,7 +289,31 @@ find_ea() {
 # Copy EA file given file path.
 copy_ea() {
   file="$1"
-  cp $VFLAG "$file" "$TERMINAL_DIR/MQL4/Experts";
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
+}
+
+# Copy script file given file path.
+copy_script() {
+  file="$1"
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+}
+
+# Compile given EA name.
+compile_ea() {
+  name="$1"
+  cd "$TERMINAL_DIR"
+  wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
+  cd -
+}
+
+# Compile given script name.
+compile_script() {
+  name="$1"
+  cd "$TERMINAL_DIR"
+  wine metaeditor.exe ${@:2} /log /compile:"$SCRIPTS_DIR/$name"
+  cd -
 }
 
 ## Clean up.
