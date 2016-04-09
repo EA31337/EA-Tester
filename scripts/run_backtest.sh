@@ -121,10 +121,7 @@ echo "Checking platform dependencies..." >&2
 
 # Initialize settings.
 . $CWD/.configrc
-
-# Copy the configuration file, so platform can find it.
-cp $VFLAG "$TPL_TEST" "$TESTER_INI"
-cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
+copy_ini
 
 # Parse the primary arguments.
 OPTIND=1
@@ -133,9 +130,9 @@ while getopts $ARGS arg; do
 
     e) # EA name.
       EA_NAME=${OPTARG}
-      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.mq?" -o -name "*$EA_NAME*.ex?" ')' -print -quit)"
+      EA_PATH=$(find_ea "$EA_NAME")
       [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-      cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
+      copy_ea "$EA_PATH"
       ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
       ;;
 

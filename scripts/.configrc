@@ -269,6 +269,26 @@ configure_proxy() {
 EOF
 }
 
+# Copy ini settings from templates.
+copy_ini() {
+  # Copy the configuration file, so platform can find it.
+  echo "Copying ini files..."
+  cp $VFLAG "$TPL_TEST" "$TESTER_INI"
+  cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
+}
+
+# Find EA file and return path.
+find_ea() {
+  file="$1"
+  find "$ROOT" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit
+}
+
+# Copy EA file given file path.
+copy_ea() {
+  file="$1"
+  cp $VFLAG "$file" "$TERMINAL_DIR/MQL4/Experts";
+}
+
 ## Clean up.
 clean_up() {
   kill_wine
