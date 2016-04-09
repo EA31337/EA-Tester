@@ -10,6 +10,7 @@ trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
 # Activate trace on demand.
+echo "Initializing... (Args: $*)"
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
 set -e
@@ -53,7 +54,7 @@ initialize() {
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
   export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-  export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all,toolbar-all" # For debugging, try: WINEDEBUG=trace+all
+  export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
   xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 }
 
