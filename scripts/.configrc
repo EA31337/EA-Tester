@@ -63,6 +63,12 @@ show_logs() {
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
 }
 
+# Check logs for specific text.
+check_logs() {
+  filter="$1"
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep -w "$filter" "{}" +
+}
+
 # Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.

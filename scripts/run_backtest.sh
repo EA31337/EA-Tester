@@ -11,9 +11,11 @@ type git ex xdpyinfo pgrep
 
 # Invoke on test success.
 on_success() {
-  ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
-  echo "Printing logs..." >&2
+  echo "Checking logs..." >&2
   show_logs
+  ! check_logs "ExpertRemove" || exit 1
+  ! check_logs "Initialization failed" || exit 1
+  ! check_logs "no history data" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
@@ -31,6 +33,7 @@ on_success() {
 
 # Invoke on test failure.
 on_failure() {
+  echo "FAIL?!" >&2
   # Sometimes MT4 fails on success, therefore double checking.
   REPORT_HTM=$(find "$TESTER_DIR" -name "$(basename "$(ini_get TestReport)").htm")
   test -f "$REPORT_HTM" && on_success $@
