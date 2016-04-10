@@ -38,20 +38,19 @@ csv2data() {
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
 mkdir $VFLAG "$bt_csv" || true
 
-echo "Checking permissions..."
+echo "Checking permissions..." >&2
 set_write_perms
 echo "Getting data..." >&2
 case $bt_src in
 
   "DS")
-    cd "$TICKDATA_DIR"
-    wget -c $(printf "${rel_url}/%s.gz " "${fxt_files[@]}")
-    gunzip -vf *.gz
-    cd -
-    cd "$HISTORY_DIR"
-    wget -c $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
-    gunzip -vf *.gz
-    cd -
+    dest="$DOWNLOAD_DIR/$bt_key"
+    echo "Downloading..." >&2
+    wget -c -P "$dest" $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
+    echo "Extracting..." >&2
+    gunzip -r $VFLAG -fk "$dest"
+    mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
+    mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
     convert=0
   ;;
 # "DS-raw") @fixme: 404 Not Found
