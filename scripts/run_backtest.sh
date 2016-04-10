@@ -64,22 +64,22 @@ parse_results() {
     case $arg in
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..."
+        echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" | grep -v '^\s.*;' > "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..."
+        echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
         ;;
       D)
         DEST="${DEST:-$(echo $CWD)}"
-        echo "Copying report files ($REPORT_BASE.* into: $DEST)..."
+        echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
       v)
-        echo "Printing test report ($(basename "$REPORT_HTM"))..."
+        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
         find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
@@ -88,7 +88,7 @@ parse_results() {
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
             value=$(ini_get "$input" "$REPORT_HTM")
-            echo "Setting '$input' to '$value' in '$(basename $SETORG)'"
+            echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
             ini_set "^$input" "$value" "$SETORG"
           done
         fi
