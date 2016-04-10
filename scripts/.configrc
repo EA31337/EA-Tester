@@ -10,6 +10,7 @@ trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
 # Activate trace on demand.
+echo "Initializing... (Args: $*)"
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
 set -e
@@ -25,6 +26,7 @@ TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
+MTEDITOR_EXE="$(find ~ "$OUT" -name metaeditor.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
 TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
 TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
@@ -36,6 +38,8 @@ LASTPARAM_INI="$TESTER_DIR/$CONF_LAST"
 CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
 CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 LOG_DIR="$TERMINAL_DIR/MQL4/Logs"
+EXPERTS_DIR="MQL4/Experts"
+SCRIPTS_DIR="MQL4/Scripts"
 
 # Set constants.
 TRUE=0
@@ -53,13 +57,19 @@ initialize() {
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
   export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
-  export WINEDEBUG="warn-all,fixme-all,alsa-all,ole-all,toolbar-all" # For debugging, try: WINEDEBUG=trace+all
+  export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
   xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 }
 
 # Display recent logs.
 show_logs() {
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
+}
+
+# Check logs for specific text.
+check_logs() {
+  filter="$1"
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color=auto -C1 -w "$filter" "{}" +
 }
 
 # Clean files.
@@ -260,6 +270,50 @@ configure_proxy() {
   "ProxyServer"="$http_proxy"
   "ProxyOverride"="<local>"
 EOF
+}
+
+# Copy ini settings from templates.
+copy_ini() {
+  # Copy the configuration file, so platform can find it.
+  echo "Copying ini files..."
+  cp $VFLAG "$TPL_TEST" "$TESTER_INI"
+  cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
+}
+
+# Find EA file and return path.
+find_ea() {
+  file="$1"
+  find "$ROOT" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit
+}
+
+# Copy EA file given file path.
+copy_ea() {
+  file="$1"
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
+}
+
+# Copy script file given file path.
+copy_script() {
+  file="$1"
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+}
+
+# Compile given EA name.
+compile_ea() {
+  name="$1"
+  cd "$TERMINAL_DIR"
+  wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
+  cd -
+}
+
+# Compile given script name.
+compile_script() {
+  name="$1"
+  cd "$TERMINAL_DIR"
+  wine metaeditor.exe ${@:2} /log /compile:"$SCRIPTS_DIR/$name"
+  cd -
 }
 
 ## Clean up.
