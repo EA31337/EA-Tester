@@ -210,7 +210,7 @@ while getopts $ARGS arg; do
       SETORG="$OPTARG"
       SETFILE="${EA_NAME}.set"
       echo "Setting EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ]
+      [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
       cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
@@ -259,7 +259,7 @@ while getopts $ARGS arg; do
       type bc
       INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
-      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)." >&2; exit 1; }
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
       echo "Invoking include file ($INCLUDE)..."
       . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
