@@ -69,7 +69,7 @@ show_logs() {
 # Check logs for specific text.
 check_logs() {
   filter="$1"
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color=auto -w "$filter" "{}" +
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color=auto -C1 -w "$filter" "{}" +
 }
 
 # Clean files.
