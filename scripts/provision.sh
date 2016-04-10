@@ -9,7 +9,7 @@ if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
   echo "This script needs to be run within VM."
   exit 1
 fi
-whoami && pwd
+whoami && lsb_release -a && pwd
 type curl || apt-get -y install curl
 type dpkg apt-get
 
@@ -29,7 +29,7 @@ ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
 dpkg-reconfigure debconf -f noninteractive
 echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
 
-dpkg --add-architecture i386                                                          # Add i386 architecture for Wine
+dpkg --add-architecture i386 || true                                                  # Add i386 architecture for Wine
 add-apt-repository -y ppa:ubuntu-wine/ppa                                             # Add PPA/Wine repository
 sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
 

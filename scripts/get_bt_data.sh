@@ -19,46 +19,44 @@ rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_src-$symbol-$year"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
-fxt_files=( ${symbol}1_0.fxt )
+fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
 hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
 
 csv2data() {
+  if [ $convert -eq 0 ]; then return; fi
   echo "Converting data..."
   du -hs "$bt_csv" || { echo "ERROR: Missing backtest data."; exit 1; }
   conv=$dest/scripts/convert_csv_to_mt.py
   conv_args="-v -i /dev/stdin -s $symbol -p 10 -S default"
   tmpfile=$(mktemp)
   find "$bt_csv" -name '*.csv' -print0 | sort -z | $xargs -r0 cat > "$tmpfile"
-  bt_size=$(du -b "$tmpfile" | cut -f1)  # Count only size of CSV files
-  alias pv="pv -N 'Converting FXT & HST data' -s $bt_size"
-  for tf in M1 M5 M15 M30 H1 H4 D1 W1 MN; do
-    cat "$tmpfile" | pv | "$conv" $conv_args -t $tf -f hst4 -d "$HISTORY_DIR"
-    cat "$tmpfile" | pv | "$conv" $conv_args -t $tf -f fxt4 -d "$TICKDATA_DIR"
-  done
+  "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR"
+  "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
   rm -v "$tmpfile"
 }
 
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
 mkdir $VFLAG "$bt_csv" || true
 
+echo "Checking permissions..." >&2
+set_write_perms
 echo "Getting data..." >&2
 case $bt_src in
 
   "DS")
-    cd "$TICKDATA_DIR"
-    wget -c $(printf "${rel_url}/%s.gz " "${fxt_files[@]}")
-    gunzip -vf *.gz
-    cd -
-    cd "$HISTORY_DIR"
-    wget -c $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
-    gunzip -vf *.gz
-    cd -
+    dest="$DOWNLOAD_DIR/$bt_key"
+    echo "Downloading..." >&2
+    wget -c -P "$dest" $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
+    echo "Extracting..." >&2
+    gunzip -r $VFLAG -fk "$dest"
+    mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
+    mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
     convert=0
   ;;
-  "DS-raw")
-    test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
-    find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
-  ;;
+# "DS-raw") @fixme: 404 Not Found
+#   test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
+#   find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
+# ;;
   "N0") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 0.1 0.1 ;;
   "N1") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 0.1 1.0 ;;
   "N2") "$dest/scripts/gen_bt_data.py" -o "$bt_csv/$year.csv" -p none "$year.01.01" "$year.12.30" 1.0 2.0 -v20 ;;
@@ -95,10 +93,7 @@ case $bt_src in
 esac
 
 # Convert CSV tick files to backtest files.
-if [ $convert -eq 1 ]; then csv2data; fi
-
-# Make the backtest files read-only.
-find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+csv2data
 
 # Store the backtest data type.
 [ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"

@@ -1,17 +1,22 @@
 #!/usr/bin/env bash
+# Script to run backtest test.
+# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -D "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:c:p:d:m:y:s:oi:I:Cb:tTD:vxh"
+ARGS=":r:e:f:E:c:p:d:m:y:b:s:oi:I:CtTD:vxh"
 
 ## Check dependencies.
-type git ex xdpyinfo
-
+type git ex xdpyinfo pgrep
+ 
 ## Define functions.
 
 # Invoke on test success.
 on_success() {
-  ! grep -C2 -e "Initialization failed" <(show_logs) || exit 1
-  echo "Printing logs..." >&2
+  echo "Checking logs..." >&2
   show_logs
+  ! check_logs "ExpertRemove" || exit 1
+  ! check_logs "Initialization failed" || exit 1
+  ! check_logs "TestGenerator: no history data" || exit 1
+  ! check_logs "Tester: cannot start" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
@@ -29,6 +34,7 @@ on_success() {
 
 # Invoke on test failure.
 on_failure() {
+  echo "FAIL?!" >&2
   # Sometimes MT4 fails on success, therefore double checking.
   REPORT_HTM=$(find "$TESTER_DIR" -name "$(basename "$(ini_get TestReport)").htm")
   test -f "$REPORT_HTM" && on_success $@
@@ -57,24 +63,24 @@ parse_results() {
   while getopts $ARGS arg; do
     case $arg in
       t) # Convert test report file into brief text format.
-        echo "Converting report into short text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        grep -v mso-number "$REPORT_HTM" | html2text -width 105 | sed "/\[Graph\]/q" > "$REPORT_TXT" && rm -v "$REPORT_HTM"
+        echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" | grep -v '^\s.*;' > "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
-        echo "Converting report into text file..."
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        grep -v mso-number "$REPORT_HTM" | html2text -width 105 -o "$REPORT_TXT" && rm -v "$REPORT_HTM"
+        echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
         ;;
       D)
-        echo "Copying report files..."
         DEST="${DEST:-$(echo $CWD)}"
-        cp $VFLAG "$TESTER_DIR/$(basename "${REPORT_HTM%.*}")".* "$DEST"
+        echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
+        cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
       v)
-        echo "Printing test reports..."
-        grep -v mso-number "$REPORT_HTM" | html2text -width 180 | sed "/\[Graph\]/q"
+        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
         find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       o)
@@ -82,7 +88,7 @@ parse_results() {
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
             value=$(ini_get "$input" "$REPORT_HTM")
-            echo "Setting '$input' to '$value' in '$(basename $SETORG)'"
+            echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
             ini_set "^$input" "$value" "$SETORG"
           done
         fi
@@ -100,10 +106,12 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       type html2text sed
       ;;
+
     x) # Run the script in debug mode.
       TRACE=1
       set -x
       ;;
+
   esac
 done
 
@@ -113,25 +121,19 @@ echo "Checking platform dependencies..." >&2
 
 # Initialize settings.
 . $CWD/.configrc
-
-# Copy the configuration file, so platform can find it.
-cp $VFLAG "$TPL_TEST" "$TESTER_INI"
-cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
+copy_ini
 
 # Parse the primary arguments.
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
+
     e) # EA name.
       EA_NAME=${OPTARG}
-      EA_PATH="$(find "$ROOT" '(' -name "*$EA_NAME*.ex4" -o -name "*$EA_NAME*.ex5" ')' -print -quit)"
+      EA_PATH=$(find_ea "$EA_NAME")
       [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-      cp $VFLAG "$EA_PATH" "$TERMINAL_DIR/MQL4/Experts";
+      copy_ea "$EA_PATH"
       ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
-      ;;
-    m) # Which months to test (default: 1-12)
-      IFS='-' MONTHS=(${OPTARG})
-      IFS=$' \t\n' # Restore IFS.
       ;;
 
     C) # Clear previous backtest data files.
@@ -139,17 +141,49 @@ while getopts $ARGS arg; do
       clean_bt
       ;;
 
+    m) # Which months to test (default: 1-12)
+      IFS='-' MONTHS=(${OPTARG})
+      IFS=$' \t\n' # Restore IFS.
+      ;;
+
+  esac
+done
+
+# Parse the secondary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
+
+    y) # Year to test (e.g. 2014).
+      YEAR=${OPTARG}
+      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
+      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+      echo "Setting test period ($START_DATE-$END_DATE)..." >&2
+      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
+      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
+      ;;
+
+  esac
+done
+
+
+# Parse the tertiary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
+
     b) # Backtest data to test.
       BT_SRC=${OPTARG}
       echo "Checking backtest data ($BT_SRC)..."
       bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-N1}"
       # Generate backtest files if not present.
-      if [ ! -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-        $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
-      else
+      if [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] && [ "$(ini_get "bt_data" "$CUSTOM_INI")" = "$bt_key" ]; then
         echo "Skipping, as $bt_key already exists..."
+        break;
       fi
+      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
       ;;
+
   esac
 done
 
@@ -158,10 +192,11 @@ EA_NAME="$(ini_get TestExpert)"
 EA_INI="$TESTER_DIR/$EA_NAME.ini"
 cp $VFLAG "$TPL_EA" "$EA_INI"
 
+
 # Assign variables.
 FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 
-# Parse the secondary arguments.
+# Parse the main arguments.
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
@@ -175,7 +210,7 @@ while getopts $ARGS arg; do
       SETORG="$OPTARG"
       SETFILE="${EA_NAME}.set"
       echo "Setting EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ]
+      [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
       cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
@@ -208,15 +243,6 @@ while getopts $ARGS arg; do
       ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
-    y) # Year to test (e.g. 2014).
-      YEAR=${OPTARG}
-      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
-      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
-      echo "Setting test period ($START_DATE-$END_DATE)..." >&2
-      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
-      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
-      ;;
-
     s) # Spread to test.
       SPREAD=${OPTARG}
       echo "Setting spread to test ($SPREAD)..." >&2
@@ -233,7 +259,7 @@ while getopts $ARGS arg; do
       type bc
       INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
-      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "Please specify .set file first (-f)." >&2; exit 1; }
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
       echo "Invoking include file ($INCLUDE)..."
       . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
@@ -250,7 +276,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | m | C | b | I | v | x) ;;
+    e | m | y | C | b | I | v | x) ;;
 
     \? | h | *) # Display help.
       echo "$0 usage:" >&2
@@ -268,4 +294,5 @@ clean_files
 
 # Run the test under the platform.
 configure_display
+(sleep 20 && tail -f "$LOG_DIR"/*.log) &
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
