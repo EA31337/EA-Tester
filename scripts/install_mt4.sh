@@ -6,7 +6,7 @@ set -e
 type wget xdotool xwininfo wine
 
 # Initialize settings.
-. $CWD/.configrc
+. $CWD/.initrc
 
 echo "Downloading MT4 installer..."
 [ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
@@ -43,7 +43,7 @@ sleep 1
 wineserver -k
 
 # Re-initialize settings.
-. $CWD/.configrc
+. $CWD/.initrc
 
 find ~ "$OUT" -name terminal.exe -print -quit
 echo "Installation successful."

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-. $CWD/.configrc
+. $CWD/.initrc
 
 # Check dependencies.
 set -e

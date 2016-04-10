@@ -120,7 +120,7 @@ echo "Checking platform dependencies..." >&2
 [ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
 
 # Initialize settings.
-. $CWD/.configrc
+. $CWD/.initrc
 copy_ini
 
 # Parse the primary arguments.

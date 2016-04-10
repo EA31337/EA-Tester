@@ -1,4 +1,5 @@
-# .configrc: invoked by bash(1)
+#!/usr/bin/env bash
+# .initrc file
 #
 # Initialize variables.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
