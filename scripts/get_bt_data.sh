@@ -48,7 +48,8 @@ case $bt_src in
     echo "Downloading..." >&2
     wget -c -P "$dest" $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
     echo "Extracting..." >&2
-    gunzip -r $VFLAG -fk "$dest"
+    gunzip -kh && keep="-k" # Check if gunzip supports -k parameter.
+    gunzip -r $VFLAG -f $keep "$dest"
     mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
     mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
     convert=0
