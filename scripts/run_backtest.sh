@@ -294,6 +294,8 @@ clean_files
 
 # Run the test under the platform.
 configure_display
-(sleep 20 && tail -f "$LOG_DIR"/*.log) &
+while "$(find "$LOG_DIR" -type f -name "*.log" -print -quit)"; do
+  tail -f "$LOG_DIR"/*.log || sleep 10
+done &
 echo "Starting test..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
