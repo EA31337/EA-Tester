@@ -38,18 +38,21 @@ csv2data() {
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
 mkdir $VFLAG "$bt_csv" || true
 
-echo "Checking permissions..." >&2
 set_write_perms
+clean_bt
 echo "Getting data..." >&2
 case $bt_src in
 
   "DS")
     dest="$DOWNLOAD_DIR/$bt_key"
     echo "Downloading..." >&2
-    wget -c -P "$dest" $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
+    for url in $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}"); do
+      wget -nv -c -P "$dest" "$url" &
+    done
+    wait # Wait for the background tasks to finish.
     echo "Extracting..." >&2
     gunzip -kh 2> /dev/null && keep="-k" # Check if gunzip supports -k parameter.
-    gunzip $VFLAG -r -f $keep "$dest"/*.gz
+    gunzip $VFLAG $keep -r "$dest"/*.gz
     mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
     mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
     convert=0
