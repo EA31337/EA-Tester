@@ -1,3 +1,6 @@
+//+------------------------------------------------------------------+
+//| Test whether spread is non-zero. Fail on spread zero.
+//+------------------------------------------------------------------+
 int OnInit() {
     int symbol_spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
     int real_spread = MathRound((Ask - Bid) * MathPow(10, Digits));
