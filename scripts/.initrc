@@ -92,11 +92,10 @@ clean_bt() {
 
 # Set input value in the SET file.
 input_set() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -109,11 +108,10 @@ input_set() {
 
 # Get input value from the SET file.
 input_get() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
@@ -121,11 +119,10 @@ input_get() {
 
 # Set value in the INI file.
 ini_set() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $TESTER_INI)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $TESTER_INI)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -138,10 +135,9 @@ ini_set() {
 
 # Set inputs in the EA INI file.
 ini_set_inputs() {
-  local value
-  sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
-  dfile="${2:-$(echo $EA_INI)}"
-  vargs="-u NONE"
+  local sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
+  local dfile="${2:-$(echo $EA_INI)}"
+  local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
@@ -151,21 +147,19 @@ ini_set_inputs() {
 
 # Get value from the INI/HTM file.
 ini_get() {
-  local value
-  key="$1"
-  file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | cut -d= -f2-)"
+  local key="$1"
+  local file="${2:-$(echo $TESTER_INI)}"
+  local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
 
 # Set tag value in the file.
 tag_set() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $INCLUDE)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $INCLUDE)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -178,14 +172,14 @@ tag_set() {
 
 # Get all values from the INI/HTM file.
 get_values() {
-  file="$1"
+  local file="$1"
   grep -o '\S\+[^_]=[^;]\+' "$file"
 }
 
 # Read decimal value at given offset from the file.
 read_value() {
-  file="$1"
-  offset="$2"
+  local file="$1"
+  local offset="$2"
   [ -n "$file" ]
   [ -n "$offset" ]
   echo $((16#$(xxd -p -l1 -s $offset "$file")))
@@ -193,19 +187,19 @@ read_value() {
 
 # Read bytes in hex format at given offset from the file.
 read_data() {
-  file="$1"
-  offset="$2"
-  count="$3:-1"
+  local file="$1"
+  local offset="$2"
+  local count="$3:-1"
   xxd -p -l $count -s $offset "$file"
 }
 
 # Modify binary file given value in hex format at given offset.
 write_data() {
-  file="$1"
-  value="$2" # In hex format.
-  offset="$3"
-  len="${4:-1}"
-  writable=$(test -w "$file"; echo $?)
+  local file="$1"
+  local value="$2" # In hex format.
+  local offset="$3"
+  local len="${4:-1}"
+  local writable=$(test -w "$file"; echo $?)
   [ -n "$file" ]
   [ -n "$value" ]
   [ -n "$offset" ]
@@ -216,7 +210,7 @@ write_data() {
 
 # Set spread in ini and FXT files.
 set_spread() {
-  spread="$1"
+  local spread="$1"
   [ -n "$spread" ]
   ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
   ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
@@ -224,7 +218,7 @@ set_spread() {
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")
       prev_spread=$(read_value "$file" $FXT_OFF_SPREAD)
-      write_data "$FXT_FILE" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
+      write_data "$file" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
       next_spread=$(read_value "$file" $FXT_OFF_SPREAD)
       echo "Changed spread in $base from $prev_spread into $next_spread" >&2
       [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
@@ -233,15 +227,14 @@ set_spread() {
 
 # Get time from terminal log in h.
 get_time() {
-  MTIME=$(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
-  echo $MTIME
+  echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
 }
 
 # Save time and store in rule file if exists.
 save_time() {
-  HTIME=$(($(eval get_time) / 60))
+  local htime=$(($(eval get_time) / 60))
   [ "$VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
-  [ -f "$INCLUDE" ] && tag_set ETA $HTIME "$INCLUDE"
+  [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE"
 }
 
 # Set read permissions for test files.
@@ -257,9 +250,9 @@ set_write_perms() {
 
 # Detect and configure proxy.
 configure_proxy() {
-  GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
+  local gw=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
   curl -s localhost:3128 > /dev/null || true && export http_proxy="http://localhost:3128"
-  curl -s $GW:3128       > /dev/null || true && export http_proxy="http://$GW:3128"
+  curl -s $gw:3128       > /dev/null || true && export http_proxy="http://$gw:3128"
 
   # Set proxy for wine registry if present.
   [ "$http_proxy" ] &&
@@ -290,21 +283,21 @@ find_ea() {
 
 # Copy EA file given file path.
 copy_ea() {
-  file="$1"
+  local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
 
 # Copy script file given file path.
 copy_script() {
-  file="$1"
+  local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
 }
 
 # Compile given EA name.
 compile_ea() {
-  name="$1"
+  local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
   cd -
@@ -312,7 +305,7 @@ compile_ea() {
 
 # Compile given script name.
 compile_script() {
-  name="$1"
+  local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$SCRIPTS_DIR/$name"
   cd -
