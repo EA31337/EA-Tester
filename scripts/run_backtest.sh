@@ -154,6 +154,10 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
+    b) # Backtest data to test.
+      BT_SRC=${OPTARG}
+      ;;
+
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
       START_DATE="$YEAR.${MONTHS[0]:-01}.01"
@@ -171,21 +175,19 @@ done
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
-
-    b) # Backtest data to test.
-      BT_SRC=${OPTARG}
-      echo "Checking backtest data ($BT_SRC)..."
-      bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-N1}"
-      # Generate backtest files if not present.
-      if [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] && [ "$(ini_get "bt_data" "$CUSTOM_INI")" = "$bt_key" ]; then
-        echo "Skipping, as $bt_key already exists..."
-        break;
-      fi
-      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-N1}
-      ;;
-
+    # todo
   esac
 done
+
+# Download backtest data if needed.
+echo "Checking backtest data ($BT_SRC)..."
+bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
+# Generate backtest files if not present.
+if [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] && [ "$(ini_get "bt_data" "$CUSTOM_INI")" = "$bt_key" ]; then
+  echo "Skipping, as $bt_key already exists..."
+  break;
+fi
+$SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
