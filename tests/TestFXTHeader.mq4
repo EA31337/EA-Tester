@@ -3,32 +3,44 @@
 //| Documentation on the format can be found in terminal Help
 //| (Client terminal - Auto Trading - Strategy Testing - History Files)
 //+------------------------------------------------------------------+
-//---- header version
+
+//---- Imports.
+#property show_inputs
+#import "kernel32.dll"
+ int _lopen(string patg,int of);
+ int _lcreat(string path,int attrib);
+ int _llseek(int handle,int offset,int origin);
+ int _lread(int handle,int& buffer[],int bytes);
+ int _lwrite(int handle,string buffer,int bytes);
+ int _lclose(int handle);
+#import
+
+//---- Header version.
 #define FXT_VERSION 405
-//---- profit calculation mode
+//---- Profit calculation mode.
 #define PROFIT_CALC_FOREX 0 // Default.
 #define PROFIT_CALC_CFD 1
 #define PROFIT_CALC_FUTURES 2
-//---- type of swap
+//---- Type of swap.
 #define SWAP_BY_POINTS 0 // Default.
 #define SWAP_BY_BASECURRENCY 1
 #define SWAP_BY_INTEREST 2
 #define SWAP_BY_MARGINCURRENCY 3
-//---- free margin calculation mode
+//---- Free margin calculation mode.
 #define MARGIN_DONT_USE 0
 #define MARGIN_USE_ALL 1 // Default.
 #define MARGIN_USE_PROFIT 2
 #define MARGIN_USE_LOSS 3
-//---- margin calculation mode
+//---- Margin calculation mode.
 #define MARGIN_CALC_FOREX 0 // Default.
 #define MARGIN_CALC_CFD 1
 #define MARGIN_CALC_FUTURES 2
 #define MARGIN_CALC_CFDINDEX 3
-//---- basic commission type
+//---- Basic commission type.
 #define COMM_TYPE_MONEY 0
 #define COMM_TYPE_PIPS 1
 #define COMM_TYPE_PERCENT 2
-//---- commission per lot or per deal
+//---- Commission per lot or per deal.
 #define COMMISSION_PER_LOT 0
 #define COMMISSION_PER_DEAL 1
 //---- FXT file header
@@ -190,10 +202,27 @@ bool ReadAndCheckHeader(int handle, int period, int& bars) {
     return (true);
 }
 
+//+------------------------------------------------------------------+
+//| Read and check FXT header.
+//+------------------------------------------------------------------+
+int ReadSpread(int handle) {
+    int buffer[2];
+    int adjustCursor1 = _llseek(handle, 0xfc, 0); // 16
+    int ret_read1 = _lread(handle, buffer, 8);
+    Print("spread = ", buffer[0]);
+    Print("digits = ", buffer[1]);
+}
+
 int OnInit() {
-    if (ReadAndCheckHeader(handle, period, bars)) {
+    // string FXT_="USDJPYFXF5_0.fxt"; // @todo: Find the file name automatically?
+    string path = TerminalPath() + "\\tester\\history\\" + FXT_;
+    Print("win32api_File_Path= ", path);
+    int fileHandle = _lopen(path, 0);
+    if (ReadAndCheckHeader(fileHandle, period, bars)) {
         Print("FXT header is correct!");
     } else {
+        int ret_close=_lclose(fileHandle);
         ExpertRemove();
     }
+    int ret_close=_lclose(fileHandle);
 }
