@@ -294,7 +294,7 @@ clean_files
 
 # Run the test under the platform.
 configure_display
-while "$(find "$LOG_DIR" -type f -name "*.log" -print -quit)"; do
+while [ "$(find "$LOG_DIR" -type f -name "*.log" -print -quit)" ]; do
   tail -f "$LOG_DIR"/*.log || sleep 10
 done &
 echo "Starting test..." >&2
