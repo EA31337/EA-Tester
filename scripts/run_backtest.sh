@@ -180,14 +180,12 @@ while getopts $ARGS arg; do
 done
 
 # Download backtest data if needed.
-echo "Checking backtest data ($BT_SRC)..."
+echo "Checking backtest data (${BT_SRC:-DS})..."
 bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
-if [ -s "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] && [ "$(ini_get "bt_data" "$CUSTOM_INI")" = "$bt_key" ]; then
-  echo "Skipping, as $bt_key already exists..."
-  break;
+if [ ! "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+  $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 fi
-$SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
