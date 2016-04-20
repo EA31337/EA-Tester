@@ -48,8 +48,8 @@ case $bt_src in
     echo "Downloading..." >&2
     wget -c -P "$dest" $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
     echo "Extracting..." >&2
-    gunzip -kh > /dev/null && keep="-k" # Check if gunzip supports -k parameter.
-    gunzip -r $VFLAG -f $keep "$dest"
+    gunzip -kh 2> /dev/null && keep="-k" # Check if gunzip supports -k parameter.
+    gunzip $VFLAG -r -f $keep "$dest"/*.gz
     mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
     mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
     convert=0
@@ -99,6 +99,5 @@ csv2data
 # Store the backtest data type.
 [ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"
 ini_set "bt_data" "$bt_key" "$CUSTOM_INI"
-set_read_perms
 
 echo "$0 done."
