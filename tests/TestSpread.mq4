@@ -1,16 +1,19 @@
 //+------------------------------------------------------------------+
 //| Test whether spread is non-zero. Fail on spread zero.
 //+------------------------------------------------------------------+
+#property strict
 int OnInit() {
-    int symbol_spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
-    int real_spread = MathRound((Ask - Bid) * MathPow(10, Digits));
+    long symbol_spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
+    int real_spread = (int)MathRound((Ask - Bid) * MathPow(10, Digits));
     Print("Testing spread...");
     PrintFormat("Reported spread: %d points", symbol_spread);
     PrintFormat("Real spread    : %d points", real_spread);
-    PrintFormat("Ask/Bid: %.5f/%.5f", Ask, Bid);
+    PrintFormat("Ask/Bid        : %g/%g", NormalizeDouble(Ask, Digits), NormalizeDouble(Bid, Digits));
+    PrintFormat("Symbol digits  : %g", Digits);
     if (real_spread > 0 && symbol_spread == real_spread) {
-        Print("Success!");
+        return INIT_SUCCEEDED;
     } else {
-        ExpertRemove();
+        Print("Error: Spread is zero!");
+        return INIT_FAILED;
     }
 }
