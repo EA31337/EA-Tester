@@ -190,9 +190,9 @@ fi
 
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
+SYMBOL="$(ini_get TestSymbol)"
 EA_INI="$TESTER_DIR/$EA_NAME.ini"
 cp $VFLAG "$TPL_EA" "$EA_INI"
-
 
 # Assign variables.
 FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -292,6 +292,7 @@ done
 [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] \
   || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
+set_symbol_value
 
 # Run the test under the platform.
 configure_display

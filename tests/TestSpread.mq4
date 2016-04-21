@@ -14,7 +14,7 @@ int OnInit() {
         Print("Spread is correct.");
         return INIT_SUCCEEDED;
     } else {
-        Print("Error: Spread is zero!");
+        Print("Error: Spread is not correct!");
         return INIT_FAILED;
     }
 }
