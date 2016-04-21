@@ -251,13 +251,13 @@ save_time() {
 set_read_perms() {
   # Make the backtest files read-only.
   echo "Setting read-only permissions for backtest files..." >&2
-  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | xargs -0 chmod $VFLAG u-w
 }
 
 # Set write permissions for test files.
 set_write_perms() {
   echo "Setting write permissions for backtest files..." >&2
-  chmod -vR u+w "$HISTORY_DIR" "$TICKDATA_DIR"
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | xargs -0 chmod $VFLAG u+w
 }
 
 # Detect and configure proxy.
