@@ -71,16 +71,19 @@ show_logs() {
 # Check logs for specific text.
 check_logs() {
   filter="$1"
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color=auto -C1 -w "$filter" "{}" +
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" "{}" +
 }
 
 # Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.
   echo "Cleaning previous test data..." >&2
-  find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' $VPRINT -delete
+  find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   find "$TESTER_DIR/files" -type f $VPRINT -delete
-  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' $VPRINT -delete
+  # Remove log files.
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
+  # Remove selected symbol and group files, so they can be regenerated.
+  find "$HISTORY_DIR" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
 }
 
 # Delete backtest data files.

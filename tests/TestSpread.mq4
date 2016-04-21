@@ -11,6 +11,7 @@ int OnInit() {
     PrintFormat("Ask/Bid        : %g/%g", NormalizeDouble(Ask, Digits), NormalizeDouble(Bid, Digits));
     PrintFormat("Symbol digits  : %g", Digits);
     if (real_spread > 0 && symbol_spread == real_spread) {
+        Print("Spread is correct.");
         return INIT_SUCCEEDED;
     } else {
         Print("Error: Spread is zero!");
