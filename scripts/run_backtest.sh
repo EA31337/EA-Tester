@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Script to run backtest test.
-# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -D "_optimization_results"
+# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:c:p:d:m:y:b:s:oi:I:CtTD:vxh"
+ARGS=":r:e:f:E:c:p:d:D:m:y:b:s:oi:I:CtTO:vxh"
 
 ## Check dependencies.
 type git ex xdpyinfo pgrep
@@ -245,6 +245,12 @@ while getopts $ARGS arg; do
       ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
+    D) # Change market digits.
+      DIGITS=${OPTARG}
+      echo "Setting digits to $DIGITS..." >&2
+      set_symbol_value $DIGITS $SRAW_OFF_DIGITS
+      ;;
+
     s) # Spread to test.
       SPREAD=${OPTARG}
       echo "Setting spread to test ($SPREAD)..." >&2
@@ -271,7 +277,7 @@ while getopts $ARGS arg; do
       type html2text
       ;;
 
-    D) # Destination directory to save the test results.
+    O) # Output directory to save the test results.
       DEST=${OPTARG}
       echo "Checking destination ($DEST)..." >&2
       [ -d "$DEST" ] || mkdir -p "$DEST"
@@ -293,7 +299,6 @@ done
 [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] \
   || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
-set_symbol_value
 
 # Run the test under the platform.
 configure_display

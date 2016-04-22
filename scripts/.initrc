@@ -48,6 +48,7 @@ TRUE=0
 FALSE=1
 FXT_OFF_SPREAD="FC"
 SRAW_OFF_DIGITS=$(printf "%02x" 104)
+SRAW_OFF_PSIZE=$(printf "%02x" 1776)
 
 ## Define common functions. ##
 
@@ -181,22 +182,24 @@ get_values() {
 }
 
 # Read decimal value at given offset from the file.
-# Usage: read_value (file) (hex-offset)
+# Usage: read_value (file) (hex-offset) (length)
 read_value() {
   local file=$1
   local offset=$((16#$2))
-  [ -n "$file" ]
+  local length="${3:-1}"
+  [ -s "$file" ]
   [ -n "$offset" ]
-  echo $((16#$(xxd -p -l1 -s $offset "$file")))
+  echo $((16#$(xxd -p -l $length -s $offset "$file")))
 }
 
 # Read bytes in hex format at given offset from the file.
-# Usage: read_data file.bin (offset) (count)
+# Usage: read_data file.bin (offset) (length)
 read_data() {
+  [ -n $offset ]
   local file="$1"
   local offset="$2"
-  local count="$3:-1"
-  xxd -p -l $count -s $offset "$file"
+  local length="${3:-1}"
+  xxd -p -l $length -s $offset "$file"
 }
 
 # Modify binary file given value in hex format at given offset.
@@ -208,13 +211,13 @@ write_data() {
   local offset="$3"
   local len="${4:-1}"
   local writable=$(test -w "$file"; echo $?)
-  [ -n "$file" ]
+  [ -s "$file" ]
   [ -n "$value" ]
   [ -n "$offset" ]
   [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
-  echo "$offset: $value"
   xxd -r - "$file" <<<"$offset: $value"
   [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
+  return $TRUE
 }
 
 # Set spread in ini and FXT files.
@@ -236,24 +239,27 @@ set_spread() {
 }
 
 # Change values in symbols file.
-# Usage: get_symbol_value (hex-offset)
+# Usage: get_symbol_value (hex-offset) (len)
 get_symbol_value() {
   local rel_offset=$((16#$1))
+  local length=${2:-1}
   local file="$HISTORY_DIR/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  echo $(read_value "$file" $abs_offset)
+  echo $(read_data "$file" $abs_offset $length)
 }
 
 # Change values in symbols file.
 # Usage: set_symbol_value (dec-value) (hex-offset)
 set_symbol_value() {
+  [ -n "$1" ]
   local value=$(printf "%02x" $1)
   local rel_offset=$((16#$2))
   local file="$HISTORY_DIR/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  write_data "$file" $value $(printf "%02x" $abs_offset)
+  write_data "$file" $value "$(printf "%02x" $abs_offset)"
+  return $TRUE
 }
 
 # Get time from terminal log in h.
