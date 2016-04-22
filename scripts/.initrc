@@ -46,7 +46,8 @@ SCRIPTS_DIR="MQL4/Scripts"
 # Set constants.
 TRUE=0
 FALSE=1
-FXT_OFF_SPREAD=$((16#FC))
+FXT_OFF_SPREAD="FC"
+SRAW_OFF_DIGITS=$(printf "%02x" 104)
 
 ## Define common functions. ##
 
@@ -180,15 +181,17 @@ get_values() {
 }
 
 # Read decimal value at given offset from the file.
+# Usage: read_value (file) (hex-offset)
 read_value() {
-  local file="$1"
-  local offset="$2"
+  local file=$1
+  local offset=$((16#$2))
   [ -n "$file" ]
   [ -n "$offset" ]
   echo $((16#$(xxd -p -l1 -s $offset "$file")))
 }
 
 # Read bytes in hex format at given offset from the file.
+# Usage: read_data file.bin (offset) (count)
 read_data() {
   local file="$1"
   local offset="$2"
@@ -197,6 +200,8 @@ read_data() {
 }
 
 # Modify binary file given value in hex format at given offset.
+# Usage: write_data file.bin (hex-values) (hex-offset)
+# E.g. write_data file.bin $(printf "%02x\n" 123) "FC"
 write_data() {
   local file="$1"
   local value="$2" # In hex format.
@@ -207,13 +212,15 @@ write_data() {
   [ -n "$value" ]
   [ -n "$offset" ]
   [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
-  xxd -r -p <<<$value | dd if=/dev/stdin of="$file" seek=$offset bs=1 count=$len conv=notrunc status=noxfer
+  echo "$offset: $value"
+  xxd -r - "$file" <<<"$offset: $value"
   [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
 }
 
 # Set spread in ini and FXT files.
+# Usage: set_spread 10
 set_spread() {
-  local spread="$1"
+  local spread=$1
   [ -n "$spread" ]
   ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
   ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
@@ -229,10 +236,24 @@ set_spread() {
 }
 
 # Change values in symbols file.
-set_symbol_value() {
+# Usage: get_symbol_value (hex-offset)
+get_symbol_value() {
+  local rel_offset=$((16#$1))
   local file="$HISTORY_DIR/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  echo "${SYMBOL:-EURUSD} symbol offset: $symbol_offset" >&2
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  echo $(read_value "$file" $abs_offset)
+}
+
+# Change values in symbols file.
+# Usage: set_symbol_value (dec-value) (hex-offset)
+set_symbol_value() {
+  local value=$(printf "%02x" $1)
+  local rel_offset=$((16#$2))
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  write_data "$file" $value $(printf "%02x" $abs_offset)
 }
 
 # Get time from terminal log in h.

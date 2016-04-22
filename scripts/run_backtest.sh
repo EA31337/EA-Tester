@@ -6,7 +6,7 @@ ARGS=":r:e:f:E:c:p:d:m:y:b:s:oi:I:CtTD:vxh"
 
 ## Check dependencies.
 type git ex xdpyinfo pgrep
- 
+
 ## Define functions.
 
 # Invoke on test success.
@@ -105,6 +105,7 @@ while getopts $ARGS arg; do
       VERBOSE=1
       VFLAG="-v"
       VPRINT="-print"
+      VDD="noxfer"
       type html2text sed
       ;;
 
