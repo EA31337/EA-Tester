@@ -5,7 +5,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:e:f:E:c:p:d:D:m:y:b:s:oi:I:CtTO:vxh"
 
 ## Check dependencies.
-type git ex xdpyinfo pgrep
+type git pgrep xargs ex xxd xdpyinfo od
 
 ## Define functions.
 
