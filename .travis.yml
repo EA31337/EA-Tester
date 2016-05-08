@@ -21,7 +21,7 @@ cache:
   apt: true
   pip: true
   directories:
-    - $HOME/.wine
+    - $HOME/.wine/drive_c
 
 notifications:
   email:
