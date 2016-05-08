@@ -210,7 +210,19 @@ read_double() {
   local length="${3:-8}"
   [ -s "$file" ]
   [ -n "$offset" ]
-  od -tfD -An -N $length -j $offset "$file" | xargs
+  od -F -An -N $length -j $offset "$file" | xargs
+}
+
+# Write double value at given offset in the file.
+# Usage: write_double (file) (double) (dec-offset) (length)
+write_double() {
+  local file=$1
+  local value="$2" # In decimal format.
+  local offset=$3
+  local length="${4:-8}"
+  [ -s "$file" ]
+  [ -n "$offset" ]
+  perl -i -0777pe"substr(\$_, $offset, 8, pack('d', $value))" "$file"
 }
 
 # Modify binary file given value in hex format at given offset.
@@ -228,6 +240,60 @@ write_data() {
   [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
   xxd -r - "$file" <<<"$offset: $value"
   [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
+  return $TRUE
+}
+
+# Get value from symbols file.
+# Usage: get_symbol_value (hex-offset) (len)
+# Returns value in hex format.
+get_symbol_value() {
+  local rel_offset=$((16#$1))
+  local length=${2:-1}
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  echo $(read_data "$file" $abs_offset $length)
+}
+
+# Get double value from symbols file.
+# Usage: get_symbol_double (hex-offset) (len)
+# Returns value in hex format.
+get_symbol_double() {
+  local rel_offset=$((16#$1))
+  local length=${2:-8}
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  echo $(read_double "$file" $abs_offset $length)
+}
+
+# Change values in symbols file.
+# Usage: set_symbol_value (dec-value) (hex-offset)
+set_symbol_value() {
+  [ -n "$1" ]
+  local value=$(printf "%02x" $1)
+  local rel_offset=$((16#$2))
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  write_data "$file" $value "$(printf "%02x" $abs_offset)"
+  return $TRUE
+}
+
+# Change double in symbols file.
+# Usage: set_symbol_double (double) (hex-offset)
+set_symbol_double() {
+  [ -n "$1" ]
+  local value=$1
+  local rel_offset=$((16#$2))
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  write_double "$file" $value $abs_offset
   return $TRUE
 }
 
@@ -249,41 +315,15 @@ set_spread() {
   done || true
 }
 
-# Get value from symbols file.
-# Usage: get_symbol_value (hex-offset) (len)
-# Returns value in hex format.
-get_symbol_value() {
-  local rel_offset=$((16#$1))
-  local length=${2:-1}
-  local file="$HISTORY_DIR/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  echo $(read_data "$file" $abs_offset $length)
-}
-
-# Get double value from symbols file.
-# Usage: get_symbol_double (hex-offset) (len)
-# Returns value in hex format.
-get_symbol_double() {
-  local rel_offset=$((16#$1))
-  local length=${2:-8}
-  local file="$HISTORY_DIR/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  echo $(read_double "$file" $abs_offset $length)
-}
-
-# Change values in symbols file.
-# Usage: set_symbol_value (dec-value) (hex-offset)
-set_symbol_value() {
-  [ -n "$1" ]
-  local value=$(printf "%02x" $1)
-  local rel_offset=$((16#$2))
-  local file="$HISTORY_DIR/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  write_data "$file" $value "$(printf "%02x" $abs_offset)"
-  return $TRUE
+# Set digits in symbol raw file.
+# Usage: set_digits 5
+set_digits() {
+  local digits=$1
+  [ -n "$digits" ]
+  echo "Setting digits to $digits..." >&2
+  set_symbol_value $digits $SRAW_OFF_DIGITS
+  psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
+  set_symbol_double $psize $SRAW_OFF_PSIZE
 }
 
 # Get time from terminal log in h.

@@ -5,7 +5,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:e:f:E:c:p:d:D:m:y:b:s:oi:I:CtTO:vxh"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd xdpyinfo od
+type git pgrep xargs ex xxd xdpyinfo od perl
 
 ## Define functions.
 
@@ -247,8 +247,7 @@ while getopts $ARGS arg; do
 
     D) # Change market digits.
       DIGITS=${OPTARG}
-      echo "Setting digits to $DIGITS..." >&2
-      set_symbol_value $DIGITS $SRAW_OFF_DIGITS
+      set_digits $DIGITS
       ;;
 
     s) # Spread to test.
