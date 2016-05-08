@@ -2,7 +2,7 @@
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:e:f:E:c:p:d:D:m:y:b:s:oi:I:CtTO:vxh"
+ARGS=":r:e:f:E:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxh"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl
@@ -247,13 +247,20 @@ while getopts $ARGS arg; do
 
     D) # Change market digits.
       DIGITS=${OPTARG}
+      echo "Setting digits to $DIGITS..." >&2
       set_digits $DIGITS
       ;;
 
     s) # Spread to test.
       SPREAD=${OPTARG}
-      echo "Setting spread to test ($SPREAD)..." >&2
+      echo "Setting spread ($SPREAD)..." >&2
       set_spread $SPREAD
+      ;;
+
+    l) # Lot step.
+      LOTSTEP=${OPTARG}
+      echo "Setting lot step ($LOTSTEP)..." >&2
+      set_lotstep $LOTSTEP
       ;;
 
     o) # Run optimization test.

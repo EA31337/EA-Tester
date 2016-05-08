@@ -46,7 +46,8 @@ SCRIPTS_DIR="MQL4/Scripts"
 # Set constants.
 TRUE=0
 FALSE=1
-FXT_OFF_SPREAD="FC"
+FXT_OFF_SPREAD=$(printf "%02x" 252)
+FXT_OFF_LOTSTEP=$(printf "%02x" 280)
 SRAW_OFF_DIGITS=$(printf "%02x" 104)
 SRAW_OFF_PSIZE=$(printf "%02x" 1776)
 
@@ -314,6 +315,23 @@ set_spread() {
       [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
   done || true
 }
+
+# Set lot step in FXT files.
+# Usage: set_lotstep 1
+set_lotstep() {
+  local lotstep=$1
+  [ -n "$lotstep" ]
+  # Change lotstep in all FXT files at given offset.
+  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      prev_lotstep=$(read_value "$file" $FXT_OFF_LOTSTEP)
+      write_data "$file" $(printf "%02x\n" $lotstep) $FXT_OFF_LOTSTEP
+      next_lotstep=$(read_value "$file" $FXT_OFF_LOTSTEP)
+      echo "Changed lot step in $base from $prev_lotstep into $next_lotstep" >&2
+      [ $lotstep != $next_lotstep ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
+  done || true
+}
+
 
 # Set digits in symbol raw file.
 # Usage: set_digits 5
