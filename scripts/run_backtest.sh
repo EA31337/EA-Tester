@@ -73,7 +73,7 @@ parse_results() {
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
         ;;
-      D)
+      O)
         DEST="${DEST:-$(echo $CWD)}"
         echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
