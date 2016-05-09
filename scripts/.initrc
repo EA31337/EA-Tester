@@ -360,7 +360,7 @@ save_time() {
 set_read_perms() {
   # Make the backtest files read-only.
   echo "Setting read-only permissions for backtest files..." >&2
-  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | xargs -0 chmod $VFLAG u-w
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' -or -name '*.exe' ')' -print0 | xargs -0 chmod $VFLAG u-w
 }
 
 # Set write permissions for test files.
