@@ -17,7 +17,7 @@ convert=1
 bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%d.zip" $symbol $bt_src $symbol $year)
 rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%d" $symbol $bt_src $year)
 dest="$TERMINAL_DIR/history/downloads"
-bt_csv="$dest/$bt_src-$symbol-$year"
+bt_csv="$dest/$bt_key"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
 fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
 hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
@@ -36,7 +36,7 @@ csv2data() {
 }
 
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
-mkdir $VFLAG "$bt_csv" || true
+mkdir -p $VFLAG "$bt_csv" || true
 
 set_write_perms
 clean_bt
