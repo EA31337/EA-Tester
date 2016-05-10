@@ -13,7 +13,7 @@ int OnInit() {
     PrintFormat("Symbol digits  : %g", Digits);
     PrintFormat("Lot step       : %g", lot_step);
     if (real_spread > 0 && symbol_spread == real_spread) {
-        Print("Spread is correct.");
+        Print("Spread is valid.");
         return INIT_SUCCEEDED;
     } else {
         Print("Error: Spread is not correct!");
