@@ -164,7 +164,7 @@ while getopts $ARGS arg; do
       YEAR=${OPTARG}
       START_DATE="$YEAR.${MONTHS[0]:-01}.01"
       END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
-      echo "Setting test period ($START_DATE-$END_DATE)..." >&2
+      echo "Configuring test period ($START_DATE-$END_DATE)..." >&2
       ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
       ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
       ;;
@@ -204,7 +204,7 @@ while getopts $ARGS arg; do
   case ${arg} in
     r) # The name of the test report file.
       REPORT="tester/$(basename "${OPTARG}")"
-      echo "Setting test report ($REPORT)..." >&2
+      echo "Configuring test report ($REPORT)..." >&2
       ini_set "^TestReport" "$REPORT" "$TESTER_INI"
       ;;
 
@@ -215,7 +215,7 @@ while getopts $ARGS arg; do
     f) # The .set file to run the test.
       SETORG="$OPTARG"
       SETFILE="${EA_NAME}.set"
-      echo "Setting EA parameters ($SETFILE)..." >&2
+      echo "Configuring EA parameters ($SETFILE)..." >&2
       [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
       cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
@@ -233,43 +233,43 @@ while getopts $ARGS arg; do
 
     c) # Base currency for test (e.g. USD).
       CURRENCY=${OPTARG}
-      echo "Setting base currency to $CURRENCY..." >&2
+      echo "Configuring base currency ($CURRENCY)..." >&2
       ini_set "^currency" "$CURRENCY" "$EA_INI"
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
       SYMBOL=${OPTARG}
-      echo "Setting symbol pair to $SYMBOL..." >&2
+      echo "Configuring symbol pair ($SYMBOL)..." >&2
       ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
       ;;
 
     d) # Deposit amount to test (e.g. 2000).
       DEPOSIT=${OPTARG}
-      echo "Setting deposit to $DEPOSIT..." >&2
+      echo "Configuring deposit ($DEPOSIT)..." >&2
       ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
     D) # Change market digits.
       DIGITS=${OPTARG}
-      echo "Setting digits to $DIGITS..." >&2
+      echo "Configuring digits ($DIGITS)..." >&2
       set_digits $DIGITS
       ;;
 
     s) # Spread to test.
       SPREAD=${OPTARG}
-      echo "Setting spread ($SPREAD)..." >&2
+      echo "Configuring spread ($SPREAD)..." >&2
       set_spread $SPREAD
       ;;
 
     l) # Lot step.
       LOTSTEP=${OPTARG}
-      echo "Setting lot step ($LOTSTEP)..." >&2
+      echo "Configuring lot step ($LOTSTEP)..." >&2
       set_lotstep $LOTSTEP
       ;;
 
     o) # Run optimization test.
       OPTIMIZATION=true
-      echo "Setting optimization mode..." >&2
+      echo "Configuring optimization mode..." >&2
       ini_set "^TestOptimization" true "$TESTER_INI"
       ;;
 
@@ -308,7 +308,7 @@ done
 # Prepare before test run.
 [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] \
   || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
-#clean_files
+clean_files
 
 # Run the test under the platform.
 configure_display
