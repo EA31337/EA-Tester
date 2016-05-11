@@ -4,5 +4,5 @@
 # E.g.: eval.sh check_logs ExpertRemove
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 # Initialize settings.
-. $CWD/.configrc
+. $CWD/.initrc
 eval $@

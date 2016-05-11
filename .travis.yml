@@ -9,19 +9,22 @@ env:
       CWD="$TRAVIS_BUILD_DIR"
   matrix:
     - TEST_ARGS="-x -f /etc/hosts -h"
-    - TEST_ARGS="-v -t -d 1000 -p EURUSD -y 2010 -s 10 -b N0 -e TestSpread"
-    - TEST_ARGS="-v -t -d 1000 -p EURUSD -y 2012 -s 10 -b W2"
-    - TEST_ARGS="-v -t -d 2000 -p EURUSD -y 2013 -s 20 -b Z3"
-    - TEST_ARGS="-v -t -d 3000 -p EURUSD -y 2014 -s 30 -b DS"
+    - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -e TestSpread -D5"
+    - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1 -y 2012 -s 10 -b W2"
+    - TEST_ARGS="-v -t -d 2000 -p EURUSD -m 1 -y 2013 -s 20 -b Z3"
+    - TEST_ARGS="-v -t -d 3000 -p EURUSD -m 1 -y 2014 -s 30 -b DS"
 
 matrix:
   fast_finish: true
+
+before_cache:
+  - find ~/.wine/drive_c -type l -delete
 
 cache:
   apt: true
   pip: true
   directories:
-    - $HOME/.wine
+    - $HOME/.wine/drive_c
 
 notifications:
   email:

@@ -31,8 +31,6 @@ end
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "ubuntu/wily64"
-  config.vm.network "private_network", ip: "192.168.22.22"
   config.vm.hostname = "vagrant"
   config.vm.provision "shell", path: "scripts/provision.sh"
     # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
@@ -41,27 +39,33 @@ Vagrant.configure(2) do |config|
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
-  config.vm.provider "virtualbox" do |v|
-    v.name = "mt-tester.local"
-    v.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
-    v.memory = 4096
-    v.cpus = 2
+  # Providers
+  config.vm.provider "virtualbox" do |vm|
+    vm.name = "mt-tester.local"
+    vm.network "private_network", ip: "192.168.22.22"
+    vm.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+    vm.memory = 4096
+    vm.cpus = 2
+    config.vm.box = "ubuntu/wily64"
   end
 
   config.vm.provider :aws do |aws, override|
+    aws.aws_profile = "MT-testing"
     aws.tags = {
       'Name' => 'MT4',
     }
     aws.instance_type = "m3.medium"
-    aws.access_key_id = ENV['AWS_ACCESS_ID']
-    aws.secret_access_key = ENV['AWS_SECRET_ACCESS_ID']
+    aws.ami = "ami-7747d01e"
     # aws.session_token = "SESSION TOKEN"
+    # aws.instance_type = "m3.medium"
     # aws.keypair_name = "KEYPAIR NAME"
 
     # override.ssh.username = "ubuntu"
     # override.ssh.private_key_path = "PATH TO YOUR PRIVATE KEY"
+    config.vm.box = "mt4-backtest"
   end
-
+#
+  # Plugins
   if Vagrant.has_plugin?("vagrant-timezone")
     config.timezone.value = :host
   end

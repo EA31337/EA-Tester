@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-. $CWD/.configrc
+. $CWD/.initrc
 
 # Check dependencies.
 set -e
@@ -17,10 +17,10 @@ convert=1
 bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%d.zip" $symbol $bt_src $symbol $year)
 rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%d" $symbol $bt_src $year)
 dest="$TERMINAL_DIR/history/downloads"
-bt_csv="$dest/$bt_src-$symbol-$year"
+bt_csv="$dest/$bt_key"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
-fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
-hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
+fxt_files=( ${symbol}1_0.fxt ) # ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
+hst_files=( ${symbol}1.hst ) # ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
 
 csv2data() {
   if [ $convert -eq 0 ]; then return; fi
@@ -36,19 +36,23 @@ csv2data() {
 }
 
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
-mkdir $VFLAG "$bt_csv" || true
+mkdir -p $VFLAG "$bt_csv" || true
 
-echo "Checking permissions..." >&2
 set_write_perms
+clean_bt
 echo "Getting data..." >&2
 case $bt_src in
 
   "DS")
     dest="$DOWNLOAD_DIR/$bt_key"
     echo "Downloading..." >&2
-    wget -c -P "$dest" $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}")
+    for url in $(printf "${rel_url}/%s.gz " "${fxt_files[@]}") $(printf "${rel_url}/%s.gz " "${hst_files[@]}"); do
+      wget -nv -c -P "$dest" "$url" &
+    done
+    wait # Wait for the background tasks to finish.
     echo "Extracting..." >&2
-    gunzip -r $VFLAG -fk "$dest"
+    gunzip -kh 2> /dev/null && keep="-k" # Check if gunzip supports -k parameter.
+    gunzip $VFLAG $keep -r "$dest"/*.gz
     mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
     mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
     convert=0

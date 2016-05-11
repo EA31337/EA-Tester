@@ -8,7 +8,7 @@ type wine
 echo "Display is: $DISPLAY"
 
 # Initialize settings.
-. $CWD/.configrc
+. $CWD/.initrc
 
 # Run the test under the platform.
 echo "Running platform..." >&2

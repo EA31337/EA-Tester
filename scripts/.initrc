@@ -1,4 +1,5 @@
-# .configrc: invoked by bash(1)
+#!/usr/bin/env bash
+# .initrc file
 #
 # Initialize variables.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
@@ -10,7 +11,7 @@ trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
 # Activate trace on demand.
-echo "Initializing... (Args: $*)"
+echo "Initializing... (args: $*)"
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
 set -e
@@ -45,7 +46,10 @@ SCRIPTS_DIR="MQL4/Scripts"
 # Set constants.
 TRUE=0
 FALSE=1
-FXT_OFF_SPREAD=$((16#FC))
+FXT_OFF_SPREAD=$(printf "%02x" 252)
+FXT_OFF_LOTSTEP=$(printf "%02x" 280)
+SRAW_OFF_DIGITS=$(printf "%02x" 104)
+SRAW_OFF_PSIZE=$(printf "%02x" 1776)
 
 ## Define common functions. ##
 
@@ -70,16 +74,19 @@ show_logs() {
 # Check logs for specific text.
 check_logs() {
   filter="$1"
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color=auto -C1 -w "$filter" "{}" +
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" "{}" +
 }
 
 # Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.
   echo "Cleaning previous test data..." >&2
-  find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' $VPRINT -delete
+  find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   find "$TESTER_DIR/files" -type f $VPRINT -delete
-  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' $VPRINT -delete
+  # Remove log files.
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
+  # Remove selected symbol and group files, so they can be regenerated.
+  find "$HISTORY_DIR" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
 }
 
 # Delete backtest data files.
@@ -91,11 +98,10 @@ clean_bt() {
 
 # Set input value in the SET file.
 input_set() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -108,11 +114,10 @@ input_set() {
 
 # Get input value from the SET file.
 input_get() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
@@ -120,11 +125,10 @@ input_get() {
 
 # Set value in the INI file.
 ini_set() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $TESTER_INI)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $TESTER_INI)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -137,10 +141,9 @@ ini_set() {
 
 # Set inputs in the EA INI file.
 ini_set_inputs() {
-  local value
-  sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
-  dfile="${2:-$(echo $EA_INI)}"
-  vargs="-u NONE"
+  local sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
+  local dfile="${2:-$(echo $EA_INI)}"
+  local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
@@ -150,21 +153,19 @@ ini_set_inputs() {
 
 # Get value from the INI/HTM file.
 ini_get() {
-  local value
-  key="$1"
-  file="${2:-$(echo $TESTER_INI)}"
-  value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | cut -d= -f2-)"
+  local key="$1"
+  local file="${2:-$(echo $TESTER_INI)}"
+  local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
 
 # Set tag value in the file.
 tag_set() {
-  local value
-  key="$1"
-  value="$2"
-  file="${3:-$(echo $INCLUDE)}"
-  vargs="-u NONE"
+  local key="$1"
+  local value="$2"
+  local file="${3:-$(echo $INCLUDE)}"
+  local vargs="-u NONE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -177,45 +178,130 @@ tag_set() {
 
 # Get all values from the INI/HTM file.
 get_values() {
-  file="$1"
+  local file="$1"
   grep -o '\S\+[^_]=[^;]\+' "$file"
 }
 
 # Read decimal value at given offset from the file.
+# Usage: read_value (file) (hex-offset) (length)
 read_value() {
-  file="$1"
-  offset="$2"
-  [ -n "$file" ]
+  local file=$1
+  local offset=$((16#$2))
+  local length="${3:-1}"
+  [ -s "$file" ]
   [ -n "$offset" ]
-  echo $((16#$(xxd -p -l1 -s $offset "$file")))
+  echo $((16#$(xxd -p -l $length -s $offset "$file")))
 }
 
 # Read bytes in hex format at given offset from the file.
+# Usage: read_data file.bin (offset) (length)
 read_data() {
-  file="$1"
-  offset="$2"
-  count="$3:-1"
-  xxd -p -l $count -s $offset "$file"
+  [ -n $offset ]
+  local file="$1"
+  local offset="$2"
+  local length="${3:-1}"
+  xxd -p -l $length -s $offset "$file"
+}
+
+# Read double value at given offset from the file.
+# Usage: read_double (file) (dec-offset) (length)
+read_double() {
+  local file=$1
+  local offset=$2
+  local length="${3:-8}"
+  [ -s "$file" ]
+  [ -n "$offset" ]
+  od -F -An -N $length -j $offset "$file" | xargs
+}
+
+# Write double value at given offset in the file.
+# Usage: write_double (file) (double) (dec-offset) (length)
+write_double() {
+  local file=$1
+  local value="$2" # In decimal format.
+  local offset=$3
+  local length="${4:-8}"
+  [ -s "$file" ]
+  [ -n "$offset" ]
+  perl -i -0777pe"substr(\$_, $offset, 8, pack('d', $value))" "$file"
 }
 
 # Modify binary file given value in hex format at given offset.
+# Usage: write_data file.bin (hex-values) (hex-offset)
+# E.g. write_data file.bin $(printf "%02x\n" 123) "FC"
 write_data() {
-  file="$1"
-  value="$2" # In hex format.
-  offset="$3"
-  len="${4:-1}"
-  writable=$(test -w "$file"; echo $?)
-  [ -n "$file" ]
+  local file="$1"
+  local value="$2" # In hex format.
+  local offset="$3"
+  local len="${4:-1}"
+  local writable=$(test -w "$file"; echo $?)
+  [ -s "$file" ]
   [ -n "$value" ]
   [ -n "$offset" ]
   [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
-  xxd -r -p <<<$value | dd if=/dev/stdin of="$file" seek=$offset bs=1 count=$len conv=notrunc status=noxfer
+  xxd -r - "$file" <<<"$offset: $value"
   [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
+  return $TRUE
+}
+
+# Get value from symbols file.
+# Usage: get_symbol_value (hex-offset) (len)
+# Returns value in hex format.
+get_symbol_value() {
+  local rel_offset=$((16#$1))
+  local length=${2:-1}
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  echo $(read_data "$file" $abs_offset $length)
+}
+
+# Get double value from symbols file.
+# Usage: get_symbol_double (hex-offset) (len)
+# Returns value in hex format.
+get_symbol_double() {
+  local rel_offset=$((16#$1))
+  local length=${2:-8}
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  echo $(read_double "$file" $abs_offset $length)
+}
+
+# Change values in symbols file.
+# Usage: set_symbol_value (dec-value) (hex-offset)
+set_symbol_value() {
+  [ -n "$1" ]
+  local value=$(printf "%02x" $1)
+  local rel_offset=$((16#$2))
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  write_data "$file" $value "$(printf "%02x" $abs_offset)"
+  return $TRUE
+}
+
+# Change double in symbols file.
+# Usage: set_symbol_double (double) (hex-offset)
+set_symbol_double() {
+  [ -n "$1" ]
+  local value=$1
+  local rel_offset=$((16#$2))
+  local file="$HISTORY_DIR/symbols.raw"
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
+  [ -n "$symbol_offset" ]
+  write_double "$file" $value $abs_offset
+  return $TRUE
 }
 
 # Set spread in ini and FXT files.
+# Usage: set_spread 10
 set_spread() {
-  spread="$1"
+  local spread=$1
   [ -n "$spread" ]
   ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
   ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
@@ -223,42 +309,71 @@ set_spread() {
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")
       prev_spread=$(read_value "$file" $FXT_OFF_SPREAD)
-      write_data "$FXT_FILE" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
+      write_data "$file" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
       next_spread=$(read_value "$file" $FXT_OFF_SPREAD)
       echo "Changed spread in $base from $prev_spread into $next_spread" >&2
       [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
   done || true
 }
 
+# Set lot step in FXT files.
+# Usage: set_lotstep 1
+set_lotstep() {
+  local lotstep=$1
+  [ -n "$lotstep" ]
+  # Change lotstep in all FXT files at given offset.
+  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      prev_lotstep=$(read_value "$file" $FXT_OFF_LOTSTEP)
+      write_data "$file" $(printf "%02x\n" $lotstep) $FXT_OFF_LOTSTEP
+      next_lotstep=$(read_value "$file" $FXT_OFF_LOTSTEP)
+      echo "Changed lot step in $base from $prev_lotstep into $next_lotstep" >&2
+      [ $lotstep != $next_lotstep ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
+  done || true
+}
+
+
+# Set digits in symbol raw file.
+# Usage: set_digits 5
+set_digits() {
+  local digits=$1
+  [ -n "$digits" ]
+  echo "Setting digits to $digits..." >&2
+  set_symbol_value $digits $SRAW_OFF_DIGITS
+  psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
+  set_symbol_double $psize $SRAW_OFF_PSIZE
+}
+
 # Get time from terminal log in h.
 get_time() {
-  MTIME=$(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
-  echo $MTIME
+  echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
 }
 
 # Save time and store in rule file if exists.
 save_time() {
-  HTIME=$(($(eval get_time) / 60))
+  local htime=$(($(eval get_time) / 60))
   [ "$VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
-  [ -f "$INCLUDE" ] && tag_set ETA $HTIME "$INCLUDE"
+  [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE"
 }
 
 # Set read permissions for test files.
 set_read_perms() {
   # Make the backtest files read-only.
-  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -exec chmod -v 444 {} ';'
+  echo "Setting read-only permissions for backtest files..." >&2
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' -or -name '*.exe' ')' -print0 | xargs -0 chmod $VFLAG u-w
 }
 
 # Set write permissions for test files.
 set_write_perms() {
-  chmod -vR u+w "$HISTORY_DIR" "$TICKDATA_DIR"
+  echo "Setting write permissions for backtest files..." >&2
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | xargs -0 chmod $VFLAG u+w
 }
 
 # Detect and configure proxy.
 configure_proxy() {
-  GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
+  local gw=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
   curl -s localhost:3128 > /dev/null || true && export http_proxy="http://localhost:3128"
-  curl -s $GW:3128       > /dev/null || true && export http_proxy="http://$GW:3128"
+  curl -s $gw:3128       > /dev/null || true && export http_proxy="http://$gw:3128"
 
   # Set proxy for wine registry if present.
   [ "$http_proxy" ] &&
@@ -289,21 +404,21 @@ find_ea() {
 
 # Copy EA file given file path.
 copy_ea() {
-  file="$1"
+  local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
 
 # Copy script file given file path.
 copy_script() {
-  file="$1"
+  local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
 }
 
 # Compile given EA name.
 compile_ea() {
-  name="$1"
+  local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
   cd -
@@ -311,7 +426,7 @@ compile_ea() {
 
 # Compile given script name.
 compile_script() {
-  name="$1"
+  local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$SCRIPTS_DIR/$name"
   cd -
