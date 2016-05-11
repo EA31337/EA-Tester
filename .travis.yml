@@ -17,11 +17,14 @@ env:
 matrix:
   fast_finish: true
 
+before_cache:
+  - find ~/.wine/drive_c -type l -delete
+
 cache:
   apt: true
   pip: true
   directories:
-    - $HOME/.wine/drive_c/Program Files (x86)
+    - $HOME/.wine/drive_c
 
 notifications:
   email:
