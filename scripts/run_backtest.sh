@@ -14,7 +14,7 @@ on_success() {
   echo "Checking logs..." >&2
   show_logs
   ! check_logs "Initialization failed" || exit 1
-  ! check_logs "ExpertRemove" || exit 1
+# ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
   ! check_logs ".\+ no history data" || exit 1
   ! check_logs ".\+ cannot start" || exit 1
@@ -315,5 +315,5 @@ configure_display
 while [ "$(find "$LOG_DIR" -type f -name "*.log" -print -quit)" ]; do
   tail -f "$LOG_DIR"/*.log || sleep 10
 done &
-echo "Starting test..." >&2
+echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
