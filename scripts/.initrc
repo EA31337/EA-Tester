@@ -11,7 +11,7 @@ trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
 # Activate trace on demand.
-echo "Initializing... (args: $*)"
+echo "Initializing... (args: $*)" >&2
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
 set -e
@@ -80,7 +80,8 @@ check_logs() {
 # Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.
-  echo "Cleaning previous test data..." >&2
+  exec 1>&2
+  echo "Cleaning previous test data..."
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   find "$TESTER_DIR/files" -type f $VPRINT -delete
   # Remove log files.
@@ -92,6 +93,7 @@ clean_files() {
 # Delete backtest data files.
 clean_bt() {
   # Remove previous backtest files.
+  exec 1>&2
   echo "Cleaning backtest data..." >&2
   find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
 }
@@ -392,6 +394,7 @@ EOF
 # Copy ini settings from templates.
 copy_ini() {
   # Copy the configuration file, so platform can find it.
+  exec 1>&2
   echo "Copying ini files..."
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
@@ -407,6 +410,7 @@ find_ea() {
 copy_ea() {
   local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
 
@@ -414,6 +418,7 @@ copy_ea() {
 copy_script() {
   local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
 }
 

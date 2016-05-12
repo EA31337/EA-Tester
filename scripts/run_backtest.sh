@@ -25,7 +25,7 @@ on_success() {
   while getopts $ARGS arg; do
     case $arg in
       I) # Invoke file after successful test.
-        echo "Invoking file after test..."
+        echo "Invoking file after test..." >&2
         . "$OPTARG"
         ;;
       esac
@@ -118,7 +118,7 @@ while getopts $ARGS arg; do
 done
 
 # Check if terminal is present, otherwise install it.
-echo "Checking platform dependencies..." >&2
+echo "Checking platform..." >&2
 [ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
 
 # Initialize settings.
@@ -278,19 +278,19 @@ while getopts $ARGS arg; do
       INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-      echo "Invoking include file ($INCLUDE)..."
+      echo "Invoking include file ($INCLUDE)..." >&2
       . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
 
     t)
-      type html2text
+      type html2text >&2
       ;;
 
     O) # Output directory to save the test results.
       DEST=${OPTARG}
       echo "Checking destination ($DEST)..." >&2
-      [ -d "$DEST" ] || mkdir -p "$DEST"
+      [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
       ;;
 
     # Placeholders for parameters used somewhere else.
