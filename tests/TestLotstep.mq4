@@ -15,13 +15,13 @@ int OnInit() {
     switch (Digits) {
         case 4:
             if (lot_step != 0.1) {
-                PrintFormat("Expected lot step for %d digits: 0.1, found: %g", Digits, lot_step);
+                PrintFormat("Error: Expected lot step for %d digits: 0.1, found: %g", Digits, lot_step);
                 return INIT_FAILED;
             }
             break;
         case 5:
             if (lot_step != 0.01) {
-                PrintFormat("Expected lot step for %d digits: 0.01, found: %g", Digits, lot_step);
+                PrintFormat("Error: Expected lot step for %d digits: 0.01, found: %g", Digits, lot_step);
                 return INIT_FAILED;
             }
             break;
