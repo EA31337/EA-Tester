@@ -53,11 +53,10 @@ case $bt_src in
     echo "Extracting..." >&2
     gunzip -kh 2>&1 > /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
     find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
-      gunzip $VFLAG $keep "$file" &
+      gunzip $VFLAG $keep "$file"
     done
-    wait
-    find "$dest" -type f -name "*.fxt" -exec mv $VFLAG {} "$TICKDATA_DIR" ';'
-    find "$dest" -type f -name "*.hst" -exec mv $VFLAG {} "$HISTORY_DIR" ';'
+    find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
+    find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR" ';'
     convert=0
   ;;
 # "DS-raw") @fixme: 404 Not Found
