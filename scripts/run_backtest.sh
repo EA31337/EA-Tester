@@ -106,7 +106,7 @@ while getopts $ARGS arg; do
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
-      type html2text sed
+      type html2text sed >&2
       ;;
 
     x) # Run the script in debug mode.
