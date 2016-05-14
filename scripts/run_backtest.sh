@@ -16,7 +16,7 @@ on_success() {
   ! check_logs "Initialization failed" || exit 1
 # ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
-  ! check_logs ".\+ no history data" || exit 1
+  ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
