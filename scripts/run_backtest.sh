@@ -228,7 +228,7 @@ while getopts $ARGS arg; do
       IFS='='; ea_option=($EA_OPTS)
       IFS=$' \t\n' # Restore IFS.
       [ -f "$EA_INI" ]
-      ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
+      ini_set "^${ea_option[0]}" "${ea_option[1]}" "$EA_INI"
       ;;
 
     c) # Base currency for test (e.g. USD).
