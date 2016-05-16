@@ -1,0 +1,31 @@
+w_metadata winetricks_mt5 apps \
+    title="Meta Trader 5" \
+    year="2005" \
+    media="download" \
+    file1="mt5setup.exe"
+
+load_winetricks_mt5()
+{
+    w_download https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
+    
+    if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
+    then
+        w_call opensymbol
+    fi
+            
+    WINEDLLOVERRIDES="winebrowser.exe="
+    export WINEDLLOVERRIDES
+    
+    cd "$W_CACHE/$W_PACKAGE"
+    w_ahk_do "
+        Run, ${file1}
+        WinWait, MetaTrader 5 Ustawienia
+        ControlClick, Button1
+        Sleep 100
+        ControlClick, Button3
+        WinWait, MetaTrader 5 Ustawienia, Instalacja ukończona
+        ControlClick, Button4
+        Process, Wait, terminal.exe
+        Process, Close, terminal.exe
+    "
+}
