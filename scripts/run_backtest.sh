@@ -5,7 +5,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:Re:f:E:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxh"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd xdpyinfo od perl
+type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
 ## Define functions.
 
@@ -14,9 +14,9 @@ on_success() {
   echo "Checking logs..." >&2
   show_logs
   ! check_logs "Initialization failed" || exit 1
-  ! check_logs "ExpertRemove" || exit 1
+# ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
-  ! check_logs ".\+ no history data" || exit 1
+  ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
@@ -25,7 +25,7 @@ on_success() {
   while getopts $ARGS arg; do
     case $arg in
       I) # Invoke file after successful test.
-        echo "Invoking file after test..."
+        echo "Invoking file after test..." >&2
         . "$OPTARG"
         ;;
       esac
@@ -106,7 +106,7 @@ while getopts $ARGS arg; do
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
-      type html2text sed
+      type html2text sed >&2
       ;;
 
     x) # Run the script in debug mode.
@@ -118,7 +118,7 @@ while getopts $ARGS arg; do
 done
 
 # Check if terminal is present, otherwise install it.
-echo "Checking platform dependencies..." >&2
+echo "Checking platform..." >&2
 [ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
 
 # Initialize settings.
@@ -228,7 +228,7 @@ while getopts $ARGS arg; do
       IFS='='; ea_option=($EA_OPTS)
       IFS=$' \t\n' # Restore IFS.
       [ -f "$EA_INI" ]
-      ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
+      ini_set "^${ea_option[0]}" "${ea_option[1]}" "$EA_INI"
       ;;
 
     c) # Base currency for test (e.g. USD).
@@ -278,19 +278,19 @@ while getopts $ARGS arg; do
       INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-      echo "Invoking include file ($INCLUDE)..."
+      echo "Invoking include file ($INCLUDE)..." >&2
       . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
 
     t)
-      type html2text
+      type html2text >&2
       ;;
 
     O) # Output directory to save the test results.
       DEST=${OPTARG}
       echo "Checking destination ($DEST)..." >&2
-      [ -d "$DEST" ] || mkdir -p "$DEST"
+      [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
       ;;
 
     # Placeholders for parameters used somewhere else.
@@ -315,5 +315,5 @@ configure_display
 while [ "$(find "$LOG_DIR" -type f -name "*.log" -print -quit)" ]; do
   tail -f "$LOG_DIR"/*.log || sleep 10
 done &
-echo "Starting test..." >&2
+echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@

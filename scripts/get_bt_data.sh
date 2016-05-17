@@ -51,10 +51,12 @@ case $bt_src in
     done
     wait # Wait for the background tasks to finish.
     echo "Extracting..." >&2
-    gunzip -kh 2> /dev/null && keep="-k" # Check if gunzip supports -k parameter.
-    gunzip $VFLAG $keep -r "$dest"/*.gz
-    mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
-    mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
+    gunzip -kh 1>&2 2> /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
+    find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
+      gunzip $VFLAG $keep "$file"
+    done
+    find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
+    find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR" ';'
     convert=0
   ;;
 # "DS-raw") @fixme: 404 Not Found

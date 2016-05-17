@@ -11,7 +11,7 @@ trap onexit EXIT
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
 trap onerror 1 2 3 15 ERR
 # Activate trace on demand.
-echo "Initializing... (args: $*)"
+echo "Initializing... (args: $*)" >&2
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
 set -e
@@ -80,7 +80,8 @@ check_logs() {
 # Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.
-  echo "Cleaning previous test data..." >&2
+  exec 1>&2
+  echo "Cleaning previous test data..."
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   find "$TESTER_DIR/files" -type f $VPRINT -delete
   # Remove log files.
@@ -92,6 +93,7 @@ clean_files() {
 # Delete backtest data files.
 clean_bt() {
   # Remove previous backtest files.
+  exec 1>&2
   echo "Cleaning backtest data..." >&2
   find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
 }
@@ -342,6 +344,7 @@ set_digits() {
   set_symbol_value $digits $SRAW_OFF_DIGITS
   psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
   set_symbol_double $psize $SRAW_OFF_PSIZE
+  cp $VFLAG "$ROOT/conf/accounts-d${digits}.ini" "$TERMINAL_DIR"/config/accounts.ini
 }
 
 # Get time from terminal log in h.
@@ -360,13 +363,17 @@ save_time() {
 set_read_perms() {
   # Make the backtest files read-only.
   echo "Setting read-only permissions for backtest files..." >&2
-  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' -or -name '*.exe' ')' -print0 | xargs -0 chmod $VFLAG u-w
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' -or -name '*.exe' ')' -print0 | while IFS= read -r -d '' file; do
+    chmod $VFLAG u-w "$file"
+  done
 }
 
 # Set write permissions for test files.
 set_write_perms() {
   echo "Setting write permissions for backtest files..." >&2
-  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | xargs -0 chmod $VFLAG u+w
+  find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | while IFS= read -r -d '' file; do
+    chmod $VFLAG u+w "$file"
+  done
 }
 
 # Detect and configure proxy.
@@ -391,6 +398,7 @@ EOF
 # Copy ini settings from templates.
 copy_ini() {
   # Copy the configuration file, so platform can find it.
+  exec 1>&2
   echo "Copying ini files..."
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
@@ -406,6 +414,7 @@ find_ea() {
 copy_ea() {
   local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
 
@@ -413,6 +422,7 @@ copy_ea() {
 copy_script() {
   local file="$1"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
 }
 
