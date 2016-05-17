@@ -407,13 +407,16 @@ copy_ini() {
 # Find EA file and return path.
 find_ea() {
   file="$1"
-  find "$ROOT" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit
+  find "$ROOT" "$TERMINAL_DIR" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit
 }
 
 # Copy EA file given file path.
 copy_ea() {
   local file="$1"
+  local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  set -x
+  [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
