@@ -19,6 +19,7 @@ on_success() {
   ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   ! check_logs ".\+ cannot open" || exit 1
+  ! check_logs "Error: .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
