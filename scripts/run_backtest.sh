@@ -19,6 +19,7 @@ on_success() {
   ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   ! check_logs ".\+ cannot open" || exit 1
+  ! check_logs ".\+ cannot calculate" || exit 1
   ! check_logs "Error: .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
@@ -171,6 +172,12 @@ while getopts $ARGS arg; do
       ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
       ;;
 
+    p) # Symbol pair to test (e.g. EURUSD).
+      SYMBOL=${OPTARG}
+      echo "Configuring symbol pair ($SYMBOL)..." >&2
+      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
+      ;;
+
   esac
 done
 
@@ -239,12 +246,6 @@ while getopts $ARGS arg; do
       ini_set "^currency" "$CURRENCY" "$EA_INI"
       ;;
 
-    p) # Symbol pair to test (e.g. EURUSD).
-      SYMBOL=${OPTARG}
-      echo "Configuring symbol pair ($SYMBOL)..." >&2
-      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
-      ;;
-
     d) # Deposit amount to test (e.g. 2000).
       DEPOSIT=${OPTARG}
       echo "Configuring deposit ($DEPOSIT)..." >&2
@@ -296,7 +297,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | m | y | C | b | I | v | x) ;;
+    e | m | p | y | C | b | I | v | x) ;;
 
     \? | h | *) # Display help.
       echo "$0 usage:" >&2
