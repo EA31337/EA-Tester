@@ -141,6 +141,14 @@ ini_set() {
   fi
 }
 
+# Set value in the EA INI file.
+# Usage: ini_set_ea key value
+ini_set_ea() {
+  local key=$1
+  local value=$2
+  ini_set ^$key $value "$EA_INI"
+}
+
 # Set inputs in the EA INI file.
 ini_set_inputs() {
   local sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
