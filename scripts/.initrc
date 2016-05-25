@@ -364,7 +364,7 @@ set_read_perms() {
   # Make the backtest files read-only.
   echo "Setting read-only permissions for backtest files..." >&2
   find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' -or -name '*.exe' ')' -print0 | while IFS= read -r -d '' file; do
-    chmod $VFLAG u-w "$file"
+    chmod $VFLAG ugo-w "$file"
   done
 }
 
