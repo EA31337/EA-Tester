@@ -2,7 +2,7 @@
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:Re:f:E:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxh"
+ARGS=":r:Re:f:E:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxX:h"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -26,7 +26,7 @@ on_success() {
   local OPTIND
   while getopts $ARGS arg; do
     case $arg in
-      I) # Invoke file after successful test.
+      X) # Invoke file on exit after the successful test.
         echo "Invoking file after test..." >&2
         . "$OPTARG"
         ;;
@@ -224,7 +224,7 @@ while getopts $ARGS arg; do
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
 
-    E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
+    E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
       EA_OPTS=${OPTARG}
       echo "Applying EA settings ($EA_OPTS)..." >&2
       IFS='='; ea_option=($EA_OPTS)
@@ -283,6 +283,14 @@ while getopts $ARGS arg; do
       echo "Invoking include file ($INCLUDE)..." >&2
       . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ;;
+
+    I) # Change tester INI file with custom settings.
+      TEST_OPTS=${OPTARG}
+      echo "Applying tester settings ($TEST_OPTS)..." >&2
+      IFS='='; test_option=($TEST_OPTS)
+      IFS=$' \t\n' # Restore IFS.
+      ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
       ;;
 
     t)
