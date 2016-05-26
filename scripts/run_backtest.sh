@@ -281,8 +281,8 @@ while getopts $ARGS arg; do
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
       echo "Invoking include file ($INCLUDE)..." >&2
-      . "$INCLUDE"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      . "$INCLUDE"
       ;;
 
     I) # Change tester INI file with custom settings.
