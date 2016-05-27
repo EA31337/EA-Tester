@@ -317,7 +317,7 @@ while getopts $ARGS arg; do
 done
 
 # Prepare before test run.
-[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] \
+[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
   || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
 
