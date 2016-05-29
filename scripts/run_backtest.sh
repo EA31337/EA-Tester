@@ -178,6 +178,16 @@ while getopts $ARGS arg; do
       ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
       ;;
 
+    I) # Change tester INI file with custom settings.
+      TEST_OPTS=${OPTARG}
+      echo "Applying tester settings ($TEST_OPTS)..." >&2
+      IFS=','; test_options=($TEST_OPTS); restore_ifs
+      for opt_pair in "${test_options[@]}"; do
+        IFS='='; test_option=($opt_pair); restore_ifs
+        ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+      done
+      ;;
+
   esac
 done
 
@@ -190,19 +200,21 @@ while getopts $ARGS arg; do
   esac
 done
 
+# Configure EA.
+EA_NAME="$(ini_get TestExpert)"
+SYMBOL="$(ini_get TestSymbol)"
+SERVER="$(ini_get Server)"
+EA_INI="$TESTER_DIR/$EA_NAME.ini"
+cp $VFLAG "$TPL_EA" "$EA_INI"
+copy_srv
+
 # Download backtest data if needed.
 echo "Checking backtest data (${BT_SRC:-DS})..."
 bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
 if [ ! "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-  $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
+  env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 fi
-
-# Configure EA.
-EA_NAME="$(ini_get TestExpert)"
-SYMBOL="$(ini_get TestSymbol)"
-EA_INI="$TESTER_DIR/$EA_NAME.ini"
-cp $VFLAG "$TPL_EA" "$EA_INI"
 
 # Assign variables.
 FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -284,16 +296,6 @@ while getopts $ARGS arg; do
       echo "Invoking include file ($INCLUDE)..." >&2
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       . "$INCLUDE"
-      ;;
-
-    I) # Change tester INI file with custom settings.
-      TEST_OPTS=${OPTARG}
-      echo "Applying tester settings ($TEST_OPTS)..." >&2
-      IFS=','; test_options=($TEST_OPTS); restore_ifs
-      for opt_pair in "${test_options[@]}"; do
-        IFS='='; test_option=($opt_pair); restore_ifs
-        ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
-      done
       ;;
 
     t)

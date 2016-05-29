@@ -29,10 +29,11 @@ TPL_EA="$ROOT/conf/$CONF_EA"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
 MTEDITOR_EXE="$(find ~ "$OUT" -name metaeditor.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
-TERMINAL_INI="$TERMINAL_DIR/config/$CONF_TERM"
-TESTER_INI="$TERMINAL_DIR/config/$CONF_TEST"
+TERMINAL_CNF="$TERMINAL_DIR/config"
+TERMINAL_INI="$TERMINAL_CNF/$CONF_TERM"
+TESTER_INI="$TERMINAL_CNF/$CONF_TEST"
 TESTER_DIR="$TERMINAL_DIR/tester"
-HISTORY_DIR="$TERMINAL_DIR/history/default"
+HISTORY_DIR="$TERMINAL_DIR/history"
 DOWNLOAD_DIR="$TERMINAL_DIR/history/downloads"
 TICKDATA_DIR="$TERMINAL_DIR/tester/history"
 TERMINAL_LOG="$TESTER_DIR/logs/terminal.log.txt"
@@ -260,7 +261,7 @@ write_data() {
 get_symbol_value() {
   local rel_offset=$((16#$1))
   local length=${2:-1}
-  local file="$HISTORY_DIR/symbols.raw"
+  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
@@ -273,7 +274,7 @@ get_symbol_value() {
 get_symbol_double() {
   local rel_offset=$((16#$1))
   local length=${2:-8}
-  local file="$HISTORY_DIR/symbols.raw"
+  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
@@ -286,7 +287,7 @@ set_symbol_value() {
   [ -n "$1" ]
   local value=$(printf "%02x" $1)
   local rel_offset=$((16#$2))
-  local file="$HISTORY_DIR/symbols.raw"
+  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
@@ -300,7 +301,7 @@ set_symbol_double() {
   [ -n "$1" ]
   local value=$1
   local rel_offset=$((16#$2))
-  local file="$HISTORY_DIR/symbols.raw"
+  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
   local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
@@ -435,6 +436,15 @@ copy_script() {
   [ ! -s "$file" ] && file=$(find_ea "$file")
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+}
+
+# Copy srv files into terminal dir.
+copy_srv() {
+  local server="$(ini_get Server)"
+  srv_file=$(find "$ROOT" -name "$server.srv" -print -quit)
+  if [ "$srv_file" ]; then
+    cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
+  fi
 }
 
 # Compile given EA name.
