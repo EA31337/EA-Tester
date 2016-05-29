@@ -78,6 +78,16 @@ check_logs() {
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" "{}" +
 }
 
+# Check required files.
+check_files() {
+  if [ "$SERVER" != "default" ]; then
+    local symbols_raw_default="$HISTORY_DIR/default/symbols.raw"
+    local symbols_raw="$HISTORY_DIR/$SERVER/symbols.raw"
+    [ -d "$HISTORY_DIR/$SERVER" ] || mkdir $VFLAG "$HISTORY_DIR/$SERVER"
+    [ -s "$symbols_raw" ] || cp $VFLAG "$symbols_raw_default" "$symbols_raw"
+  fi
+}
+
 # Clean files.
 clean_files() {
   # Remove previous log, dat, txt and htm files.

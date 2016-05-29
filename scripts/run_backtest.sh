@@ -207,6 +207,7 @@ SERVER="$(ini_get Server)"
 EA_INI="$TESTER_DIR/$EA_NAME.ini"
 cp $VFLAG "$TPL_EA" "$EA_INI"
 copy_srv
+check_files
 
 # Download backtest data if needed.
 echo "Checking backtest data (${BT_SRC:-DS})..."
