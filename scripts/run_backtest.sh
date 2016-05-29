@@ -289,9 +289,11 @@ while getopts $ARGS arg; do
     I) # Change tester INI file with custom settings.
       TEST_OPTS=${OPTARG}
       echo "Applying tester settings ($TEST_OPTS)..." >&2
-      IFS='='; test_option=($TEST_OPTS)
-      IFS=$' \t\n' # Restore IFS.
-      ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+      IFS=','; test_options=($TEST_OPTS); restore_ifs
+      for opt_pair in "${test_options[@]}"; do
+        IFS='='; test_option=($opt_pair); restore_ifs
+        ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+      done
       ;;
 
     t)

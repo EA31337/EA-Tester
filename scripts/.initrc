@@ -464,6 +464,11 @@ kill_wine() {
   (wineserver -k || true)
 }
 
+# Restore IFS.
+restore_ifs() {
+  IFS=$' \t\n'
+}
+
 # Show simple stack trace.
 show_trace() {
   while caller $((n++)); do :; done; >&2
