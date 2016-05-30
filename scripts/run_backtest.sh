@@ -2,10 +2,10 @@
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:Re:f:E:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxh"
+ARGS=":r:Re:f:GE:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxX:h"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd xdpyinfo od perl
+type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
 ## Define functions.
 
@@ -14,18 +14,21 @@ on_success() {
   echo "Checking logs..." >&2
   show_logs
   ! check_logs "Initialization failed" || exit 1
-  ! check_logs "ExpertRemove" || exit 1
+# ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
-  ! check_logs ".\+ no history data" || exit 1
+  ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
+  ! check_logs ".\+ cannot open" || exit 1
+  ! check_logs ".\+ cannot calculate" || exit 1
+  ! check_logs "Error: .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
   local OPTIND
   while getopts $ARGS arg; do
     case $arg in
-      I) # Invoke file after successful test.
-        echo "Invoking file after test..."
+      X) # Invoke file on exit after the successful test.
+        echo "Invoking file after test..." >&2
         . "$OPTARG"
         ;;
       esac
@@ -73,6 +76,11 @@ parse_results() {
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
         ;;
+      G) # Enhance gif report files.
+        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
+        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
+        enhance_gif "$REPORT_GIF"
+        ;;
       O)
         DEST="${DEST:-$(echo $CWD)}"
         echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
@@ -106,7 +114,7 @@ while getopts $ARGS arg; do
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
-      type html2text sed
+      type html2text sed >&2
       ;;
 
     x) # Run the script in debug mode.
@@ -118,7 +126,7 @@ while getopts $ARGS arg; do
 done
 
 # Check if terminal is present, otherwise install it.
-echo "Checking platform dependencies..." >&2
+echo "Checking platform..." >&2
 [ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
 
 # Initialize settings.
@@ -169,6 +177,22 @@ while getopts $ARGS arg; do
       ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
       ;;
 
+    p) # Symbol pair to test (e.g. EURUSD).
+      SYMBOL=${OPTARG}
+      echo "Configuring symbol pair ($SYMBOL)..." >&2
+      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
+      ;;
+
+    I) # Change tester INI file with custom settings.
+      TEST_OPTS=${OPTARG}
+      echo "Applying tester settings ($TEST_OPTS)..." >&2
+      IFS=','; test_options=($TEST_OPTS); restore_ifs
+      for opt_pair in "${test_options[@]}"; do
+        IFS='='; test_option=($opt_pair); restore_ifs
+        ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+      done
+      ;;
+
   esac
 done
 
@@ -181,19 +205,22 @@ while getopts $ARGS arg; do
   esac
 done
 
+# Configure EA.
+EA_NAME="$(ini_get TestExpert)"
+SYMBOL="$(ini_get TestSymbol)"
+SERVER="$(ini_get Server)"
+EA_INI="$TESTER_DIR/$EA_NAME.ini"
+cp $VFLAG "$TPL_EA" "$EA_INI"
+copy_srv
+check_files
+
 # Download backtest data if needed.
 echo "Checking backtest data (${BT_SRC:-DS})..."
 bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
 if [ ! "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-  $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
+  env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 fi
-
-# Configure EA.
-EA_NAME="$(ini_get TestExpert)"
-SYMBOL="$(ini_get TestSymbol)"
-EA_INI="$TESTER_DIR/$EA_NAME.ini"
-cp $VFLAG "$TPL_EA" "$EA_INI"
 
 # Assign variables.
 FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -222,25 +249,19 @@ while getopts $ARGS arg; do
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
 
-    E) # EA settings (e.g. genetic=0, maxdrawdown=20.00).
+    E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
       EA_OPTS=${OPTARG}
       echo "Applying EA settings ($EA_OPTS)..." >&2
       IFS='='; ea_option=($EA_OPTS)
       IFS=$' \t\n' # Restore IFS.
       [ -f "$EA_INI" ]
-      ini_set "^${option[0]}" "${option[1]}" "$EA_INI"
+      ini_set_ea "^${ea_option[0]}" "${ea_option[1]}"
       ;;
 
     c) # Base currency for test (e.g. USD).
       CURRENCY=${OPTARG}
       echo "Configuring base currency ($CURRENCY)..." >&2
       ini_set "^currency" "$CURRENCY" "$EA_INI"
-      ;;
-
-    p) # Symbol pair to test (e.g. EURUSD).
-      SYMBOL=${OPTARG}
-      echo "Configuring symbol pair ($SYMBOL)..." >&2
-      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
       ;;
 
     d) # Deposit amount to test (e.g. 2000).
@@ -278,23 +299,23 @@ while getopts $ARGS arg; do
       INCLUDE=${OPTARG}
       SETFILE="$(ini_get TestExpert).set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-      echo "Invoking include file ($INCLUDE)..."
-      . "$INCLUDE"
+      echo "Invoking include file ($INCLUDE)..." >&2
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      . "$INCLUDE"
       ;;
 
     t)
-      type html2text
+      type html2text >&2
       ;;
 
     O) # Output directory to save the test results.
       DEST=${OPTARG}
       echo "Checking destination ($DEST)..." >&2
-      [ -d "$DEST" ] || mkdir -p "$DEST"
+      [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | m | y | C | b | I | v | x) ;;
+    e | G | m | p | y | C | b | I | v | x) ;;
 
     \? | h | *) # Display help.
       echo "$0 usage:" >&2
@@ -306,7 +327,7 @@ while getopts $ARGS arg; do
 done
 
 # Prepare before test run.
-[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')')" ] \
+[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
   || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
 
@@ -315,5 +336,5 @@ configure_display
 while [ "$(find "$LOG_DIR" -type f -name "*.log" -print -quit)" ]; do
   tail -f "$LOG_DIR"/*.log || sleep 10
 done &
-echo "Starting test..." >&2
+echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST") 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@

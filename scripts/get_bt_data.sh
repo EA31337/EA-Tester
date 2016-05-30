@@ -30,7 +30,7 @@ csv2data() {
   conv_args="-v -i /dev/stdin -s $symbol -p 10 -S default"
   tmpfile=$(mktemp)
   find "$bt_csv" -name '*.csv' -print0 | sort -z | $xargs -r0 cat > "$tmpfile"
-  "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR"
+  "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
   "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
   rm -v "$tmpfile"
 }
@@ -51,10 +51,12 @@ case $bt_src in
     done
     wait # Wait for the background tasks to finish.
     echo "Extracting..." >&2
-    gunzip -kh 2> /dev/null && keep="-k" # Check if gunzip supports -k parameter.
-    gunzip $VFLAG $keep -r "$dest"/*.gz
-    mv $VFLAG "$dest"/*.fxt "$TICKDATA_DIR"
-    mv $VFLAG "$dest"/*.hst "$HISTORY_DIR"
+    gunzip -kh 1>&2 2> /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
+    find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
+      gunzip $VFLAG $keep "$file"
+    done
+    find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
+    find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
     convert=0
   ;;
 # "DS-raw") @fixme: 404 Not Found
