@@ -473,6 +473,14 @@ compile_script() {
   cd -
 }
 
+# Enhance GIF report file.
+enhance_gif() {
+  local file="$1"
+  type convert > /dev/null
+  convert -negate "$file" "$file"
+  # @todo
+}
+
 ## Clean up.
 clean_up() {
   kill_wine

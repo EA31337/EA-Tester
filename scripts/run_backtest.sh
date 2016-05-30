@@ -2,7 +2,7 @@
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:Re:f:E:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxX:h"
+ARGS=":r:Re:f:GE:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxX:h"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -75,6 +75,11 @@ parse_results() {
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
+        ;;
+      G) # Enhance gif report files.
+        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
+        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
+        enhance_gif "$REPORT_GIF"
         ;;
       O)
         DEST="${DEST:-$(echo $CWD)}"
@@ -310,7 +315,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | m | p | y | C | b | I | v | x) ;;
+    e | G | m | p | y | C | b | I | v | x) ;;
 
     \? | h | *) # Display help.
       echo "$0 usage:" >&2
