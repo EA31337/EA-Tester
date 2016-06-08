@@ -14,7 +14,6 @@ trap onerror 1 2 3 15 ERR
 echo "Initializing... (args: $*)" >&2
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
-set -e
 
 # Determine platform paths.
 OUT="/opt"
