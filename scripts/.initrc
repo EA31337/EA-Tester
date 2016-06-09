@@ -74,8 +74,8 @@ show_logs() {
 
 # Check logs for specific text.
 check_logs() {
-  filter="$1"
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" "{}" +
+  local filter=$1
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
 # Check required files.
@@ -436,7 +436,6 @@ copy_ea() {
   local file="$1"
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
-  set -x
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
