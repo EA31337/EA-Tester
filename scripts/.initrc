@@ -80,9 +80,14 @@ check_logs() {
 
 # Display logs in real-time.
 live_logs() {
-  while [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; do
-    tail -f "$TESTER_DIR"/*/*.log || { sleep 20; echo; }
+  while sleep 20; do
+    if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+      break;
+    fi
+    echo
   done
+  echo "Showing live logs..." >&2
+  tail -f "$TESTER_DIR"/*/*.log
 }
 
 # Check required files.
@@ -525,7 +530,8 @@ enhance_gif() {
 ## Clean up.
 clean_up() {
   kill_wine
-  kill $$ $(jobs -p) # Kill any background jobs.
+  # Kill any remaining background jobs.
+  kill $$ $(jobs -p) 2> /dev/null || true
 }
 
 ## Kill  the currently running wineserver.
