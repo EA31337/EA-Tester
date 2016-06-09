@@ -78,6 +78,13 @@ check_logs() {
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
+# Display logs in real-time.
+live_logs() {
+  while [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; do
+    tail -f "$TESTER_DIR"/*/*.log || { sleep 20; echo; }
+  done
+}
+
 # Check required files.
 check_files() {
   if [ "$SERVER" != "default" ]; then
@@ -518,7 +525,7 @@ enhance_gif() {
 ## Clean up.
 clean_up() {
   kill_wine
-# kill $$ $(jobs -p) # Kill any background jobs.
+  kill $$ $(jobs -p) # Kill any background jobs.
 }
 
 ## Kill  the currently running wineserver.
