@@ -46,4 +46,5 @@ before_script:
   - set -e
 
 script:
+  - ruby -wc $CWD/Vagrantfile
   - $CWD/scripts/run_backtest.sh $TEST_ARGS

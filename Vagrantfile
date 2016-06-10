@@ -39,8 +39,7 @@ Vagrant.configure(2) do |config|
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
-  config.vm.define "mt-#{provider}" do |box|
-  end
+  config.vm.define "mt-#{provider}"
 
   config.vm.provider "virtualbox" do |vm|
     vm.name = "mt-tester.local"
