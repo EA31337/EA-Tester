@@ -8,13 +8,14 @@ type curl grep sed tr >&2
 xargs=$(which gxargs || which xargs)
 
 # Validate settings.
-[ -f ~/.secrets ] && source ~/.secrets
+[ ! "$GITHUB_API_TOKEN" ] && [ -f ~/.secrets ] && source ~/.secrets
 [ "$GITHUB_API_TOKEN" ] || { echo "Error: Please define GITHUB_API_TOKEN variable." >&2; exit 1; }
-[ $# -ne 4 ] && { echo "Usage: $0 [owner] [repo] [tag] [name]"; exit 1; }
+[ $# -lt 4 ] && { echo "Usage: $0 [owner] [repo] [tag] [name] [dest]"; exit 1; }
 [ "$TRACE" ] && set -x
-read owner repo tag name <<<$@
+read owner repo tag name dest <<<$@
 
 # Define variables.
+DEST=${dest:-.}
 GH_API="https://api.github.com"
 GH_REPO="$GH_API/repos/$owner/$repo"
 GH_TAGS="$GH_REPO/releases/tags/$tag"
@@ -35,6 +36,9 @@ echo $id
 eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
 [ "$id" ] || { echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2; exit 1; }
 GH_ASSET="$GH_REPO/releases/assets/$id"
+
+# Changing the working folder.
+[ ! -d "$DEST" ] && mkdir -v "$DEST" && cd "$DEST"
 
 # Download asset file.
 echo "Downloading asset..." >&2

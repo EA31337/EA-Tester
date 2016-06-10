@@ -14,7 +14,6 @@ trap onerror 1 2 3 15 ERR
 echo "Initializing... (args: $*)" >&2
 [ "$TRACE" ] && set -x
 [ ! "$NOFAIL" ] && set -e
-set -e
 
 # Determine platform paths.
 OUT="/opt"
@@ -26,6 +25,7 @@ CONF_CUSTOM="custom.ini"
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
+TERMINAL_ARG="/skipupdate /portable"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
 MTEDITOR_EXE="$(find ~ "$OUT" -name metaeditor.exe -print -quit)"
 TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
@@ -74,8 +74,20 @@ show_logs() {
 
 # Check logs for specific text.
 check_logs() {
-  filter="$1"
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" "{}" +
+  local filter=$1
+  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
+}
+
+# Display logs in real-time.
+live_logs() {
+  while sleep 20; do
+    if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+      break;
+    fi
+    echo
+  done
+  echo "Showing live logs..." >&2
+  tail -f "$TESTER_DIR"/*/*.log
 }
 
 # Check required files.
@@ -425,8 +437,10 @@ copy_ini() {
 
 # Find EA file and return path.
 find_ea() {
-  file="$1"
-  find "$ROOT" "$TERMINAL_DIR" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit
+  local file="$1"
+  local exact=$(find "$TERMINAL_DIR" "$ROOT" '(' -name "$1.mq?" -o -name "$1.ex?" ')' -print -quit)
+  local match=$(find "$TERMINAL_DIR" "$ROOT" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit)
+  [ "$exact" ] && echo $exact || echo $match
 }
 
 # Copy EA file given file path.
@@ -434,7 +448,6 @@ copy_ea() {
   local file="$1"
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
-  set -x
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
@@ -474,17 +487,51 @@ compile_script() {
 }
 
 # Enhance GIF report file.
+# Usage: enhance_gif -c1 color_name -c2 color_name -t "Text with \\\n new lines"
+# -c1 (default: blue)
+# -c2 (default: green)
 enhance_gif() {
   local file="$1"
+  local color1='blue'
+  local color2='green'
+  local text='' 
+
+	while [[ $# > 1 ]]
+	do
+		key="$1"
+
+		case $key in
+		-c1|--color1)
+			color1="$2"
+		shift
+		;;
+		-c2|--color2)
+			color2="$2"
+		shift
+		;;
+		-t|--text)
+			text="$2"
+		shift
+		;;
+		esac
+		shift
+	done
+
   type convert > /dev/null
+
+  local font=$(fc-match --format=%{file} Arial.ttf)
+
   convert -negate "$file" "$file"
-  # @todo
+  convert "$file" -fuzz 0% -fill "$color1" -opaque "#ff4fff" "$file"
+  convert "$file" -fuzz 0% -fill "$color2" -opaque "#ffff4f" "$file"
+  convert "$file" -fill white +antialias -font $font -pointsize 9 -annotate +7+27 "$text" "$file"
 }
 
 ## Clean up.
 clean_up() {
   kill_wine
-# kill $$ $(jobs -p) # Kill any background jobs.
+  # Kill any remaining background jobs.
+  kill $$ $(jobs -p) 2> /dev/null || true
 }
 
 ## Kill  the currently running wineserver.
