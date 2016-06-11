@@ -6,6 +6,7 @@ require 'getoptlong'
 # Parse CLI arguments.
 opts = GetoptLong.new(
   [ '--provider',     GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--private-key',  GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--keypair-name', GetoptLong::OPTIONAL_ARGUMENT ]
   #[ '--file-ea',  GetoptLong::OPTIONAL_ARGUMENT ], # EA file.
   #[ '--dir-bt',   GetoptLong::OPTIONAL_ARGUMENT ], # Dir with backtest files.
@@ -13,12 +14,15 @@ opts = GetoptLong.new(
 )
 
 provider='virtualbox'
+private_key=ENV['PRIVATE_KEY']
 keypair_name=ENV['KEYPAIR_NAME']
 begin
   opts.each do |opt, arg|
     case opt
       when '--provider'
         provider=arg
+      when '--private-key'
+        private_key=arg
       when '--keypair-name'
         keypair_name=arg
 =begin
@@ -74,8 +78,8 @@ Vagrant.configure(2) do |config|
     override.vm.box = "mt4-backtest"
     override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
     override.ssh.username = "ubuntu"
-    if ENV['PRIVATE_KEY_PATH']
-      override.ssh.private_key_path = ENV['PRIVATE_KEY_PATH']
+    if private_key
+      override.ssh.private_key_path = private_key
     end
     # aws.security_groups = [ "default", "MT" ] # For VPC instances only.
   end
