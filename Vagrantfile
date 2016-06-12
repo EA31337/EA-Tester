@@ -53,6 +53,7 @@ Vagrant.configure(2) do |config|
   config.vm.hostname = "vagrant"
   config.vm.provision "shell", path: "scripts/provision.sh"
     # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
+  config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
   config.vm.provider "virtualbox" do |vbox, override|
     vbox.cpus = 2
@@ -62,7 +63,6 @@ Vagrant.configure(2) do |config|
     override.cache.auto_detect = true # Enable cachier for local vbox VMS.
     override.vm.network :private_network, ip: "192.168.22.22"
     override.vm.box = "ubuntu/wily64"
-    override.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
     if Vagrant.has_plugin?("vagrant-cachier")
       # Configure cached packages to be shared between instances of the same base box.
       # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
@@ -70,6 +70,7 @@ Vagrant.configure(2) do |config|
     end
   end
 
+  # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
     aws.aws_profile = "MT-testing"
@@ -81,6 +82,7 @@ Vagrant.configure(2) do |config|
     aws.terminate_on_shutdown = true
     if private_key then override.ssh.private_key_path = private_key end
     if subnet_id then aws.subnet_id = subnet_id end
+    override.nfs.functional = false
     override.ssh.username = "ubuntu"
     override.vm.box = "mt4-backtest"
     override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
