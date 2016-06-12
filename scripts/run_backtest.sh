@@ -289,6 +289,9 @@ while getopts $ARGS arg; do
         4)
           $SCR/install_mt4.sh
         ;;
+        4x)
+          $SCR/install_mt4-xdot.sh
+        ;;
         5)
           $SCR/install_mt5.sh
         ;;
