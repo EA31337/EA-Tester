@@ -1,3 +1,5 @@
+#!/bin/sh
+
 w_metadata winetricks_mt5 apps \
     title="Meta Trader 5" \
     year="2005" \

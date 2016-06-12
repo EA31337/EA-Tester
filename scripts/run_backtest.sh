@@ -283,6 +283,18 @@ while getopts $ARGS arg; do
       set_lotstep $LOTSTEP
       ;;
 
+    M) # Specify version of MetaTrader.
+      MT_VER=${OPTARG:-4}
+      case $MT_VER in
+        4)
+          $SCR/install_mt4.sh
+        ;;
+        5)
+          $SCR/install_mt5.sh
+        ;;
+      esac
+      ;;
+
     o) # Run optimization test.
       OPTIMIZATION=true
       echo "Configuring optimization mode..." >&2

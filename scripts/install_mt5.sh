@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/bin/sh -e
 # Script to install MT platform using winetricks.
-set -e
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 type winetricks
-$(which winetricks) winetricks_mt5.verb
+winetricks $CWD/winetricks_mt5.verb
