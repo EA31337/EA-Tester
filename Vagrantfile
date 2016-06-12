@@ -16,7 +16,7 @@ opts = GetoptLong.new(
 
 keypair_name=ENV['KEYPAIR_NAME']
 private_key=ENV['PRIVATE_KEY']
-provider='virtualbox'
+provider=ENV['PROVIDER'] || 'virtualbox'
 subnet_id=ENV['SUBNET_ID']
 begin
   opts.each do |opt, arg|
@@ -58,7 +58,7 @@ Vagrant.configure(2) do |config|
     vbox.cpus = 2
     vbox.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
     vbox.name = "mt-tester.local"
-    vbox.memory = 4096
+    vbox.memory = 2048
     override.cache.auto_detect = true # Enable cachier for local vbox VMS.
     override.vm.network :private_network, ip: "192.168.22.22"
     override.vm.box = "ubuntu/wily64"
@@ -84,10 +84,13 @@ Vagrant.configure(2) do |config|
     override.ssh.username = "ubuntu"
     override.vm.box = "mt4-backtest"
     override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
-#aws.instance_type = "m3.medium" # 7747d01e
+  # aws.instance_type = "m3.medium" # 7747d01e
   end
 
-  config.vm.provider :esx do |esx, override|
+  config.vm.provider :managed do |managed, override|
+    override.vm.box = "managed_dummy_box"
+    override.vm.box_url = "https://github.com/tknerr/vagrant-managed-servers/raw/master/dummy.box"
+  # managed.server = server # link with this server
   end
 
   # Parameters for specific providers.
