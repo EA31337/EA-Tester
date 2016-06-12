@@ -9,7 +9,8 @@ opts = GetoptLong.new(
   [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--subnet-id', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ]
   #[ '--file-ea',  GetoptLong::OPTIONAL_ARGUMENT ], # EA file.
   #[ '--dir-bt',   GetoptLong::OPTIONAL_ARGUMENT ], # Dir with backtest files.
   #[ '--dir-sets', GetoptLong::OPTIONAL_ARGUMENT ]  # Dir with set files.
@@ -20,6 +21,7 @@ private_key=ENV['PRIVATE_KEY']
 provider=ENV['PROVIDER'] || 'virtualbox'
 security_group=ENV['SECURITY_GROUP']
 subnet_id=ENV['SUBNET_ID']
+vm_name=ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
@@ -33,6 +35,8 @@ begin
         security_group=arg
       when '--subnet-id'
         subnet_id=arg
+      when '--vm-name'
+        vm_name=arg
 =begin
 # @todo: When implementing below, please make sure that running of: 'vagrant -f destroy' would be supported (no invalid option error is shown).
       when '--file-ea'
@@ -53,7 +57,7 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
-  config.vm.define "mt-#{provider}"
+  config.vm.define "mt-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
   config.vm.provision "shell", path: "scripts/provision.sh"
     # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
@@ -83,7 +87,7 @@ Vagrant.configure(2) do |config|
     aws.instance_type = "t2.small"
     aws.keypair_name = keypair_name
     aws.region = "us-east-1"
-    aws.tags = { 'Name' => 'MT4'}
+    aws.tags = { 'Name' => 'MT4-' + vm_name }
     aws.terminate_on_shutdown = true
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
