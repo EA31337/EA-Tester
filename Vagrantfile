@@ -5,26 +5,30 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
-  [ '--provider',     GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--keypair-name', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--private-key',  GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--keypair-name', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--provider',     GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--subnet-id', GetoptLong::OPTIONAL_ARGUMENT ]
   #[ '--file-ea',  GetoptLong::OPTIONAL_ARGUMENT ], # EA file.
   #[ '--dir-bt',   GetoptLong::OPTIONAL_ARGUMENT ], # Dir with backtest files.
   #[ '--dir-sets', GetoptLong::OPTIONAL_ARGUMENT ]  # Dir with set files.
 )
 
-provider='virtualbox'
-private_key=ENV['PRIVATE_KEY']
 keypair_name=ENV['KEYPAIR_NAME']
+private_key=ENV['PRIVATE_KEY']
+provider='virtualbox'
+subnet_id=ENV['SUBNET_ID']
 begin
   opts.each do |opt, arg|
     case opt
-      when '--provider'
-        provider=arg
-      when '--private-key'
-        private_key=arg
       when '--keypair-name'
         keypair_name=arg
+      when '--private-key'
+        private_key=arg
+      when '--provider'
+        provider=arg
+      when '--subnet-id'
+        subnet_id=arg
 =begin
 # @todo: When implementing below, please make sure that running of: 'vagrant -f destroy' would be supported (no invalid option error is shown).
       when '--file-ea'
@@ -42,21 +46,21 @@ end
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
 
-  config.vm.hostname = "vagrant"
-  config.vm.provision "shell", path: "scripts/provision.sh"
-    # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
-
   config.vm.define "mt-#{provider}"
+  config.vm.hostname = "vagrant"
+  config.vm.provision "shell", path: "scripts/provision.sh"
+    # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
 
   config.vm.provider "virtualbox" do |vbox, override|
     vbox.cpus = 2
     vbox.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
     vbox.name = "mt-tester.local"
     vbox.memory = 4096
-    override.vm.network "private_network", ip: "192.168.22.22"
+    override.cache.auto_detect = true # Enable cachier for local vbox VMS.
+    override.vm.network :private_network, ip: "192.168.22.22"
     override.vm.box = "ubuntu/wily64"
     override.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
     if Vagrant.has_plugin?("vagrant-cachier")
@@ -67,21 +71,23 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provider :aws do |aws, override|
-    aws.ami = "ami-7747d01e"
+    aws.ami = "ami-fce3c696"
     aws.aws_profile = "MT-testing"
-    aws.instance_type = "m3.medium"
+    aws.elastic_ip = true
+    aws.instance_type = "t2.small"
     aws.keypair_name = keypair_name
-    aws.tags = {
-      'Name' => 'MT4',
-    }
+    aws.region = "us-east-1"
+    aws.tags = { 'Name' => 'MT4'}
     aws.terminate_on_shutdown = true
+    if private_key then override.ssh.private_key_path = private_key end
+    if subnet_id then aws.subnet_id = subnet_id end
+    override.ssh.username = "ubuntu"
     override.vm.box = "mt4-backtest"
     override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
-    override.ssh.username = "ubuntu"
-    if private_key
-      override.ssh.private_key_path = private_key
-    end
-    # aws.security_groups = [ "default", "MT" ] # For VPC instances only.
+#aws.instance_type = "m3.medium" # 7747d01e
+  end
+
+  config.vm.provider :esx do |esx, override|
   end
 
   # Parameters for specific providers.
