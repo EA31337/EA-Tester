@@ -5,7 +5,9 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
+  [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
@@ -16,7 +18,9 @@ opts = GetoptLong.new(
   #[ '--dir-sets', GetoptLong::OPTIONAL_ARGUMENT ]  # Dir with set files.
 )
 
+cpus=ENV['CPUS'] || 2
 keypair_name=ENV['KEYPAIR_NAME']
+memory=ENV['MEMORY'] || 2048
 private_key=ENV['PRIVATE_KEY']
 provider=ENV['PROVIDER'] || 'virtualbox'
 security_group=ENV['SECURITY_GROUP']
@@ -25,18 +29,14 @@ vm_name=ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
-      when '--keypair-name'
-        keypair_name=arg
-      when '--private-key'
-        private_key=arg
-      when '--provider'
-        provider=arg
-      when '--security-group'
-        security_group=arg
-      when '--subnet-id'
-        subnet_id=arg
-      when '--vm-name'
-        vm_name=arg
+      when '--cpus';           cpus           = arg.to_i
+      when '--keypair-name';   keypair_name   = arg
+      when '--memory';         memory         = arg.to_i
+      when '--private-key';    private_key    = arg
+      when '--provider';       provider       = arg
+      when '--security-group'; security_group = arg
+      when '--subnet-id';      subnet_id      = arg
+      when '--vm-name';        vm_name        = arg
 =begin
 # @todo: When implementing below, please make sure that running of: 'vagrant -f destroy' would be supported (no invalid option error is shown).
       when '--file-ea'
@@ -64,14 +64,15 @@ Vagrant.configure(2) do |config|
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
   config.vm.provider "virtualbox" do |vbox, override|
-    vbox.cpus = 2
-    vbox.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+    vbox.customize [ "modifyvm", :id, "--natdnshostresolver1", "on"]
+    vbox.customize [ "modifyvm", :id, "--memory", memory ]
+    vbox.customize [ "modifyvm", :id, "--cpus", cpus ]
     vbox.name = "mt-tester.local"
-    vbox.memory = 2048
     override.cache.auto_detect = true # Enable cachier for local vbox VMS.
     override.vm.box = "ubuntu/wily64"
     override.vm.network :private_network, ip: "192.168.22.22"
     override.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
+    # Configure VirtualBox environment
     if Vagrant.has_plugin?("vagrant-cachier")
       # Configure cached packages to be shared between instances of the same base box.
       # More info on http://fgrehm.viewdocs.io/vagrant-cachier/usage
@@ -114,6 +115,17 @@ Vagrant.configure(2) do |config|
   # Extra plugin settings.
   if Vagrant.has_plugin?("vagrant-timezone")
     config.timezone.value = :host
+  end
+
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    # Set auto_update to false, if you do NOT want to check the correct 
+    # additions version when booting this machine.
+    config.vbguest.auto_update = true
+
+    # Do NOT download the iso file from a webserver.
+    config.vbguest.no_remote = false
+
+    config.vbguest.installer_arguments = ['--nox11']
   end
 
 end
