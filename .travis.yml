@@ -20,15 +20,6 @@ env:
 matrix:
   fast_finish: true
 
-before_cache:
-  - test -d ~/.wine && find ~/.wine/drive_c -type l -delete
-
-cache:
-  apt: true
-  pip: true
-# directories:
-#   - $HOME/.wine/drive_c
-
 notifications:
   email:
     on_success: change  # options: [always|never|change] default: always
@@ -48,3 +39,15 @@ before_script:
 script:
   - ruby -wc $CWD/Vagrantfile
   - $CWD/scripts/run_backtest.sh $TEST_ARGS
+
+after_script:
+  - set +e
+
+before_cache:
+  - test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete || true
+
+cache:
+  apt: true
+  pip: true
+# directories:
+#   - $HOME/.wine/drive_c
