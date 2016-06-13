@@ -109,6 +109,32 @@ parse_results() {
 # Parse the initial arguments.
 while getopts $ARGS arg; do
   case ${arg} in
+
+    h | \?) # Display help.
+      echo "$0 usage:" >&2
+      grep " .)\ #" "$0" >&2
+      exit 0
+      ;;
+
+    M) # Specify version of MetaTrader.
+      MT_VER=${OPTARG:-4x}
+      case $MT_VER in
+        4)
+          . $CWD/install_mt4.sh
+        ;;
+        4x)
+          . $CWD/install_mt4-xdot.sh
+        ;;
+        5)
+          . $CWD/install_mt5.sh
+        ;;
+        *)
+          echo "Error: Unknown platform version, try either 4 or 5." >&2
+          exit 1
+      esac
+      exit
+      ;;
+
     v) # Verbose mode.
       VERBOSE=1
       VFLAG="-v"
@@ -127,7 +153,8 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-[ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
+find "${TERMINAL_DIR:-/opt}" ~ -name terminal.exe -print -quit \
+  || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
 
 # Initialize settings.
 . $CWD/.initrc
@@ -283,21 +310,6 @@ while getopts $ARGS arg; do
       set_lotstep $LOTSTEP
       ;;
 
-    M) # Specify version of MetaTrader.
-      MT_VER=${OPTARG:-4}
-      case $MT_VER in
-        4)
-          . $SCR/install_mt4.sh
-        ;;
-        4x)
-          . $SCR/install_mt4-xdot.sh
-        ;;
-        5)
-          . $SCR/install_mt5.sh
-        ;;
-      esac
-      ;;
-
     o) # Run optimization test.
       OPTIMIZATION=true
       echo "Configuring optimization mode..." >&2
@@ -331,11 +343,11 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | G | m | M | p | y | C | b | I | v | x) ;;
+    e | h | G | m | M | p | y | C | b | I | v | x) ;;
 
-    \? | h | *) # Display help.
+    *) # Display help.
       echo "$0 usage:" >&2
-      grep " .)\ #" $0 >&2
+      grep " .)\ #" "$0" >&2
       exit 0
       ;;
 
