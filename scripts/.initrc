@@ -562,12 +562,11 @@ onexit() {
 #--- onerror()
 ##  @param $1 integer  (optional) Exit status. If not set, use '$?'
 onerror() {
-  local exit_status=${1:-$?}
+  local exit_status=$?
   local frame=0
-  set +x
   echo "ERROR: Exiting $0 with $exit_status" >&2
   show_trace
-  exit $exit_status
+  exit 1
 }
 
 initialize
