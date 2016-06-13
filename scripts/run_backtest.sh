@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
+set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS=":r:Re:f:GE:c:p:d:D:m:M:y:b:s:l:oi:I:CtTO:vxX:h"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
-## Define functions.
+## Initialize.
+. $CWD/.funcs.inc.sh
+
+## Define local functions.
 
 # Invoke on test success.
 on_success() {
@@ -118,6 +122,7 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4x}
+      configure_display
       case $MT_VER in
         4)
           . $CWD/install_mt4.sh
@@ -132,7 +137,6 @@ while getopts $ARGS arg; do
           echo "Error: Unknown platform version, try either 4 or 5." >&2
           exit 1
       esac
-      exit
       ;;
 
     v) # Verbose mode.
@@ -153,11 +157,14 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-find "${TERMINAL_DIR:-/opt}" ~ -name terminal.exe -print -quit \
+. $CWD/.vars.inc.sh
+[ "$TERMINAL_EXE" ] \
   || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
 
-# Initialize settings.
-. $CWD/.initrc
+# Re-load variables.
+. $CWD/.vars.inc.sh
+
+# Copy ini files.
 copy_ini
 
 # Parse the primary arguments.

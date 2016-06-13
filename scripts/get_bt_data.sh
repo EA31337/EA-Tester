@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
+set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-. $CWD/.initrc
 
 # Check dependencies.
-set -e
 type git wget zip unzip pv xargs tee
 xargs=$(which gxargs || which xargs)
+
+# Initialize functions and variables.
+. $CWD/.funcs.inc.sh
+. $CWD/.vars.inc.sh
+
+# Check user input.
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5]"; exit 1; }
 [ "$TRACE" ] && set -x
 symbol=$1

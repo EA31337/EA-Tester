@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
+set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform dependencies..." >&2
 type wine
-[ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
-echo "Display is: $DISPLAY"
 
-# Initialize settings.
-. $CWD/.initrc
+# Initialize variables.
+. $CWD/.vars.inc.sh
+
+[ "$TERMINAL_EXE" ] \
+  || { echo "Error: Terminal not found, please install it first." >&2; exit 1; }
+echo "Display is: $DISPLAY"
 
 # Run the test under the platform.
 echo "Running platform..." >&2

@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
-# Check dependencies.
+# Check the dependencies.
 set -e
-type wget xdotool xwininfo wine
-
-# Initialize settings.
-. $CWD/.initrc
+type wget xdotool xwininfo wine >&2
 
 echo "Downloading MT4 installer..."
 [ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
@@ -42,9 +38,6 @@ xdotool key --window $WID --delay 500 Escape Escape Alt+f x
 sleep 1
 wineserver -k
 
-# Re-initialize settings.
-. $CWD/.initrc
-
-find ~ "$OUT" -name terminal.exe -print -quit
+find ~ /opt -name terminal.exe -print -quit
 echo "Installation successful."
 echo "$0 done."
