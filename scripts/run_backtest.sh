@@ -287,13 +287,13 @@ while getopts $ARGS arg; do
       MT_VER=${OPTARG:-4}
       case $MT_VER in
         4)
-          $SCR/install_mt4.sh
+          . $SCR/install_mt4.sh
         ;;
         4x)
-          $SCR/install_mt4-xdot.sh
+          . $SCR/install_mt4-xdot.sh
         ;;
         5)
-          $SCR/install_mt5.sh
+          . $SCR/install_mt5.sh
         ;;
       esac
       ;;
