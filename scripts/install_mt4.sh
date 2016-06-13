@@ -3,8 +3,9 @@
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 DTMP=$(mktemp -d)
+export WINEDLLOVERRIDES="mscoree,mshtml="
 type winetricks ar
 #bash <(curl $WURL) winhttp # @fixme: https://github.com/Winetricks/winetricks/issues/645
 curl -o "$DTMP"/winetricks $WURL
-winetricks winhttp
+sh $DTMP/winetricks winhttp
 sh $DTMP/winetricks mt4
