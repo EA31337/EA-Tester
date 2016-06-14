@@ -34,7 +34,7 @@ add-apt-repository -y ppa:ubuntu-wine/ppa                                       
 sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
 
 # Update APT repositories
-apt-get update
+apt-get -q update
 
 # Install necessary packages
 apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale
