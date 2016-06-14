@@ -31,7 +31,6 @@ before_install:
 
 install:
   - sudo $CWD/scripts/provision.sh
-  - sudo $CWD/scripts/secur32_fix.sh
 
 before_script:
   - set -e

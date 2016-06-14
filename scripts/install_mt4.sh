@@ -15,6 +15,9 @@ echo "Installing winhttp..." >&2
 curl -o "$DTMP"/winetricks $WURL
 sh $DTMP/winetricks winhttp
 
+# Check whether libgnutls needs patching.
+[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
+
 echo "Installing platform..." >&2
 sh $DTMP/winetricks mt4
 

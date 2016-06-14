@@ -1,5 +1,6 @@
 #!/bin/sh -e
 # Script to install MT platform using xdotool.
+CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 DTMP=$(mktemp -d)
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml="
@@ -10,6 +11,9 @@ type wget xdotool xwininfo wine winetricks ar >&2
 echo "Installing winhttp..." >&2
 curl -o "$DTMP"/winetricks $WURL
 sh $DTMP/winetricks winhttp
+
+# Check whether libgnutls needs patching.
+[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
 
 echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
