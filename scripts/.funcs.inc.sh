@@ -460,7 +460,7 @@ enhance_gif() {
   local file="$1"
   local color1='blue'
   local color2='green'
-  local text='' 
+  local text=''
 
   while [[ $# > 1 ]]; do
     key="$1"
@@ -507,6 +507,22 @@ install_mt() {
       echo "Error: Unknown platform version, try either 4 or 5." >&2
       exit 1
   esac
+}
+
+## Install filever
+install_filever() {
+  type wget cabextract install wine
+  wine filever && return
+  local tools_url="http://web.archive.org/https://download.microsoft.com/download/d/3/8/d38066aa-4e37-4ae8-bce3-a4ce662b2024/WindowsXP-KB838079-SupportTools-ENU.exe"
+  local dtmp=$(mktemp -d)
+  echo "Installing filever tool..." >&2
+  cd "$dtmp"
+  wget "$tools_url"
+  cabextract -F support.cab *.exe
+  cabextract -F filever.exe *.cab
+  install -v filever.exe ~/.wine/drive_c/windows
+  rm -fr "$dtmp"
+  cd -
 }
 
 ## Clean up.
