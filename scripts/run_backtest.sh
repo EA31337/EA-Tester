@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
+set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:Re:f:GE:c:p:d:D:m:y:b:s:l:oi:I:CtTO:vxX:h"
+ARGS=":r:Re:f:GE:c:p:d:D:m:M:y:b:s:l:oi:I:CtTO:vxX:h"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
-## Define functions.
+## Initialize.
+. $CWD/.funcs.inc.sh
+
+## Define local functions.
 
 # Invoke on test success.
 on_success() {
@@ -109,6 +113,32 @@ parse_results() {
 # Parse the initial arguments.
 while getopts $ARGS arg; do
   case ${arg} in
+
+    h | \?) # Display help.
+      echo "$0 usage:" >&2
+      grep " .)\ #" "$0" >&2
+      exit 0
+      ;;
+
+    M) # Specify version of MetaTrader.
+      MT_VER=${OPTARG:-4x}
+      configure_display
+      case $MT_VER in
+        4)
+          . $CWD/install_mt4.sh
+        ;;
+        4x)
+          . $CWD/install_mt4-xdot.sh
+        ;;
+        5)
+          . $CWD/install_mt5.sh
+        ;;
+        *)
+          echo "Error: Unknown platform version, try either 4 or 5." >&2
+          exit 1
+      esac
+      ;;
+
     v) # Verbose mode.
       VERBOSE=1
       VFLAG="-v"
@@ -127,10 +157,14 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-[ ! "$(find ~ /opt -name terminal.exe -print -quit)" ] && $CWD/install_mt4.sh
+. $CWD/.vars.inc.sh
+[ "$TERMINAL_EXE" ] \
+  || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
 
-# Initialize settings.
-. $CWD/.initrc
+# Re-load variables.
+. $CWD/.vars.inc.sh
+
+# Copy ini files.
 copy_ini
 
 # Parse the primary arguments.
@@ -229,34 +263,6 @@ FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
-    r) # The name of the test report file.
-      REPORT="tester/$(basename "${OPTARG}")"
-      echo "Configuring test report ($REPORT)..." >&2
-      ini_set "^TestReport" "$REPORT" "$TESTER_INI"
-      ;;
-
-    R) # Set files to read-only.
-      set_read_perms
-      ;;
-
-    f) # The .set file to run the test.
-      SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
-      echo "Configuring EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
-      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      ;;
-
-    E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
-      EA_OPTS=${OPTARG}
-      echo "Applying EA settings ($EA_OPTS)..." >&2
-      IFS='='; ea_option=($EA_OPTS)
-      IFS=$' \t\n' # Restore IFS.
-      [ -f "$EA_INI" ]
-      ini_set_ea "^${ea_option[0]}" "${ea_option[1]}"
-      ;;
 
     c) # Base currency for test (e.g. USD).
       CURRENCY=${OPTARG}
@@ -276,10 +282,33 @@ while getopts $ARGS arg; do
       set_digits $DIGITS
       ;;
 
-    s) # Spread to test.
-      SPREAD=${OPTARG}
-      echo "Configuring spread ($SPREAD)..." >&2
-      set_spread $SPREAD
+    E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
+      EA_OPTS=${OPTARG}
+      echo "Applying EA settings ($EA_OPTS)..." >&2
+      IFS='='; ea_option=($EA_OPTS)
+      IFS=$' \t\n' # Restore IFS.
+      [ -f "$EA_INI" ]
+      ini_set_ea "^${ea_option[0]}" "${ea_option[1]}"
+      ;;
+
+    f) # The .set file to run the test.
+      SETORG="$OPTARG"
+      SETFILE="${EA_NAME}.set"
+      echo "Configuring EA parameters ($SETFILE)..." >&2
+      [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
+      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
+      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ;;
+
+    i) # Invoke file with custom rules.
+      type bc
+      INCLUDE=${OPTARG}
+      SETFILE="$(ini_get TestExpert).set"
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+      echo "Invoking include file ($INCLUDE)..." >&2
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      . "$INCLUDE"
       ;;
 
     l) # Lot step.
@@ -294,32 +323,38 @@ while getopts $ARGS arg; do
       ini_set "^TestOptimization" true "$TESTER_INI"
       ;;
 
-    i) # Invoke file with custom rules.
-      type bc
-      INCLUDE=${OPTARG}
-      SETFILE="$(ini_get TestExpert).set"
-      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-      echo "Invoking include file ($INCLUDE)..." >&2
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      . "$INCLUDE"
-      ;;
-
-    t)
-      type html2text >&2
-      ;;
-
     O) # Output directory to save the test results.
       DEST=${OPTARG}
       echo "Checking destination ($DEST)..." >&2
       [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
       ;;
 
-    # Placeholders for parameters used somewhere else.
-    e | G | m | p | y | C | b | I | v | x) ;;
+    r) # The name of the test report file.
+      REPORT="tester/$(basename "${OPTARG}")"
+      echo "Configuring test report ($REPORT)..." >&2
+      ini_set "^TestReport" "$REPORT" "$TESTER_INI"
+      ;;
 
-    \? | h | *) # Display help.
+    R) # Set files to read-only.
+      set_read_perms
+      ;;
+
+    s) # Spread to test.
+      SPREAD=${OPTARG}
+      echo "Configuring spread ($SPREAD)..." >&2
+      set_spread $SPREAD
+      ;;
+
+    t)
+      type html2text >&2
+      ;;
+
+    # Placeholders for parameters used somewhere else.
+    e | h | G | m | M | p | y | C | b | I | v | x) ;;
+
+    *) # Display help.
       echo "$0 usage:" >&2
-      grep " .)\ #" $0 >&2
+      grep " .)\ #" "$0" >&2
       exit 0
       ;;
 

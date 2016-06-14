@@ -34,13 +34,18 @@ add-apt-repository -y ppa:ubuntu-wine/ppa                                       
 sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
 
 # Update APT repositories
-apt-get update
+apt-get -qq update
 
 # Install necessary packages
 apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale
-apt-get install -qy git coreutils moreutils realpath links html2text tree pv  # Basic utils
+apt-get install -qy binutils coreutils moreutils                              # Common utils
+apt-get install -qy dbus                                                      # Required for Debian AMI on EC2
+apt-get install -qy git realpath links html2text tree pv                      # Required commands
 apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image)
 apt-get install -qy wine1.8 winbind xvfb xdotool                              # Wine from PPA/Wine and tools for MT4 installer
+
+# Set-up hostname.
+grep $(hostname) /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
 
 # Set-up git.
 git config --system user.name $USER

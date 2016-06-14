@@ -9,25 +9,16 @@ env:
       CWD="$TRAVIS_BUILD_DIR"
   matrix:
     - TEST_ARGS="-x -f /etc/hosts -h"
-    - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -D5 -e TestSpread"
-    - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -D4 -e TestLotstep"
-    - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -D5 -e TestLotstep"
-    - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1 -y 2012 -s 10 -b W2"
-    - TEST_ARGS="-v -t -d 2000 -p EURUSD -m 1 -y 2013 -s 20 -b Z3"
-    - TEST_ARGS="-v -t -d 3000 -p EURUSD -m 1 -y 2014 -s 10 -b DS"
-    - TEST_ARGS="-v -t -d 3000 -p EURUSD -m 1 -y 2014 -s 10 -b DS -R"
+    - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -D5 -e TestSpread"
+    - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -D4 -e TestLotstep"
+    - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2010 -s 10 -b N0 -D5 -e TestLotstep"
+    - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2012 -s 10 -b W2"
+    - TEST_ARGS="-v -t -M4x -d 2000 -p EURUSD -m 1 -y 2013 -s 20 -b Z3"
+    - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 1 -y 2014 -s 10 -b DS"
+    - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 1 -y 2014 -s 10 -b DS -R"
 
 matrix:
   fast_finish: true
-
-before_cache:
-  - find ~/.wine/drive_c -type l -delete
-
-cache:
-  apt: true
-  pip: true
-# directories:
-#   - $HOME/.wine/drive_c
 
 notifications:
   email:
@@ -40,7 +31,6 @@ before_install:
 
 install:
   - sudo $CWD/scripts/provision.sh
-  - sudo $CWD/scripts/secur32_fix.sh
 
 before_script:
   - set -e
@@ -48,3 +38,15 @@ before_script:
 script:
   - ruby -wc $CWD/Vagrantfile
   - $CWD/scripts/run_backtest.sh $TEST_ARGS
+
+after_script:
+  - set +e
+
+before_cache:
+  - test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete || true
+
+cache:
+  apt: true
+  pip: true
+# directories:
+#   - $HOME/.wine/drive_c
