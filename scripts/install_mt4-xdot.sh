@@ -8,9 +8,10 @@ export WINEDLLOVERRIDES="mscoree,mshtml="
 # Check the dependencies.
 type wget xdotool xwininfo wine winetricks ar >&2
 
-echo "Installing winhttp..." >&2
-curl -o "$DTMP"/winetricks $WURL
-sh $DTMP/winetricks winhttp
+# @fixme: This breaks MT4 install on CI.
+#echo "Installing winhttp..." >&2
+#curl -o "$DTMP"/winetricks $WURL
+#sh $DTMP/winetricks winhttp
 
 # Check whether libgnutls needs patching.
 [ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
