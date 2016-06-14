@@ -3,7 +3,9 @@
 #
 # Initialize variables.
 
-[ "$TERMINAL_EXE" ] || echo "Initializing variables... (args: $*)" >&2
+if [ ! "$TERMINAL_EXE" ] && [ "$VERBOSE" ]; then
+  echo "Initializing variables... (args: $*)" >&2
+fi
 
 # Determine platform paths.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
