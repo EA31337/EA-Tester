@@ -462,35 +462,51 @@ enhance_gif() {
   local color2='green'
   local text='' 
 
-	while [[ $# > 1 ]]
-	do
-		key="$1"
-
-		case $key in
-		-c1|--color1)
-			color1="$2"
-		shift
-		;;
-		-c2|--color2)
-			color2="$2"
-		shift
-		;;
-		-t|--text)
-			text="$2"
-		shift
-		;;
-		esac
-		shift
-	done
+  while [[ $# > 1 ]]; do
+    key="$1"
+    case $key in
+      -c1|--color1)
+        color1="$2"
+        shift
+      ;;
+      -c2|--color2)
+        color2="$2"
+        shift
+        ;;
+      -t|--text)
+        text="$2"
+        shift
+        ;;
+    esac
+    shift
+  done
 
   type convert > /dev/null
 
   local font=$(fc-match --format=%{file} Arial.ttf)
-
   convert -negate "$file" "$file"
   convert "$file" -fuzz 0% -fill "$color1" -opaque "#ff4fff" "$file"
   convert "$file" -fuzz 0% -fill "$color2" -opaque "#ffff4f" "$file"
   convert "$file" -fill white +antialias -font $font -pointsize 9 -annotate +7+27 "$text" "$file"
+}
+
+## Install platform.
+install_mt() {
+  local mt_ver=$1
+  case $mt_ver in
+    4)
+      . $CWD/install_mt4.sh
+    ;;
+    4x)
+      . $CWD/install_mt4-xdot.sh
+    ;;
+    5)
+      . $CWD/install_mt5.sh
+    ;;
+    *)
+      echo "Error: Unknown platform version, try either 4 or 5." >&2
+      exit 1
+  esac
 }
 
 ## Clean up.

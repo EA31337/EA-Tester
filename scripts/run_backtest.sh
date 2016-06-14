@@ -123,20 +123,7 @@ while getopts $ARGS arg; do
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4x}
       configure_display
-      case $MT_VER in
-        4)
-          . $CWD/install_mt4.sh
-        ;;
-        4x)
-          . $CWD/install_mt4-xdot.sh
-        ;;
-        5)
-          . $CWD/install_mt5.sh
-        ;;
-        *)
-          echo "Error: Unknown platform version, try either 4 or 5." >&2
-          exit 1
-      esac
+      install_mt $MT_VER
       ;;
 
     v) # Verbose mode.

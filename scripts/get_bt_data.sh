@@ -56,7 +56,7 @@ case $bt_src in
     done
     wait # Wait for the background tasks to finish.
     echo "Extracting..." >&2
-    gunzip -kh 1>&2 2> /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
+    gunzip -kh >& /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
     find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
       gunzip $VFLAG $keep "$file"
     done
