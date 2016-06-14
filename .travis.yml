@@ -40,14 +40,11 @@ cache:
   apt: true
   pip: true
 before_deploy:
-- set +e
 - MT_VER=$($CWD/scripts/eval.sh filever terminal.exe)
-- $CWD/scripts/eval.sh '[ "$TERMINAL_DIR" ] && clean_bt && clean_files' || exit 0
+- $CWD/scripts/eval.sh '[ "$TERMINAL_DIR" ] && clean_bt && clean_files && clean_ea' || exit 0
 - cd "$HOME/.wine/drive_c/Program Files (x86)"/
 - zip -vr "${HOME}/mt-${MT_VER}.zip" Meta*
 - cd ~
-- pwd
-- ls -la
 deploy:
   provider: releases
   api_key:

@@ -87,6 +87,13 @@ clean_bt() {
   find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
 }
 
+# Delete compiled EAs.
+clean_ea() {
+  exec 1>&2
+  echo "Cleaning compiled EAs..."
+  find "$TESTER_DIR" '(' -name "*.ex?" ')' -type f $VPRINT -delete
+}
+
 # Set input value in the SET file.
 input_set() {
   local key="$1"
