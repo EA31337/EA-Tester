@@ -529,10 +529,10 @@ install_filever() {
 # Usage: filever terminal.exe
 filever() {
   type awk > /dev/null
-  wine filever >& /dev/null || install_filever
+  wine filever >& /dev/null || install_filever >&2
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
-    | grep ProductVersion | awk '{print $2}'
+    | grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
 ## Clean up.

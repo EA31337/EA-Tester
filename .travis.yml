@@ -32,25 +32,31 @@ script:
 - ruby -wc $CWD/Vagrantfile
 - "$CWD/scripts/run_backtest.sh $TEST_ARGS"
 after_script:
-- set +e
+- tree ~/.wine/drive_c/Program*
 before_cache:
-- test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete || true
+- set +e
+- test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete
 cache:
   apt: true
   pip: true
 before_deploy:
-- MT_VER=$($CWD/eval.sh install_filever)
-- cd "$HOME/.wine/drive_c/Program Files"
-- zip -r "$HOME"/mt4.zip Meta*
+- set +e
+- MT_VER=$($CWD/scripts/eval.sh filever terminal.exe)
+- $CWD/scripts/eval.sh '[ "$TERMINAL_DIR" ] && clean_bt && clean_files' || exit 0
+- cd "$HOME/.wine/drive_c/Program Files (x86)"/
+- zip -vr "${HOME}/mt-${MT_VER}.zip" Meta*
+- cd ~
+- pwd
+- ls -la
 deploy:
   provider: releases
   api_key:
     secure: JsrCjD9M6FPnvKbDvlY62uvBStGsiSwgC90EuJr01288GNQPsp8eHOjZn6isBg+LCp8eqAvQOa7hQJbXG2RSZAw66Mvf1xjz7CEjzLRig1GC8do/t6qzRSaUg4YxDLn9lOY3OZ7GUdNQcDsgg5sVpVecx7B9ve3ZleH0l0kT1OHDN33v3a/oBHWsm/e06cXRw5M4L49ovE3V6fNCJDgaqtUn+0/pT002bMw+nobJaYE1KVZstfFohY/Sy4rGiXFT9dChwXzSp+hZf2Imcm15t4t2EFxObozWubZin5njXmRDr66xj1skkvhaxRxYGs9c8K75ySB+nK8pMk8dGoCquzvHuwoIxSYHTfJCwug3Es2LbTwQXNnfnjvXiqQU5886NvdzZiU17aYSg+fTEoAaFoCsMK12xx+Y3DxvCuunJSIz+Ke2CnEJm2yH7UAyaTWPbkZPfTcauFwegModuV2CW5yemXIMddmDunoY1EMIp6qURjYZS/HqYGX9fsKHYyyzm+dBG9dF5beMMpuxJ7C/e+GZa4z/BQ6bcRwUP8PIaqZXrm5UZ4l4PvJlLtetbV1FVLNl8StrWffsWRcZtLtMgAHYswmL93RafjlMI6HhWzQxmY+U3TS94/bgRuy3bIb/+GnCBtXi8y749zu1S+r5UApuCyyhOfwonhpfbie1m8M=
-  file: mt4.zip
+  file_glob: true
   skip_cleanup: true
-  overwrite: true
+  file: "mt-*.zip"
   on:
     repo: EA31337/FX-MT-VM
     tags: true
 after_deploy:
-- echo "done.
+- echo "done."
