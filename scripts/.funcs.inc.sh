@@ -90,7 +90,7 @@ clean_bt() {
 # Delete compiled EAs.
 clean_ea() {
   exec 1>&2
-  echo "Cleaning compiled EAs..."
+  echo "Cleaning compiled EAs..." >&2
   find "$TESTER_DIR" '(' -name "*.ex?" ')' -type f $VPRINT -delete
 }
 
@@ -499,6 +499,7 @@ enhance_gif() {
 
 ## Install platform.
 install_mt() {
+  type wget > /dev/null
   local mt_ver=$1
   case $mt_ver in
     4)
@@ -509,6 +510,12 @@ install_mt() {
     ;;
     5)
       . $CWD/install_mt5.sh
+    ;;
+    4.0.0.*|5.0.0.*)
+      [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
+      cd "$WINE_PATH"
+      wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
+      unzip -u mt*.zip
     ;;
     *)
       echo "Error: Unknown platform version, try either 4 or 5." >&2

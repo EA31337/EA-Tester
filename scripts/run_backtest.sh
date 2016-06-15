@@ -10,6 +10,7 @@ type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
 ## Initialize.
 . $CWD/.funcs.inc.sh
+. $CWD/.vars.inc.sh
 
 ## Define local functions.
 
@@ -122,8 +123,10 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4x}
+      type unzip 2> /dev/null
       configure_display
       install_mt $MT_VER
+      . $CWD/.vars.inc.sh # Reload variables.
       ;;
 
     v) # Verbose mode.
@@ -144,7 +147,6 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-. $CWD/.vars.inc.sh
 [ "$TERMINAL_EXE" ] \
   || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
 
