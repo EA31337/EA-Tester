@@ -5,6 +5,7 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
+  [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
@@ -12,13 +13,15 @@ opts = GetoptLong.new(
   [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ],
   #[ '--file-ea',  GetoptLong::OPTIONAL_ARGUMENT ], # EA file.
   #[ '--dir-bt',   GetoptLong::OPTIONAL_ARGUMENT ], # Dir with backtest files.
   #[ '--dir-sets', GetoptLong::OPTIONAL_ARGUMENT ]  # Dir with set files.
 )
 
+asset=ENV['ASSET']
 cpus=ENV['CPUS'] || 2
+gh_token=ENV['GITHUB_API_TOKEN']
 keypair_name=ENV['KEYPAIR_NAME']
 memory=ENV['MEMORY'] || 2048
 private_key=ENV['PRIVATE_KEY']
@@ -29,6 +32,7 @@ vm_name=ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
+      when '--asset';          asset          = arg
       when '--cpus';           cpus           = arg.to_i
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
@@ -62,6 +66,14 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", path: "scripts/provision.sh"
     # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
+
+  if asset
+    config.vm.provision "shell" do |s|
+      s.binary = true # Replace Windows line endings with Unix line endings.
+      s.privileged = false # Run as a non privileged user.
+      s.inline = %Q[/usr/bin/env GITHUB_API_TOKEN=#{gh_token} /vagrant/scripts/get_gh_asset.sh #{asset}]
+    end
+  end
 
   config.vm.provider "virtualbox" do |vbox, override|
     vbox.customize [ "modifyvm", :id, "--natdnshostresolver1", "on"]

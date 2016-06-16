@@ -38,7 +38,7 @@ eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
 GH_ASSET="$GH_REPO/releases/assets/$id"
 
 # Changing the working folder.
-[ ! -d "$DEST" ] && mkdir -v "$DEST" && cd "$DEST"
+[ ! -d "$DEST" ] && mkdir -vp "$DEST" && cd "$DEST"
 
 # Download asset file.
 echo "Downloading asset..." >&2
