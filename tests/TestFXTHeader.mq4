@@ -124,7 +124,7 @@ struct TestHistoryHeader
     //----
     int               reserved[60];       // Reserved - space for future use.
 };
-#pragma pack(push,1)
+
 struct TestHistory
 {
     datetime          otm;                // Bar datetime.
@@ -136,7 +136,12 @@ struct TestHistory
     int               ctm;                // The current time within a bar.
     int               flag;               // Flag to launch an expert (0 - bar will be modified, but the expert will not be launched).
 };
-#pragma pack(pop)
+
+
+datetime ExtLastBarTime;
+string FXT_;
+string path;
+int ExtBars, fileHandle;
 
 //+------------------------------------------------------------------+
 //| Read and check FXT header.
@@ -197,7 +202,7 @@ bool ReadAndCheckHeader(int handle, int period, int& bars) {
     //---- Unexpected end of file.
     if (GetLastError() == 4099)                             return(false);
     //---- Check for stored bars.
-    if (FileSize(handle) < 600 + bars * 52)                 return(false);
+    if (FileSize(handle) < (ulong) (600 + bars * 52))                 return(false);
     //----
     return (true);
 }
@@ -205,7 +210,7 @@ bool ReadAndCheckHeader(int handle, int period, int& bars) {
 //+------------------------------------------------------------------+
 //| Read and check FXT header.
 //+------------------------------------------------------------------+
-int ReadSpread(int handle) {
+void ReadSpread(int handle) {
     int buffer[2];
     int adjustCursor1 = _llseek(handle, 0xfc, 0); // 16
     int ret_read1 = _lread(handle, buffer, 8);
@@ -213,16 +218,51 @@ int ReadSpread(int handle) {
     Print("digits = ", buffer[1]);
 }
 
-int OnInit() {
-    // string FXT_="USDJPYFXF5_0.fxt"; // @todo: Find the file name automatically?
-    string path = TerminalPath() + "\\tester\\history\\" + FXT_;
+void CheckWrittenBars()
+  {
+   int bars_count=0;
+//----
+   ExtLastBarTime=0;
+   FileSeek(fileHandle, 600, SEEK_SET);
+//----
+   while(!IsStopped())
+     {
+      datetime open_time=FileReadInteger(fileHandle, LONG_VALUE);
+      if(FileIsEnding(fileHandle)) break;
+      //---- check for bar changing
+      if(ExtLastBarTime!=open_time)
+        {
+         ExtLastBarTime=open_time;
+         bars_count++;
+        }
+      //---- set position to next bar
+      FileSeek(fileHandle,48,SEEK_CUR);
+     }
+//----
+   if(ExtBars != bars_count)
+     {
+      Print("Wrong bars count ",ExtBars," in the FXT-header. Should be ",bars_count);
+      ExtBars=bars_count;
+     }
+//----
+  }
+
+void OnInit () {
+
+   ExtBars = 0;
+   ExtLastBarTime = 0;
+   FXT_ =Symbol() + Period() + "_0.fxt";
+   path = TerminalPath() + "\\tester\\history\\" + FXT_;
+
     Print("win32api_File_Path= ", path);
-    int fileHandle = _lopen(path, 0);
-    if (ReadAndCheckHeader(fileHandle, period, bars)) {
+    fileHandle = _lopen(path, 0);
+    if (ReadAndCheckHeader(fileHandle, Period(), ExtBars)) {
         Print("FXT header is correct!");
     } else {
         int ret_close=_lclose(fileHandle);
         ExpertRemove();
     }
-    int ret_close=_lclose(fileHandle);
+    ret_close=_lclose(fileHandle);
 }
+
+void OnStart () {  }
