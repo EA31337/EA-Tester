@@ -3,7 +3,9 @@
 #
 # Initialize variables.
 
-[ "$TERMINAL_EXE" ] || echo "Initializing variables... (args: $*)" >&2
+if [ ! "$TERMINAL_EXE" ] && [ "$VERBOSE" ]; then
+  echo "Initializing variables... (args: $*)" >&2
+fi
 
 # Determine platform paths.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
@@ -20,7 +22,7 @@ TPL_EA="$ROOT/conf/$CONF_EA"
 TERMINAL_ARG="/skipupdate /portable"
 TERMINAL_EXE="$(find ~ "$OUT" -name terminal.exe -print -quit)"
 MTEDITOR_EXE="$(find ~ "$OUT" -name metaeditor.exe -print -quit)"
-TERMINAL_DIR="$(dirname "$TERMINAL_EXE")"
+TERMINAL_DIR="$( [ "$TERMINAL_EXE" ] && dirname "$TERMINAL_EXE" || true )"
 TERMINAL_CNF="$TERMINAL_DIR/config"
 TERMINAL_INI="$TERMINAL_CNF/$CONF_TERM"
 TESTER_INI="$TERMINAL_CNF/$CONF_TEST"
@@ -35,6 +37,8 @@ CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
 LOG_DIR="$TERMINAL_DIR/MQL4/Logs"
 EXPERTS_DIR="MQL4/Experts"
 SCRIPTS_DIR="MQL4/Scripts"
+WINE_PATH="$HOME/.wine/drive_c/Program Files"
+REPO_URL="https://github.com/EA31337/FX-MT-VM"
 
 # Set constants.
 TRUE=0

@@ -2,7 +2,7 @@
 # .funcs.inc.sh file
 #
 
-echo "Loading $0... " >&2
+[ "$VERBOSE" ] && echo "Loading $0... " >&2
 
 #
 ## Define common functions. ##
@@ -85,6 +85,13 @@ clean_bt() {
   exec 1>&2
   echo "Cleaning backtest data..." >&2
   find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
+}
+
+# Delete compiled EAs.
+clean_ea() {
+  exec 1>&2
+  echo "Cleaning compiled EAs..." >&2
+  find "$TESTER_DIR" '(' -name "*.ex?" ')' -type f $VPRINT -delete
 }
 
 # Set input value in the SET file.
@@ -460,37 +467,86 @@ enhance_gif() {
   local file="$1"
   local color1='blue'
   local color2='green'
-  local text='' 
+  local text=''
 
-	while [[ $# > 1 ]]
-	do
-		key="$1"
-
-		case $key in
-		-c1|--color1)
-			color1="$2"
-		shift
-		;;
-		-c2|--color2)
-			color2="$2"
-		shift
-		;;
-		-t|--text)
-			text="$2"
-		shift
-		;;
-		esac
-		shift
-	done
+  while [[ $# > 1 ]]; do
+    key="$1"
+    case $key in
+      -c1|--color1)
+        color1="$2"
+        shift
+      ;;
+      -c2|--color2)
+        color2="$2"
+        shift
+        ;;
+      -t|--text)
+        text="$2"
+        shift
+        ;;
+    esac
+    shift
+  done
 
   type convert > /dev/null
 
   local font=$(fc-match --format=%{file} Arial.ttf)
-
   convert -negate "$file" "$file"
   convert "$file" -fuzz 0% -fill "$color1" -opaque "#ff4fff" "$file"
   convert "$file" -fuzz 0% -fill "$color2" -opaque "#ffff4f" "$file"
   convert "$file" -fill white +antialias -font $font -pointsize 9 -annotate +7+27 "$text" "$file"
+}
+
+## Install platform.
+install_mt() {
+  type wget > /dev/null
+  local mt_ver=$1
+  case $mt_ver in
+    4)
+      . $CWD/install_mt4.sh
+    ;;
+    4x)
+      . $CWD/install_mt4-xdot.sh
+    ;;
+    5)
+      . $CWD/install_mt5.sh
+    ;;
+    4.0.0.*|5.0.0.*)
+      [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
+      cd "$WINE_PATH"
+      wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
+      unzip -u mt*.zip
+    ;;
+    *)
+      echo "Error: Unknown platform version, try either 4 or 5." >&2
+      exit 1
+  esac
+}
+
+## Install filever
+install_filever() {
+  type wget cabextract install wine >&2
+  wine filever > /dev/null && return
+  local tools_url="http://web.archive.org/https://download.microsoft.com/download/d/3/8/d38066aa-4e37-4ae8-bce3-a4ce662b2024/WindowsXP-KB838079-SupportTools-ENU.exe"
+  local dtmp=$(mktemp -d)
+  echo "Installing filever tool..." >&2
+  cd "$dtmp"
+  wget "$tools_url"
+  cabextract -F support.cab *.exe
+  cabextract -F filever.exe *.cab
+  install -v filever.exe ~/.wine/drive_c/windows
+  rm -fr "$dtmp"
+  cd -
+}
+
+# Check the version of the given binary file.
+# Usage: filever terminal.exe
+filever() {
+  type awk > /dev/null
+  wine filever >& /dev/null || install_filever >&2
+  local file=$1
+  find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
+    | grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
 ## Clean up.
@@ -522,7 +578,7 @@ onexit() {
   local exit_status=${1:-$?}
   set +x
   clean_up
-  echo "Exiting $0 with $exit_status" >&2
+  [ "$VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
 
