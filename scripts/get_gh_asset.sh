@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Script to download asset file from tag release using GitHub API v3.
+# Specify OVERRIDE=1 to download even when the previous file exist.
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
@@ -43,6 +44,6 @@ cd "$DEST"
 
 # Download asset file.
 echo "Downloading asset..." >&2
-[ "$CLEAN" ] && find "$DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
+[ "$OVERRIDE" ] && find "$DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
 curl $CURL_ARGS -H 'Accept: application/octet-stream' "$GH_ASSET?access_token=$GITHUB_API_TOKEN"
 echo "$0 done." >&2
