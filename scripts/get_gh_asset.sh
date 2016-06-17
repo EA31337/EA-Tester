@@ -37,10 +37,12 @@ eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
 [ "$id" ] || { echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2; exit 1; }
 GH_ASSET="$GH_REPO/releases/assets/$id"
 
-# Changing the working folder.
-[ ! -d "$DEST" ] && mkdir -vp "$DEST" && cd "$DEST"
+# Changing the working folder. Create if does not exist.
+[ ! -d "$DEST" ] && mkdir -vp "$DEST"
+cd "$DEST"
 
 # Download asset file.
 echo "Downloading asset..." >&2
+[ "$CLEAN" ] && find "$DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
 curl $CURL_ARGS -H 'Accept: application/octet-stream' "$GH_ASSET?access_token=$GITHUB_API_TOKEN"
 echo "$0 done." >&2
