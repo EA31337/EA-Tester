@@ -9,6 +9,8 @@ opts = GetoptLong.new(
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--no-setup',       GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--power-off',      GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ],
@@ -18,18 +20,20 @@ opts = GetoptLong.new(
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ],
 )
 
-asset=ENV['ASSET']
-cpus=ENV['CPUS'] || 2
-gh_token=ENV['GITHUB_API_TOKEN']
-keypair_name=ENV['KEYPAIR_NAME']
-memory=ENV['MEMORY'] || 2048
-private_key=ENV['PRIVATE_KEY']
-provider=ENV['PROVIDER'] || 'virtualbox'
-run_test=ENV['RUN_TEST']
-security_group=ENV['SECURITY_GROUP']
-subnet_id=ENV['SUBNET_ID']
-terminate=ENV['TERMINATE']
-vm_name=ENV['VM_NAME'] || 'default'
+asset          = ENV['ASSET']
+cpus           = ENV['CPUS'] || 2
+gh_token       = ENV['GITHUB_API_TOKEN']
+keypair_name   = ENV['KEYPAIR_NAME']
+memory         = ENV['MEMORY'] || 2048
+no_setup       = ENV['NO_SETUP']
+power_off      = ENV['POWER_OFF']
+private_key    = ENV['PRIVATE_KEY']
+provider       = ENV['PROVIDER'] || 'virtualbox'
+run_test       = ENV['RUN_TEST']
+security_group = ENV['SECURITY_GROUP']
+subnet_id      = ENV['SUBNET_ID']
+terminate      = ENV['TERMINATE']
+vm_name        = ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
@@ -37,12 +41,14 @@ begin
       when '--cpus';           cpus           = arg.to_i
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
+      when '--no-setup';       no_setup       = !arg.to_i.zero?
+      when '--power-off';      power_off      = arg.to_i
       when '--private-key';    private_key    = arg
       when '--provider';       provider       = arg
       when '--run-test';       run_test       = arg
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
-      when '--terminate';      terminate      = arg.to_i
+      when '--terminate';      terminate      = !arg.to_i.zero?
       when '--vm-name';        vm_name        = arg
     end # case
   end # each
@@ -58,9 +64,12 @@ Vagrant.configure(2) do |config|
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.vm.define "mt-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
-  config.vm.provision "shell", path: "scripts/provision.sh"
     # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
+
+  if not no_setup
+    config.vm.provision "shell", path: "scripts/provision.sh"
+  end
 
   if asset
     config.vm.provision "shell" do |s|
@@ -78,7 +87,7 @@ Vagrant.configure(2) do |config|
     end
   end
 
-  if terminate
+  if power_off
     config.vm.provision "shell", inline: "poweroff --verbose"
   end
 
@@ -103,12 +112,11 @@ Vagrant.configure(2) do |config|
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
     aws.aws_profile = "MT-testing"
-    aws.elastic_ip = true
     aws.instance_type = "t2.small"
     aws.keypair_name = keypair_name
     aws.region = "us-east-1"
     aws.tags = { 'Name' => 'MT4-' + vm_name }
-    aws.terminate_on_shutdown = true
+    aws.terminate_on_shutdown = terminate
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
     if subnet_id then aws.subnet_id = subnet_id end
