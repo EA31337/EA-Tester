@@ -11,12 +11,10 @@ opts = GetoptLong.new(
   [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ],
-  #[ '--file-ea',  GetoptLong::OPTIONAL_ARGUMENT ], # EA file.
-  #[ '--dir-bt',   GetoptLong::OPTIONAL_ARGUMENT ], # Dir with backtest files.
-  #[ '--dir-sets', GetoptLong::OPTIONAL_ARGUMENT ]  # Dir with set files.
 )
 
 asset=ENV['ASSET']
@@ -26,6 +24,7 @@ keypair_name=ENV['KEYPAIR_NAME']
 memory=ENV['MEMORY'] || 2048
 private_key=ENV['PRIVATE_KEY']
 provider=ENV['PROVIDER'] || 'virtualbox'
+run_test=ENV['RUN_TEST']
 security_group=ENV['SECURITY_GROUP']
 subnet_id=ENV['SUBNET_ID']
 vm_name=ENV['VM_NAME'] || 'default'
@@ -38,21 +37,14 @@ begin
       when '--memory';         memory         = arg.to_i
       when '--private-key';    private_key    = arg
       when '--provider';       provider       = arg
+      when '--run-test';       run_test       = arg
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
       when '--vm-name';        vm_name        = arg
-=begin
-# @todo: When implementing below, please make sure that running of: 'vagrant -f destroy' would be supported (no invalid option error is shown).
-      when '--file-ea'
-        file_ea==arg
-      when '--dir-bt'
-        dir_bt=arg
-      when '--dir-sets'
-        dir_sets=arg
-=end
     end # case
   end # each
   rescue
+# @todo: Correct an invalid option error.
 end
 
 # Vagrantfile API/syntax version.
@@ -71,7 +63,15 @@ Vagrant.configure(2) do |config|
     config.vm.provision "shell" do |s|
       s.binary = true # Replace Windows line endings with Unix line endings.
       s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/usr/bin/env GITHUB_API_TOKEN=#{gh_token} /vagrant/scripts/get_gh_asset.sh #{asset}]
+      s.inline = %Q[/usr/bin/env CLEAN=1 OVERRIDE=1 GITHUB_API_TOKEN=#{gh_token} /vagrant/scripts/get_gh_asset.sh #{asset}]
+    end
+  end
+
+  if run_test
+    config.vm.provision "shell" do |s|
+      s.binary = true # Replace Windows line endings with Unix line endings.
+      s.privileged = false # Run as a non privileged user.
+      s.inline = %Q[/vagrant/scripts/run_backtest.sh #{run_test}]
     end
   end
 
