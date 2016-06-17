@@ -14,6 +14,7 @@ opts = GetoptLong.new(
   [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--terminate',      GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ],
 )
 
@@ -27,6 +28,7 @@ provider=ENV['PROVIDER'] || 'virtualbox'
 run_test=ENV['RUN_TEST']
 security_group=ENV['SECURITY_GROUP']
 subnet_id=ENV['SUBNET_ID']
+terminate=ENV['TERMINATE']
 vm_name=ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
@@ -40,6 +42,7 @@ begin
       when '--run-test';       run_test       = arg
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
+      when '--terminate';      terminate      = arg.to_i
       when '--vm-name';        vm_name        = arg
     end # case
   end # each
@@ -73,6 +76,10 @@ Vagrant.configure(2) do |config|
       s.privileged = false # Run as a non privileged user.
       s.inline = %Q[/vagrant/scripts/run_backtest.sh #{run_test}]
     end
+  end
+
+  if terminate
+    config.vm.provision "shell", inline: "poweroff --verbose"
   end
 
   config.vm.provider "virtualbox" do |vbox, override|
