@@ -91,12 +91,7 @@ Vagrant.configure(2) do |config|
     config.vm.provision "shell" do |s|
       s.binary = true # Replace Windows line endings with Unix line endings.
       s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[
-        GH_REPO="#{clone_repo}" && \
-        REPO_DIR="$(basename "$GH_REPO")" && \
-        test ! -d "$REPO_DIR" && git clone -v "$GH_REPO"; \
-        cd "$REPO_DIR" && git status
-      ]
+      s.inline = %Q[/vagrant/scripts/clone_repo.sh "#{clone_repo}"]
     end
   end
 
