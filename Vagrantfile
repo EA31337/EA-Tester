@@ -6,6 +6,7 @@ require 'getoptlong'
 # Parse CLI arguments.
 opts = GetoptLong.new(
   [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
@@ -21,6 +22,7 @@ opts = GetoptLong.new(
 )
 
 asset          = ENV['ASSET']
+clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
 gh_token       = ENV['GITHUB_API_TOKEN']
 keypair_name   = ENV['KEYPAIR_NAME']
@@ -38,6 +40,7 @@ begin
   opts.each do |opt, arg|
     case opt
       when '--asset';          asset          = arg
+      when '--clone-repo';     clone_repo     = arg
       when '--cpus';           cpus           = arg.to_i
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
@@ -75,7 +78,25 @@ Vagrant.configure(2) do |config|
     config.vm.provision "shell" do |s|
       s.binary = true # Replace Windows line endings with Unix line endings.
       s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/usr/bin/env CLEAN=1 OVERRIDE=1 GITHUB_API_TOKEN=#{gh_token} /vagrant/scripts/get_gh_asset.sh #{asset}]
+      s.inline = %Q[/usr/bin/env \
+                 CLEAN=1 \
+                 OVERRIDE=1 \
+                 GITHUB_API_TOKEN=#{gh_token} \
+                 /vagrant/scripts/get_gh_asset.sh #{asset}
+      ]
+    end
+  end
+
+  if clone_repo
+    config.vm.provision "shell" do |s|
+      s.binary = true # Replace Windows line endings with Unix line endings.
+      s.privileged = false # Run as a non privileged user.
+      s.inline = %Q[
+        GH_REPO="#{clone_repo}" && \
+        REPO_DIR="$(basename "$GH_REPO")" && \
+        test ! -d "$REPO_DIR" && git clone -v "$GH_REPO"; \
+        cd "$REPO_DIR" && git status
+      ]
     end
   end
 
