@@ -274,7 +274,7 @@ bool ReadAndCheckHeader(const int handle,const int _period,int &bars)
    if(size_low==INVALID_FILE_SIZE){ Print("Error: Invalid file size."); return(false); }
 //---
    long file_size=((long)size_high<<32)+size_low;
-   long need_size=(long)sizeof(TestHistoryHeader)+(long)header.bars*sizeof(TestHistory);
+   long need_size=(long)sizeof(TestHistoryHeader)+(long)fmax(0,header.bars-1)*sizeof(TestHistory);
    if(file_size<need_size)
      {
       Print("Error: Wrong stored bars. File size: ",file_size,", need size: ",need_size); return(false);
@@ -325,7 +325,7 @@ bool CheckWrittenBars(const int handle,const int _bars,datetime &last_time)
      }
 
 //---
-   if(_bars!=bars_count+1)
+   if(_bars>bars_count+1) // if(_bars!=bars_count+1) ?
      {
       Print("Wrong bars count ",bars_count+1," in the FXT-header. Should be ",_bars);
       return(false);
