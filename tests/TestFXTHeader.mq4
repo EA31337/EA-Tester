@@ -11,43 +11,48 @@
 //+------------------------------------------------------------------+
 
 //#property show_inputs
-
 //+------------------------------------------------------------------+
 //|   Defines                                                        |
 //+------------------------------------------------------------------+
-#define GENERIC_READ          0x80000000
-#define GENERIC_WRITE         0x40000000
-#define FILE_SHARE_READ_      0x00000001
-#define FILE_SHARE_WRITE_     0x00000002
+#define GENERIC_READ                0x80000000
+#define GENERIC_WRITE               0x40000000
+#define FILE_SHARE_READ_            0x00000001
+#define FILE_SHARE_WRITE_           0x00000002
 #define FILE_ATTRIBUTE_NORMAL       0x80
-#define INVALID_SET_FILE_POINTER      -1
-#define INVALID_FILE_SIZE             -1
+#define INVALID_SET_FILE_POINTER    -1
+#define INVALID_FILE_SIZE           -1
 //---
-#define CREATE_NEW            1
-#define CREATE_ALWAYS         2
-#define OPEN_EXISTING         3
-#define OPEN_ALWAYS           4
+#define CREATE_NEW                  1
+#define CREATE_ALWAYS               2
+#define OPEN_EXISTING               3
+#define OPEN_ALWAYS                 4
+
 //--- Header version.
-#define FXT_VERSION           405
+#define FXT_VERSION                 405
+
 //--- Profit calculation mode.
 #define PROFIT_CALC_FOREX 0 // Default.
 #define PROFIT_CALC_CFD 1
 #define PROFIT_CALC_FUTURES 2
+
 //--- Type of swap.
 #define SWAP_BY_POINTS 0 // Default.
-#define SWAP_BY_BASECURRENCY 1
-#define SWAP_BY_INTEREST 2
-#define SWAP_BY_MARGINCURRENCY 3
+#define SWAP_BY_BASECURRENCY     1
+#define SWAP_BY_INTEREST         2
+#define SWAP_BY_MARGINCURRENCY   3
+
 //--- Free margin calculation mode.
 #define MARGIN_DONT_USE 0
 #define MARGIN_USE_ALL 1 // Default.
 #define MARGIN_USE_PROFIT 2
 #define MARGIN_USE_LOSS 3
+
 //--- Margin calculation mode.
 #define MARGIN_CALC_FOREX 0 // Default.
 #define MARGIN_CALC_CFD 1
 #define MARGIN_CALC_FUTURES 2
 #define MARGIN_CALC_CFDINDEX 3
+
 //--- Basic commission type.
 #define COMM_TYPE_MONEY 0
 #define COMM_TYPE_PIPS 1
@@ -112,12 +117,12 @@ struct TestHistoryHeader
    char              margin_currency[12];// Margin currency. Same as: AccountCurrency().
    int               padding4;           // Padding space - add 4 bytes to align to the next double.
                                          // 424
-   //---- Commission calculation.
+   //--- Commission calculation.
    double            comm_base;          // Basic commission rate.
    int               comm_type;          // Basic commission type          { COMM_TYPE_MONEY=0, COMM_TYPE_PIPS=1, COMM_TYPE_PERCENT=2 }.
    int               comm_lots;          // Commission per lot or per deal { COMMISSION_PER_LOT=0, COMMISSION_PER_DEAL=1 }
                                          // 440
-   //---- For internal use.
+   //--- For internal use.
    int               from_bar;           // Index of the first bar at which modeling started (0 for the first bar).
    int               to_bar;             // Index of the last bar at which modeling started (0 for the last bar).
    int               start_period_m1;    // Bar index where modeling started using M1 bars (0 for the first bar).
@@ -128,12 +133,10 @@ struct TestHistoryHeader
    int               start_period_h4;    // Bar index where modeling started using H4 bars (0 for the first bar).
    int               set_from;           // Begin date from tester settings (must be zero).
    int               set_to;             // End date from tester settings (must be zero).
-                                         // 480
-   //----
+   //---
    int               freeze_level;       // Order freeze level in points. Same as: MarketInfo(MODE_FREEZELEVEL)
    int               generating_errors;  // Number of errors during model generation which needs to be fixed before testing.
-                                         // 488
-   //----
+   //---
    int               reserved[60];       // Reserved - space for future use.
   };
 //+------------------------------------------------------------------+
@@ -271,7 +274,11 @@ bool ReadAndCheckHeader(const int handle,const int _period,int &bars)
    if(size_low==INVALID_FILE_SIZE){ Print("Error: Invalid file size."); return(false); }
 //---
    long file_size=((long)size_high<<32)+size_low;
-   if(file_size<(long)(sizeof(TestHistoryHeader)+header.bars*sizeof(TestHistory))) { Print("Wrong stored bars."); return(false); }
+   long need_size=(long)sizeof(TestHistoryHeader)+(long)header.bars*sizeof(TestHistory);
+   if(file_size<need_size)
+     {
+      Print("Error: Wrong stored bars. File size: ",file_size,", need size: ",need_size); return(false);
+     }
 //----
    return (true);
   }
