@@ -17,28 +17,28 @@
    bool DeleteFileA(string Filename);
 
    // See notes above for the explanation of the following...
-   
-   // Used for converting the address of a string into an integer
+
+   // Used for converting the address of a string into an integer.
    int MulDiv(string X, int N1, int N2);
 
    // Used for temporary conversion of an array into a block of memory, which
-   // can then be passed as an integer to ReadFile
+   // can then be passed as an integer to ReadFile.
    int LocalAlloc(int Flags, int Bytes);
    int RtlMoveMemory(int DestPtr, double & Array[], int Length);
    int LocalFree(int lMem);
 
-   // Used for converting the address of an array to an integer 
+   // Used for converting the address of an array to an integer.
    int GlobalLock(double & Array[]);
    bool GlobalUnlock(int hMem);
 #import
 
-#define GENERIC_READ    0x80000000
-#define GENERIC_WRITE   0x40000000
-#define FILE_SHARE_DELETE               0x00000004
-#define CREATE_NEW      1
-#define CREATE_ALWAYS   2
-#define OPEN_EXISTING   3
-#define OPEN_ALWAYS     4
+#define GENERIC_READ          0x80000000
+#define GENERIC_WRITE         0x40000000
+#define FILE_SHARE_DELETE     0x00000004
+#define CREATE_NEW            1
+#define CREATE_ALWAYS         2
+#define OPEN_EXISTING         3
+#define OPEN_ALWAYS           4
 
 #define OF_READ               0
 #define OF_WRITE              1
@@ -81,6 +81,7 @@
 //---- Commission per lot or per deal.
 #define COMMISSION_PER_LOT 0
 #define COMMISSION_PER_DEAL 1
+
 //---- FXT file header
 struct TestHistoryHeader
 {
@@ -177,7 +178,6 @@ struct TestHistory
 
 
 datetime ExtLastBarTime;
-string FXT_;
 string path;
 int ExtBars, fileHandle;
 
@@ -185,65 +185,73 @@ int ExtBars, fileHandle;
 //| Read and check FXT header.
 //+------------------------------------------------------------------+
 bool ReadAndCheckHeader(int handle, int period, int& bars) {
-    int    ivalue;
-    double dvalue;
-    string svalue;
-    //----
-    GetLastError();
-    FileFlush(handle);
-    FileSeek(handle, 0, SEEK_SET);
-    //----
-    int FILE_FXT_VERSION = FileReadInteger(handle, LONG_VALUE);
-    if (FILE_FXT_VERSION != FXT_VERSION) { PrintFormat("Error: FXT Version (%i != %i) FILE FXT Version.", FXT_VERSION, FILE_FXT_VERSION); return(false); }
-    FileSeek(handle, 64, SEEK_CUR);
-    if (FileReadString(handle, 12) != Symbol()) { Print("Error: Wrong Symbol."); return(false); }
-    if (FileReadInteger(handle, LONG_VALUE) != period) { Print("Error: Wrong period."); return(false); }
-    //---- Every tick model.
-    if (FileReadInteger(handle, LONG_VALUE) != 0) { Print("Error: Wrong tick model."); return(false); }
-    //---- Bars.
-    ivalue = FileReadInteger(handle, LONG_VALUE);
-    if (ivalue <= 0) { Print("Error: Wrong numbers of bars."); return(false); }
-    bars = ivalue;
-    //---- Model quality.
-    FileSeek(handle, 12, SEEK_CUR);
-    dvalue = FileReadDouble(handle, DOUBLE_VALUE);
-    if (dvalue < 0.0 || dvalue > 100.0) { Print("Error: Wrong number model quality."); return(false); }
-    //---- Currency.
-    svalue = FileReadString(handle, 12);
-    if (svalue != StringSubstr(Symbol(), 0, 3)) { Print("Error: Wrong currency."); return(false); }
-    //---- Spread digits and point.
-    if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong spread."); return(false); }
-    if (FileReadInteger(handle, LONG_VALUE) != Digits) { Print("Error: Wrong spread."); return(false); }
-    FileSeek(handle, 4, SEEK_CUR);
-    if (FileReadDouble(handle, DOUBLE_VALUE) != Point) { Print("Error: Wrong spread."); return(false); }
-    //---- Lot min.
-    if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong lot min."); return(false); }
-    //---- Lot max.
-    if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong lot max."); return(false); }
-    //---- Lot step.
-    if (FileReadInteger(handle, LONG_VALUE) <0 ) { Print("Error: Wrong lot step."); return(false); }
-    //---- Stops level.
-    if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong stops level."); return(false); }
-    //---- Contract size.
-    FileSeek(handle, 8, SEEK_CUR);
-    if (FileReadDouble(handle, DOUBLE_VALUE) < 0.0) { Print("Error: Wrong contract size."); return(false); }
-    //---- Profit mode.
-    FileSeek(handle, 16, SEEK_CUR);
-    ivalue = FileReadInteger(handle, LONG_VALUE);
-    if (ivalue < 0 || ivalue > PROFIT_CALC_FUTURES) { Print("Error: Wrong profit mode."); return(false); }
-    //---- Triple rollovers.
-    FileSeek(handle, 28, SEEK_CUR);
-    ivalue = FileReadInteger(handle, LONG_VALUE);
-    if (ivalue < 0 || ivalue > 6) { Print("Error: Wrong triple rollovers."); return(false); }
-    //---- Leverage.
-    ivalue = FileReadInteger(handle, LONG_VALUE);
-    if (ivalue <= 0 || ivalue > 500) { Print("Error: Wrong leverage."); return(false); }
-    //---- Unexpected end of file.
-    if (GetLastError() == 4099) { Print("Error: Unexpected end of file."); return(false); }
-    //---- Check for stored bars.
-    if (FileSize(handle) < (ulong) (600 + bars * 52)) { Print("Wrong stored bars."); return(false); }
-    //----
-    return (true);
+  int    ivalue;
+  double dvalue;
+  string svalue;
+  //----
+  GetLastError();
+
+  // FileFlush(handle);
+
+  if (!FileSeek(handle, 0, SEEK_SET)) { // or: SetFilePointer?
+    PrintFormat("Failed to seek on file handle (%d), Error code = %d", handle, GetLastError());
+    return (FALSE);
+  }
+  //----
+  int FILE_FXT_VERSION = FileReadInteger(handle, LONG_VALUE);
+  if (FILE_FXT_VERSION != FXT_VERSION) {
+    PrintFormat("Error: FXT Version (%i != %i) FILE FXT Version.", FXT_VERSION, FILE_FXT_VERSION);
+    return(false);
+  }
+  FileSeek(handle, 64, SEEK_CUR);
+  if (FileReadString(handle, 12) != Symbol()) { Print("Error: Wrong Symbol."); return(false); }
+  if (FileReadInteger(handle, LONG_VALUE) != period) { Print("Error: Wrong period."); return(false); }
+  //---- Every tick model.
+  if (FileReadInteger(handle, LONG_VALUE) != 0) { Print("Error: Wrong tick model."); return(false); }
+  //---- Bars.
+  ivalue = FileReadInteger(handle, LONG_VALUE);
+  if (ivalue <= 0) { Print("Error: Wrong numbers of bars."); return(false); }
+  bars = ivalue;
+  //---- Model quality.
+  FileSeek(handle, 12, SEEK_CUR);
+  dvalue = FileReadDouble(handle, DOUBLE_VALUE);
+  if (dvalue < 0.0 || dvalue > 100.0) { Print("Error: Wrong number model quality."); return(false); }
+  //---- Currency.
+  svalue = FileReadString(handle, 12);
+  if (svalue != StringSubstr(Symbol(), 0, 3)) { Print("Error: Wrong currency."); return(false); }
+  //---- Spread digits and point.
+  if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong spread."); return(false); }
+  if (FileReadInteger(handle, LONG_VALUE) != Digits) { Print("Error: Wrong spread."); return(false); }
+  FileSeek(handle, 4, SEEK_CUR);
+  if (FileReadDouble(handle, DOUBLE_VALUE) != Point) { Print("Error: Wrong spread."); return(false); }
+  //---- Lot min.
+  if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong lot min."); return(false); }
+  //---- Lot max.
+  if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong lot max."); return(false); }
+  //---- Lot step.
+  if (FileReadInteger(handle, LONG_VALUE) <0 ) { Print("Error: Wrong lot step."); return(false); }
+  //---- Stops level.
+  if (FileReadInteger(handle, LONG_VALUE) < 0) { Print("Error: Wrong stops level."); return(false); }
+  //---- Contract size.
+  FileSeek(handle, 8, SEEK_CUR);
+  if (FileReadDouble(handle, DOUBLE_VALUE) < 0.0) { Print("Error: Wrong contract size."); return(false); }
+  //---- Profit mode.
+  FileSeek(handle, 16, SEEK_CUR);
+  ivalue = FileReadInteger(handle, LONG_VALUE);
+  if (ivalue < 0 || ivalue > PROFIT_CALC_FUTURES) { Print("Error: Wrong profit mode."); return(false); }
+  //---- Triple rollovers.
+  FileSeek(handle, 28, SEEK_CUR);
+  ivalue = FileReadInteger(handle, LONG_VALUE);
+  if (ivalue < 0 || ivalue > 6) { Print("Error: Wrong triple rollovers."); return(false); }
+  //---- Leverage.
+  ivalue = FileReadInteger(handle, LONG_VALUE);
+  if (ivalue <= 0 || ivalue > 500) { Print("Error: Wrong leverage."); return(false); }
+  //---- Unexpected end of file.
+  if (GetLastError() == 4099) { Print("Error: Unexpected end of file."); return(false); }
+  //---- Check for stored bars.
+  if (FileSize(handle) < (ulong) (600 + bars * 52)) { Print("Wrong stored bars."); return(false); }
+  //----
+  return (true);
 }
 
 //+------------------------------------------------------------------+
@@ -258,15 +266,13 @@ void ReadSpread(int handle) {
     Print("digits = ", buffer[1]);
 }*/
 
-void CheckWrittenBars()
-  {
+void CheckWrittenBars() {
    int bars_count=0;
 //----
    ExtLastBarTime=0;
    FileSeek(fileHandle, 600, SEEK_SET);
 //----
-   while(!IsStopped())
-     {
+   while(!IsStopped()) {
       datetime open_time=FileReadInteger(fileHandle, LONG_VALUE);
       if(FileIsEnding(fileHandle)) break;
       //---- check for bar changing
@@ -276,7 +282,7 @@ void CheckWrittenBars()
          bars_count++;
         }
       //---- set position to next bar
-      FileSeek(fileHandle,48,SEEK_CUR);
+      FileSeek(fileHandle, 48, SEEK_CUR);
      }
 //----
    if(ExtBars != bars_count)
@@ -288,46 +294,39 @@ void CheckWrittenBars()
   }
 
 int OnInit () {
-   
-   if(IsDllsAllowed()==false)
-   {
-         Print("DLL call is not allowed. Experts cannot run.");
-         return(INIT_FAILED);
-   }
 
-   ExtBars = 0;
-   ExtLastBarTime = 0;
-   FXT_ = "EURUSD" + Period() + "_0.fxt";
-   path = TerminalPath() + "\\tester\\history\\" + FXT_;
+  if (IsDllsAllowed() == FALSE) {
+    Print("DLL call is not allowed. Experts cannot run.");
+    return(INIT_FAILED);
+  }
 
-   int ShareMode = 0;
-   ShareMode += FILE_SHARE_READ;
+  ExtBars = 0;
+  ExtLastBarTime = 0;
+  path = TerminalPath() + "\\tester\\history\\" + Symbol() + Period() + "_0.fxt";
 
-    Print("win32api_File_Path= ", path);
-    //fileHandle = _lopen(path, OF_READ);
-    fileHandle = CreateFileW(path, GENERIC_READ, ShareMode, 0, OPEN_EXISTING, 0, 0); 
+  int ShareMode = 0;
+  ShareMode += FILE_SHARE_READ;
 
-    if (fileHandle == -1) {
-         Print("Invalid file handle");
-         return(INIT_FAILED);
-    }
+  Print("File Path = ", path);
+  fileHandle = CreateFileW(path, GENERIC_READ, ShareMode, 0, OPEN_EXISTING, 0, 0);
 
-    if (ReadAndCheckHeader(fileHandle, Period(), ExtBars)) 
-    {
-        CloseHandle(fileHandle);
-        //_lclose(fileHandle);
-        Print("Success: FXT header is correct!");
-        return(INIT_SUCCEEDED);
-    } 
-    else 
-    {
-        CloseHandle(fileHandle);
-        //_lclose(fileHandle);
-        //ExpertRemove();
-        Print("Error: Invalid FXT format.");
-        return(INIT_FAILED);
-    }
-    
+  if (fileHandle == -1) {
+    Print("Invalid file handle");
+    return(INIT_FAILED);
+  }
+
+  if (ReadAndCheckHeader(fileHandle, Period(), ExtBars)) {
+    CloseHandle(fileHandle);
+    //_lclose(fileHandle);
+    Print("Success: FXT header is correct!");
+    return(INIT_SUCCEEDED);
+  }
+  else {
+    CloseHandle(fileHandle);
+    //_lclose(fileHandle);
+    //ExpertRemove();
+    Print("Error: Invalid FXT format.");
+    return(INIT_FAILED);
+  }
+
 }
-
-void OnStart () { }
