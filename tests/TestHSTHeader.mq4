@@ -25,14 +25,14 @@
 //+------------------------------------------------------------------+
 struct HistoryHeader
   {
-   int               version; // database version
+   int               version;       // database version
    char              copyright[64]; // copyright info
-   char              symbol[12]; // symbol name
-   int               period; // symbol timeframe
-   int               digits; // the amount of digits after decimal point in the symbol
-   int               timesign; // timesign of the database creation
-   int               last_sync; // the last synchronization time
-   int               unused[13]; // to be used in future
+   char              symbol[12];    // symbol name
+   int               period;        // symbol timeframe
+   int               digits;        // the amount of digits after decimal point in the symbol
+   int               timesign;      // timesign of the database creation
+   int               last_sync;     // the last synchronization time
+   int               unused[13];    // to be used in future
   };
 //+------------------------------------------------------------------+
 //|   Import                                                         |
@@ -65,7 +65,7 @@ int OnInit()
      }
 
 //--- Build file path
-   string path=StringFormat("%s\\history\\default\\%s%d.hst",TerminalInfoString(TERMINAL_PATH),_Symbol,_Period);
+   string path=StringFormat("%s\\history\\%s\\%s%d.hst",TerminalInfoString(TERMINAL_PATH),AccountInfoString(ACCOUNT_SERVER),_Symbol,_Period);
    printf("File Path=%s",path);
 
 //--- open file for reading
@@ -160,9 +160,13 @@ bool HstCheckBars(const int handle,int &ExtBars)
 
 //---
 #define BARS_COUNT 5000
+   bool tester=MQLInfoInteger(MQL_TESTER)>0;
 //---
    int errors=0;
    int bars_count=0;
+   datetime last_time=TimeCurrent();
+   datetime saved_time=0;
+//---
    while(!_StopFlag)
      {
       MqlRates bar[BARS_COUNT];
@@ -175,14 +179,21 @@ bool HstCheckBars(const int handle,int &ExtBars)
       if(num_of_bars==0 || fmod(num_of_bars,sizeof(MqlRates)!=0))
          break;
 
-      //---
       int total=num_of_bars/sizeof(MqlRates);
-      for(int i=0;i<total;i++)
+      for(int i=0; i<total; i++)
         {
          //--- check time
-         if(bar[i].time>TimeCurrent())
+         if(bar[i].time<saved_time)
            {
-            printf("Invalid time %s. Should be less than current time %s",TimeToString(bar[i].time),TimeToString(TimeCurrent()));
+            printf("Invalid time %s. Should be more than last time %s",TimeToString(bar[i].time),TimeToString(saved_time));
+            errors++;
+           }
+         saved_time=bar[i].time;
+
+         //---
+         if(!tester && bar[i].time>last_time)
+           {
+            printf("Invalid time %s. Should be less than last time %s",TimeToString(bar[i].time),TimeToString(last_time));
             errors++;
            }
 
@@ -191,7 +202,7 @@ bool HstCheckBars(const int handle,int &ExtBars)
             bar[i].low>bar[i].close ||
             bar[i].low>bar[i].high)
            {
-            printf("Invalid low price %s. Should be less than open %s, close %s, high %s",
+            printf("Invalid low price %s. Should be less than open %s, close %s and high %s",
                    DoubleToString(bar[i].low,_Digits),
                    DoubleToString(bar[i].open,_Digits),
                    DoubleToString(bar[i].close,_Digits),
@@ -204,7 +215,7 @@ bool HstCheckBars(const int handle,int &ExtBars)
             bar[i].high<bar[i].close ||
             bar[i].high<bar[i].low)
            {
-            printf("Invalid high price %s. Should be less than open %s, close %s, low %s",
+            printf("Invalid high price %s. Should be more than open %s, close %s and low %s",
                    DoubleToString(bar[i].high,_Digits),
                    DoubleToString(bar[i].open,_Digits),
                    DoubleToString(bar[i].close,_Digits),
