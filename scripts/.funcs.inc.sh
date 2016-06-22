@@ -411,8 +411,8 @@ copy_ini() {
 # Find EA file and return path.
 find_ea() {
   local file="$1"
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" '(' -name "$1.mq?" -o -name "$1.ex?" ')' -print -quit)
-  local match=$(find "$TERMINAL_DIR" "$ROOT" '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit)
+  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ '(' -name "$1.mq?" -o -name "$1.ex?" ')' -print -quit)
+  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
