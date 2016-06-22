@@ -14,6 +14,7 @@ opts = GetoptLong.new(
   [ '--power-off',      GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--push-repo',      GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
@@ -31,6 +32,7 @@ no_setup       = ENV['NO_SETUP']
 power_off      = ENV['POWER_OFF']
 private_key    = ENV['PRIVATE_KEY']
 provider       = ENV['PROVIDER'] || 'virtualbox'
+push_repo      = ENV['PUSH_REPO']
 run_test       = ENV['RUN_TEST']
 security_group = ENV['SECURITY_GROUP']
 subnet_id      = ENV['SUBNET_ID']
@@ -48,6 +50,7 @@ begin
       when '--power-off';      power_off      = arg.to_i
       when '--private-key';    private_key    = arg
       when '--provider';       provider       = arg
+      when '--push-repo';      push_repo      = !arg.to_i.zero?
       when '--run-test';       run_test       = arg
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
@@ -100,6 +103,15 @@ Vagrant.configure(2) do |config|
       s.binary = true # Replace Windows line endings with Unix line endings.
       s.privileged = false # Run as a non privileged user.
       s.inline = %Q[/vagrant/scripts/run_backtest.sh #{run_test}]
+    end
+  end
+
+  if push_repo
+    # The clone_repo parameter is required for push to work correctly.
+    config.vm.provision "shell" do |s|
+      s.binary = true # Replace Windows line endings with Unix line endings.
+      s.privileged = false # Run as a non privileged user.
+      s.inline = %Q[/vagrant/scripts/push_repo.sh "#{clone_repo}" "#{vm_name}"]
     end
   end
 
