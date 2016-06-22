@@ -516,6 +516,7 @@ install_mt() {
       cd "$WINE_PATH"
       wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
       unzip -u mt*.zip
+      cd -
     ;;
     *)
       echo "Error: Unknown platform version, try either 4 or 5." >&2
