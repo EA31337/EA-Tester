@@ -339,6 +339,11 @@ while getopts $ARGS arg; do
       type html2text >&2
       ;;
 
+    X)
+      echo "Checking whether after test script exists..." >&2
+      [ -f "$OPTARG" ] || { echo "ERROR: Script specified by -X parameter does no exist." >&2; exit 1; }
+      ;;
+
     # Placeholders for parameters used somewhere else.
     e | h | G | m | M | p | y | C | b | I | v | x) ;;
 
