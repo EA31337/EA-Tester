@@ -65,7 +65,10 @@ int OnInit()
      }
 
 //--- Build file path
-   string path=StringFormat("%s\\history\\%s\\%s%d.hst",TerminalInfoString(TERMINAL_PATH),AccountInfoString(ACCOUNT_SERVER),_Symbol,_Period);
+   string server=AccountInfoString(ACCOUNT_SERVER);
+   if(StringLen(server)==0)
+      server="default";
+   string path=StringFormat("%s\\history\\%s\\%s%d.hst",TerminalInfoString(TERMINAL_PATH),server,_Symbol,_Period);
    printf("File Path=%s",path);
 
 //--- open file for reading
