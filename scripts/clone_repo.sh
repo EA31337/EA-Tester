@@ -8,5 +8,5 @@ REPO=$1
 DIR="$(basename "$REPO")"
 [ ! "$REPO" ] && { echo "Usage: $0 (git@repo/url)"; exit 1; }
 
-[ ! -d "$DIR" ] && git clone "$REPO";
-cd "$DIR" && git status
+[ ! -d "$DIR" ] && git clone "$REPO" -b master --single-branch
+cd "$DIR" && git status && git reset origin/master --hard

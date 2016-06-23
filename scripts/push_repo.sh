@@ -10,6 +10,6 @@ dir="$(basename "$repo")"
 message=${message:-$(echo Test results for $branch)}
 
 [ -d "$dir" ] && cd "$dir"
-git status
-[ "$branch" ] && git checkout -f "$branch"
+[ "$branch" ] && git checkout -fB "$branch"
+git status && git diff
 git commit -am "$message" && git push "$repo" "$branch" -vf || true
