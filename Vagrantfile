@@ -5,27 +5,30 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
-  [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--no-setup',       GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--power-off',      GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--push-repo',      GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--terminate',      GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ], # Asset to download (see: get_gh_asset.sh).
+  [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ], # Clone git repository.
+  [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ], # Number of CPUs.
+  [ '--git-args',       GetoptLong::OPTIONAL_ARGUMENT ], # Git arguments for commit (e.g. author).
+  [ '--github-token',   GetoptLong::OPTIONAL_ARGUMENT ], # GitHub API access token
+  [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ], # SSH access keypair name (EC2).
+  [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ], # Size of memory.
+  [ '--no-setup',       GetoptLong::OPTIONAL_ARGUMENT ], # No setup when set.
+  [ '--power-off',      GetoptLong::OPTIONAL_ARGUMENT ], # Power off when set.
+  [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ], # Path to private key.
+  [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ], # Name of provider (e.g. aws).
+  [ '--push-repo',      GetoptLong::OPTIONAL_ARGUMENT ], # Push changes when set.
+  [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ], # Arguments for run_backtest.sh.
+  [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ], # Name of EC2 security group.
+  [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ], # Name of subnet ID (EC2).
+  [ '--terminate',      GetoptLong::OPTIONAL_ARGUMENT ], # Terminate instance when set.
+  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ], # Name of the VM.
 )
 
 asset          = ENV['ASSET']
 clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
-gh_token       = ENV['GITHUB_API_TOKEN']
+git_args       = ENV['GIT_ARGS']
+github_token   = ENV['GITHUB_API_TOKEN']
 keypair_name   = ENV['KEYPAIR_NAME']
 memory         = ENV['MEMORY'] || 2048
 no_setup       = ENV['NO_SETUP']
@@ -44,6 +47,8 @@ begin
       when '--asset';          asset          = arg
       when '--clone-repo';     clone_repo     = arg
       when '--cpus';           cpus           = arg.to_i
+      when '--git-args';       git_args       = arg
+      when '--github-token';   github_token   = arg
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
       when '--no-setup';       no_setup       = !arg.to_i.zero?
@@ -84,7 +89,7 @@ Vagrant.configure(2) do |config|
       s.inline = %Q[/usr/bin/env \
                  CLEAN=1 \
                  OVERRIDE=1 \
-                 GITHUB_API_TOKEN=#{gh_token} \
+                 GITHUB_API_TOKEN=#{github_token} \
                  /vagrant/scripts/get_gh_asset.sh #{asset}
       ]
     end
@@ -111,7 +116,10 @@ Vagrant.configure(2) do |config|
     config.vm.provision "shell" do |s|
       s.binary = true # Replace Windows line endings with Unix line endings.
       s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/vagrant/scripts/push_repo.sh "#{clone_repo}" "#{vm_name}"]
+      s.inline = %Q[/usr/bin/env \
+                 GIT_ARGS='#{git_args}' \
+                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}'
+      ]
     end
   end
 

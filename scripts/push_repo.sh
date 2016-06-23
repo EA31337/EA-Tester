@@ -4,12 +4,12 @@
 set -e
 type git 2> /dev/null
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-read repo branch message args <<<$@
-[ ! "$repo" ] && { echo "Usage: $0 (git@repo/url) (branch) (message)"; exit 1; }
+read repo branch message <<<$@
+[ ! "$repo" ] && { echo "Usage: $0 (git@repo/url) (branch) (message) (author)"; exit 1; }
 dir="$(basename "$repo")"
-message=${message:-$(echo Test results for $branch)}
+message="${message:-$(echo "$branch")}"
 
 [ -d "$dir" ] && cd "$dir"
-[ "$branch" ] && git checkout -fB "$branch"
+[ "$branch" ] && git checkout -mB "$branch"
 git status && git diff
-git commit -am "$message" && git push "$repo" "$branch" -vf || true
+git commit -am "$message" "$GIT_ARGS" && git push "$repo" "$branch" -vf || true
