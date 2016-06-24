@@ -285,8 +285,8 @@ while getopts $ARGS arg; do
       SETORG="$OPTARG"
       SETFILE="${EA_NAME}.set"
       echo "Configuring EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
-      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
+      [ -f "$SETORG" ] || { echo "ERROR: Set file not found ($SETORG)!" >&2; exit 1; }
+      cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
       ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
       ;;
