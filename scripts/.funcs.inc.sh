@@ -46,6 +46,7 @@ check_logs() {
 
 # Display logs in real-time.
 live_logs() {
+  local filter=${1:-modify}
   while sleep 20; do
     if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
       break;
@@ -53,7 +54,7 @@ live_logs() {
     echo
   done
   echo "Showing live logs..." >&2
-  tail -f "$TESTER_DIR"/*/*.log
+  tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
 }
 
 # Check required files.
