@@ -412,8 +412,8 @@ copy_ini() {
 # Find EA file and return path.
 find_ea() {
   local file="$1"
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ '(' -name "$1.mq?" -o -name "$1.ex?" ')' -print -quit)
-  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit)
+  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ '(' -name "$1.mq?" -o -name "$1.ex?" ')' -maxdepth 3 -print -quit)
+  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -maxdepth 3 -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
@@ -516,7 +516,7 @@ install_mt() {
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
       cd "$WINE_PATH"
       wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
-      unzip -u mt*.zip
+      unzip -fou mt*.zip
       cd -
     ;;
     *)

@@ -220,15 +220,6 @@ while getopts $ARGS arg; do
   esac
 done
 
-
-# Parse the tertiary arguments.
-OPTIND=1
-while getopts $ARGS arg; do
-  case ${arg} in
-    # todo
-  esac
-done
-
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
 SYMBOL="$(ini_get TestSymbol)"
@@ -237,6 +228,14 @@ EA_INI="$TESTER_DIR/$EA_NAME.ini"
 cp $VFLAG "$TPL_EA" "$EA_INI"
 copy_srv
 check_files
+
+# Parse the tertiary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
+    # @todo
+  esac
+done
 
 # Download backtest data if needed.
 echo "Checking backtest data (${BT_SRC:-DS})..."
@@ -294,7 +293,7 @@ while getopts $ARGS arg; do
     i) # Invoke file with custom rules.
       type bc
       INCLUDE=${OPTARG}
-      SETFILE="$(ini_get TestExpert).set"
+      SETFILE="${EA_NAME}.set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
       echo "Invoking include file ($INCLUDE)..." >&2
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
