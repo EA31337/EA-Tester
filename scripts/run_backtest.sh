@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:Re:f:GE:c:p:d:D:m:M:y:b:s:l:oi:I:CtTO:vxX:h"
+ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -233,7 +233,17 @@ check_files
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
-    # @todo
+
+    f) # The .set file to run the test.
+      SETORG="$OPTARG"
+      SETFILE="${EA_NAME}.set"
+      echo "Configuring EA parameters ($SETFILE)..." >&2
+      [ -f "$SETORG" ] || { echo "ERROR: Set file not found ($SETORG)!" >&2; exit 1; }
+      cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ;;
+
   esac
 done
 
@@ -280,16 +290,6 @@ while getopts $ARGS arg; do
       ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
       ;;
 
-    f) # The .set file to run the test.
-      SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
-      echo "Configuring EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ] || { echo "ERROR: Set file not found ($SETORG)!" >&2; exit 1; }
-      cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      ;;
-
     i) # Invoke file with custom rules.
       type bc
       INCLUDE=${OPTARG}
@@ -334,6 +334,17 @@ while getopts $ARGS arg; do
       set_spread $SPREAD
       ;;
 
+    S) # Set EA option in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+      SET_OPTS=${OPTARG}
+      echo "Setting EA options ($SET_OPTS)..." >&2
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+      IFS=','; set_options=($SET_OPTS); restore_ifs
+      for set_pair in "${set_options[@]}"; do
+        IFS='='; set_option=($set_pair); restore_ifs
+        input_set "${set_option[0]}" "${set_option[1]}"
+      done
+      ;;
+
     t)
       type html2text >&2
       ;;
@@ -344,7 +355,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    e | h | G | m | M | p | y | C | b | I | v | x) ;;
+    b | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
     *) # Display help.
       echo "$0 usage:" >&2
