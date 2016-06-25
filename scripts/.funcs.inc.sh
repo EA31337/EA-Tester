@@ -516,7 +516,7 @@ install_mt() {
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
       cd "$WINE_PATH"
       wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
-      unzip -fou mt*.zip
+      unzip -ou mt*.zip
       cd -
     ;;
     *)
