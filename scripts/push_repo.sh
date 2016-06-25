@@ -11,5 +11,5 @@ message="${message:-$(echo "$branch")}"
 
 [ -d "$dir" ] && cd "$dir"
 [ "$branch" ] && git checkout -mB "$branch"
-git status && git diff
+git add -vA && git status && git diff
 git commit -am "$message" "$GIT_ARGS" && git push "$repo" "$branch" -vf || true
