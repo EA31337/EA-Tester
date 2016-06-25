@@ -132,7 +132,8 @@ ini_set() {
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || echo "$key=$value" >> "$file"
+    ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+    # @remove?: echo "$key=$value" >> "$file"
   else
     echo "Value for '$key' is empty, ignoring."
   fi
