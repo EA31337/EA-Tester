@@ -277,7 +277,7 @@ while getopts $ARGS arg; do
       IFS='='; ea_option=($EA_OPTS)
       IFS=$' \t\n' # Restore IFS.
       [ -f "$EA_INI" ]
-      ini_set_ea "^${ea_option[0]}" "${ea_option[1]}"
+      ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
       ;;
 
     f) # The .set file to run the test.
