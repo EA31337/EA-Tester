@@ -3,13 +3,14 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS=":r:Re:f:GE:c:p:d:D:m:M:y:b:s:l:oi:I:CtTO:vxX:h"
+ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
 ## Initialize.
 . $CWD/.funcs.inc.sh
+. $CWD/.vars.inc.sh
 
 ## Define local functions.
 
@@ -24,6 +25,7 @@ on_success() {
   ! check_logs ".\+ cannot start" || exit 1
   ! check_logs ".\+ cannot open" || exit 1
   ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated
+  ! check_logs ".\+ not initialized" || exit 1
   ! check_logs "Error: .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
@@ -122,21 +124,10 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4x}
+      type unzip 2> /dev/null
       configure_display
-      case $MT_VER in
-        4)
-          . $CWD/install_mt4.sh
-        ;;
-        4x)
-          . $CWD/install_mt4-xdot.sh
-        ;;
-        5)
-          . $CWD/install_mt5.sh
-        ;;
-        *)
-          echo "Error: Unknown platform version, try either 4 or 5." >&2
-          exit 1
-      esac
+      install_mt $MT_VER
+      . $CWD/.vars.inc.sh # Reload variables.
       ;;
 
     v) # Verbose mode.
@@ -157,7 +148,6 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-. $CWD/.vars.inc.sh
 [ "$TERMINAL_EXE" ] \
   || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
 
@@ -230,15 +220,6 @@ while getopts $ARGS arg; do
   esac
 done
 
-
-# Parse the tertiary arguments.
-OPTIND=1
-while getopts $ARGS arg; do
-  case ${arg} in
-    # todo
-  esac
-done
-
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
 SYMBOL="$(ini_get TestSymbol)"
@@ -247,6 +228,24 @@ EA_INI="$TESTER_DIR/$EA_NAME.ini"
 cp $VFLAG "$TPL_EA" "$EA_INI"
 copy_srv
 check_files
+
+# Parse the tertiary arguments.
+OPTIND=1
+while getopts $ARGS arg; do
+  case ${arg} in
+
+    f) # The .set file to run the test.
+      SETORG="$OPTARG"
+      SETFILE="${EA_NAME}.set"
+      echo "Configuring EA parameters ($SETFILE)..." >&2
+      [ -f "$SETORG" ] || { echo "ERROR: Set file not found ($SETORG)!" >&2; exit 1; }
+      cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ;;
+
+  esac
+done
 
 # Download backtest data if needed.
 echo "Checking backtest data (${BT_SRC:-DS})..."
@@ -288,23 +287,13 @@ while getopts $ARGS arg; do
       IFS='='; ea_option=($EA_OPTS)
       IFS=$' \t\n' # Restore IFS.
       [ -f "$EA_INI" ]
-      ini_set_ea "^${ea_option[0]}" "${ea_option[1]}"
-      ;;
-
-    f) # The .set file to run the test.
-      SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
-      echo "Configuring EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ] || { echo "ERROR: Set file not found!" >&2; exit 1; }
-      cp -f $VFLAG "$OPTARG" "$TESTER_DIR/$SETFILE"
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+      ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
       ;;
 
     i) # Invoke file with custom rules.
       type bc
       INCLUDE=${OPTARG}
-      SETFILE="$(ini_get TestExpert).set"
+      SETFILE="${EA_NAME}.set"
       [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
       echo "Invoking include file ($INCLUDE)..." >&2
       ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
@@ -345,12 +334,28 @@ while getopts $ARGS arg; do
       set_spread $SPREAD
       ;;
 
+    S) # Set EA option in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+      SET_OPTS=${OPTARG}
+      echo "Setting EA options ($SET_OPTS)..." >&2
+      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+      IFS=','; set_options=($SET_OPTS); restore_ifs
+      for set_pair in "${set_options[@]}"; do
+        IFS='='; set_option=($set_pair); restore_ifs
+        input_set "${set_option[0]}" "${set_option[1]}"
+      done
+      ;;
+
     t)
       type html2text >&2
       ;;
 
+    X)
+      echo "Checking whether after test script exists..." >&2
+      [ -f "$OPTARG" ] || { echo "ERROR: Script specified by -X parameter does no exist." >&2; exit 1; }
+      ;;
+
     # Placeholders for parameters used somewhere else.
-    e | h | G | m | M | p | y | C | b | I | v | x) ;;
+    b | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
     *) # Display help.
       echo "$0 usage:" >&2

@@ -20,7 +20,6 @@ echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
 
 echo "Starting MT4 Setup in Wine..." >&2
-configure_display
 wine "$HOME/mt4setup.exe" &
 
 set +e

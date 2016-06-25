@@ -6,8 +6,11 @@
 
 # Initialize script.
 if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
-  echo "This script needs to be run within VM."
+  echo "Error: This script needs to be run within VM." >&2
   exit 1
+elif [ -f ~/.provisioned ]; then
+  echo "Note: System already provisioned, skipping." >&2
+  exit 0
 fi
 whoami && lsb_release -a && pwd
 type curl || apt-get -y install curl
@@ -37,12 +40,12 @@ sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' 
 apt-get -qq update
 
 # Install necessary packages
-apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale
-apt-get install -qy binutils coreutils moreutils                              # Common utils
-apt-get install -qy dbus                                                      # Required for Debian AMI on EC2
-apt-get install -qy git realpath links html2text tree pv                      # Required commands
-apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image)
-apt-get install -qy wine1.8 winbind xvfb xdotool                              # Wine from PPA/Wine and tools for MT4 installer
+apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
+apt-get install -qy binutils coreutils moreutils cabextract                   # Common CLI utils.
+apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
+apt-get install -qy git realpath links html2text tree pv                      # Required commands.
+apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image).
+apt-get install -qy wine1.8 winbind xvfb xdotool                              # Wine from PPA/Wine and tools for MT4 installer.
 
 # Set-up hostname.
 grep $(hostname) /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
@@ -58,4 +61,7 @@ git init /opt
 # Give user write permission for /opt.
 chown -R $USER /opt
 
-echo "$0 done."
+# Mark system as provisioned.
+> ~/.provisioned
+
+echo "$0 done." >&2
