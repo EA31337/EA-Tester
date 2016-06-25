@@ -107,7 +107,8 @@ esac
 csv2data
 
 # Store the backtest data type.
-[ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"
-ini_set "bt_data" "$bt_key" "$CUSTOM_INI" || echo "bt_data=$bt_key" >> "$CUSTOM_INI"
+[ -f "$CUSTOM_INI" ] \
+  && ini_set "bt_data" "$bt_key" "$CUSTOM_INI" \
+  || echo "bt_data=$bt_key" > "$CUSTOM_INI"
 
 echo "$0 done."
