@@ -8,8 +8,10 @@ opts = GetoptLong.new(
   [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ], # Asset to download (see: get_gh_asset.sh).
   [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ], # Clone git repository.
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ], # Number of CPUs.
+  [ '--ec2-region',     GetoptLong::OPTIONAL_ARGUMENT ], # EC2 region.
   [ '--git-args',       GetoptLong::OPTIONAL_ARGUMENT ], # Git arguments for commit (e.g. author).
-  [ '--github-token',   GetoptLong::OPTIONAL_ARGUMENT ], # GitHub API access token
+  [ '--github-token',   GetoptLong::OPTIONAL_ARGUMENT ], # GitHub API access token.
+  [ '--instance-type',  GetoptLong::OPTIONAL_ARGUMENT ], # EC2 instance type.
   [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ], # SSH access keypair name (EC2).
   [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ], # Size of memory.
   [ '--no-setup',       GetoptLong::OPTIONAL_ARGUMENT ], # No setup when set.
@@ -27,8 +29,10 @@ opts = GetoptLong.new(
 asset          = ENV['ASSET']
 clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
+ec2_region     = ENV['EC2_REGION'] || 'us-east-1'
 git_args       = ENV['GIT_ARGS']
 github_token   = ENV['GITHUB_API_TOKEN']
+instance_type  = ENV['INSTANCE_TYPE'] || 't2.small'
 keypair_name   = ENV['KEYPAIR_NAME']
 memory         = ENV['MEMORY'] || 2048
 no_setup       = ENV['NO_SETUP']
@@ -47,8 +51,10 @@ begin
       when '--asset';          asset          = arg
       when '--clone-repo';     clone_repo     = arg
       when '--cpus';           cpus           = arg.to_i
+      when '--ec2-region';     ec2_region     = arg
       when '--git-args';       git_args       = arg
       when '--github-token';   github_token   = arg
+      when '--instance-type';  instance_type  = arg
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
       when '--no-setup';       no_setup       = !arg.to_i.zero?
@@ -147,10 +153,9 @@ Vagrant.configure(2) do |config|
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
-    aws.aws_profile = "MT-testing"
-    aws.instance_type = "t2.small"
+    aws.instance_type = instance_type
     aws.keypair_name = keypair_name
-    aws.region = "us-east-1"
+    aws.region = ec2_region
     aws.tags = { 'Name' => 'MT4-' + vm_name }
     aws.terminate_on_shutdown = terminate
     if private_key then override.ssh.private_key_path = private_key end
