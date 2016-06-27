@@ -73,7 +73,7 @@ clean_files() {
   exec 1>&2
   echo "Cleaning previous test data..."
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
-  find "$TESTER_DIR/files" -type f $VPRINT -delete
+  [ -d "$TESTER_DIR"/files ] && find "$TESTER_DIR"/files -type f $VPRINT -delete
   # Remove log files.
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
   # Remove selected symbol and group files, so they can be regenerated.
@@ -419,7 +419,7 @@ find_ea() {
 
 # Copy EA file given file path.
 copy_ea() {
-  local file="$1"
+  local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
