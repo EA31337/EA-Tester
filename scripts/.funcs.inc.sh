@@ -578,7 +578,6 @@ show_trace() {
 ##  @param $1 integer  (optional) Exit status. If not set, use '$?'
 onexit() {
   local exit_status=${1:-$?}
-  set +x
   clean_up
   [ "$VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
