@@ -26,6 +26,7 @@ on_success() {
   ! check_logs ".\+ cannot open" || exit 1
   ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated
   ! check_logs ".\+ not initialized" || exit 1
+  ! check_logs ".\+ file error" || exit 1
   ! check_logs "Error: .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
