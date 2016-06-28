@@ -153,6 +153,7 @@ Vagrant.configure(2) do |config|
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
+    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 16 }]
     aws.instance_type = instance_type
     aws.keypair_name = keypair_name
     aws.region = ec2_region
