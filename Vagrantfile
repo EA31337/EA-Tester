@@ -48,13 +48,13 @@ vm_name        = ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
-      when '--asset';          asset          = arg
-      when '--clone-repo';     clone_repo     = arg
+      when '--asset';          asset          = arg.to_s
+      when '--clone-repo';     clone_repo     = arg.to_s
       when '--cpus';           cpus           = arg.to_i
-      when '--ec2-region';     ec2_region     = arg
-      when '--git-args';       git_args       = arg
-      when '--github-token';   github_token   = arg
-      when '--instance-type';  instance_type  = arg
+      when '--ec2-region';     ec2_region     = arg.to_s
+      when '--git-args';       git_args       = arg.to_s
+      when '--github-token';   github_token   = arg.to_s
+      when '--instance-type';  instance_type  = arg.to_s
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
       when '--no-setup';       no_setup       = !arg.to_i.zero?
@@ -72,6 +72,7 @@ begin
   rescue
 # @todo: Correct an invalid option error.
 end
+script = ENV['SCRIPT'] || "set -x;"
 
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
@@ -81,56 +82,44 @@ Vagrant.configure(2) do |config|
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.vm.define "mt-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
-    # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
+
 
   if not no_setup
     config.vm.provision "shell", path: "scripts/provision.sh"
   end
 
   if asset
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/usr/bin/env \
+    script << %Q[/usr/bin/env \
                  CLEAN=1 \
                  OVERRIDE=1 \
                  GITHUB_API_TOKEN=#{github_token} \
-                 /vagrant/scripts/get_gh_asset.sh #{asset}
-      ]
-    end
+                 /vagrant/scripts/get_gh_asset.sh #{asset} &&]
   end
 
   if clone_repo
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/vagrant/scripts/clone_repo.sh "#{clone_repo}"]
-    end
+    script << %Q[/vagrant/scripts/clone_repo.sh "#{clone_repo}" &&]
   end
 
   if run_test
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/vagrant/scripts/run_backtest.sh #{run_test}]
-    end
+    script << %Q[/vagrant/scripts/run_backtest.sh #{run_test} &&]
   end
 
   if push_repo
     # The clone_repo parameter is required for push to work correctly.
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/usr/bin/env \
+    script << %Q[/usr/bin/env \
                  GIT_ARGS='#{git_args}' \
-                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}'
-      ]
-    end
+                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}' &&]
   end
 
   if power_off
-    config.vm.provision "shell", inline: "poweroff --verbose"
+    script << "echo Stopping the VM...; poweroff --verbose &&"
+  end
+
+  config.vm.provision "shell" do |s|
+    s.binary = true # Replace Windows line endings with Unix line endings.
+    s.privileged = false # Run as a non privileged user.
+    s.inline = script << "echo done"
   end
 
   config.vm.provider "virtualbox" do |vbox, override|
