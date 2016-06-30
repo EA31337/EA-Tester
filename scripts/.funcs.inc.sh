@@ -101,6 +101,7 @@ input_set() {
   local value="$2"
   local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   local vargs="-u NONE"
+  [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -117,6 +118,7 @@ input_get() {
   local value="$2"
   local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   local vargs="-u NONE"
+  [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
@@ -128,6 +130,7 @@ ini_set() {
   local value="$2"
   local file="${3:-$(echo $TESTER_INI)}"
   local vargs="-u NONE"
+  [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
