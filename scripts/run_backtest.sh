@@ -29,6 +29,7 @@ on_success() {
   ! check_logs ".\+ file error" || exit 1
   ! check_logs "stop button .\+" || exit 1
   ! check_logs "Error: .\+" || exit 1
+  ! check_logs "Configuration issue .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
