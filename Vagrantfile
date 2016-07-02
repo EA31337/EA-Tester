@@ -113,7 +113,7 @@ Vagrant.configure(2) do |config|
   end
 
   if power_off
-    script << "echo Stopping the VM...; poweroff --verbose &&"
+    script << "echo Stopping the VM...; sudo poweroff --verbose &&"
   end
 
   config.vm.provision "shell" do |s|
