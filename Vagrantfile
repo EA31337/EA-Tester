@@ -72,7 +72,8 @@ begin
   rescue
 # @todo: Correct an invalid option error.
 end
-script = ENV['SCRIPT'] || "set -x;"
+script = "set -x;"
+script << ENV['SCRIPT']
 
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
