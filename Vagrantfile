@@ -23,6 +23,7 @@ opts = GetoptLong.new(
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ], # Name of EC2 security group.
   [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ], # Name of subnet ID (EC2).
   [ '--terminate',      GetoptLong::OPTIONAL_ARGUMENT ], # Terminate instance when set.
+  [ '--volume-size',    GetoptLong::OPTIONAL_ARGUMENT ], # Volume size (in GB).
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ], # Name of the VM.
 )
 
@@ -44,7 +45,9 @@ run_test       = ENV['RUN_TEST']
 security_group = ENV['SECURITY_GROUP']
 subnet_id      = ENV['SUBNET_ID']
 terminate      = ENV['TERMINATE']
+volume_size    = ENV['VOLUME_SIZE'] || 16
 vm_name        = ENV['VM_NAME'] || 'default'
+
 begin
   opts.each do |opt, arg|
     case opt
@@ -66,6 +69,7 @@ begin
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
       when '--terminate';      terminate      = !arg.to_i.zero?
+      when '--volume-size';    volume_size    = arg.to_i
       when '--vm-name';        vm_name        = arg
     end # case
   end # each
@@ -142,7 +146,7 @@ Vagrant.configure(2) do |config|
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
-    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 16 }]
+    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => volume_size }]
     aws.instance_type = instance_type
     aws.keypair_name = keypair_name
     aws.region = ec2_region
