@@ -155,7 +155,7 @@ Vagrant.configure(2) do |config|
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
     if subnet_id then aws.subnet_id = subnet_id end
-    override.nfs.functional = false
+    override.nfs.functional = false # # @see: https://github.com/mitchellh/vagrant/issues/1437
     override.ssh.username = "ubuntu"
     override.vm.box = "mt4-backtest"
     override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
