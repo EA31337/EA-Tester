@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:r:Rs:S:oO:tTvxX:y:"
+ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -320,6 +320,12 @@ while getopts $ARGS arg; do
       DEST=${OPTARG}
       echo "Checking destination ($DEST)..." >&2
       [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
+      ;;
+
+    P) # Period to test.
+      PERIOD=${OPTARG}
+      echo "Configuring period ($PERIOD)..." >&2
+      ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
       ;;
 
     r) # The name of the test report file.
