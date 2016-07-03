@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
-//|                                                   TestMargin.mq4 |
+//|                                               TestTimeframes.mq4 |
 //|                            Copyright 2016, 31337 Investments Ltd |
 //|                                       https://github.com/EA31337 |
 //+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
-//| Test adequacy of user free margin value.
+//| Test whether timeframes are active.
 //+------------------------------------------------------------------+
 
 /*
@@ -24,15 +24,28 @@
  */
 
 #property strict
+
 int OnInit() {
-    Print("Testing MODE_MARGINREQUIRED...");
-    // Free margin required to open 1 lot for buying.
-    double market_marginrequired = MarketInfo(_Symbol, MODE_MARGINREQUIRED);
-    if (market_marginrequired > 0) {
-        PrintFormat("Free margin is valid: %g", market_marginrequired);
-        return INIT_SUCCEEDED;
-    } else {
-        PrintFormat("Error: Invalid MODE_MARGINREQUIRED: %g", market_marginrequired);
-        return INIT_FAILED;
-    }
+  bool init = INIT_SUCCEEDED;
+
+  if (!iMA(_Symbol, PERIOD_M1, 13, 8, MODE_SMMA, PRICE_MEDIAN, 0) > 0) {
+    Alert("Timeframe M1 is not active!");
+    init = INIT_FAILED;
+  }
+  if (!iMA(_Symbol, PERIOD_M5, 13, 8, MODE_SMMA, PRICE_MEDIAN, 0) > 0) {
+    Alert("Timeframe M5 is not active!");
+    init = INIT_FAILED;
+  }
+  if (!iMA(_Symbol, PERIOD_M15, 13, 8, MODE_SMMA, PRICE_MEDIAN, 0) > 0) {
+    Alert("Timeframe M15 is not active!");
+    init = INIT_FAILED;
+  }
+  if (!iMA(_Symbol, PERIOD_M30, 13, 8, MODE_SMMA, PRICE_MEDIAN, 0) > 0) {
+    Alert("Timeframe M30 is not active!");
+    init = INIT_FAILED;
+  }
+  if (init == INIT_SUCCEEDED) {
+    Print("Timeframes are correct!");
+  }
+  return (init);
 }
