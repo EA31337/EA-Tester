@@ -8,8 +8,10 @@ opts = GetoptLong.new(
   [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ], # Asset to download (see: get_gh_asset.sh).
   [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ], # Clone git repository.
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ], # Number of CPUs.
+  [ '--ec2-region',     GetoptLong::OPTIONAL_ARGUMENT ], # EC2 region.
   [ '--git-args',       GetoptLong::OPTIONAL_ARGUMENT ], # Git arguments for commit (e.g. author).
-  [ '--github-token',   GetoptLong::OPTIONAL_ARGUMENT ], # GitHub API access token
+  [ '--github-token',   GetoptLong::OPTIONAL_ARGUMENT ], # GitHub API access token.
+  [ '--instance-type',  GetoptLong::OPTIONAL_ARGUMENT ], # EC2 instance type.
   [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ], # SSH access keypair name (EC2).
   [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ], # Size of memory.
   [ '--no-setup',       GetoptLong::OPTIONAL_ARGUMENT ], # No setup when set.
@@ -27,8 +29,10 @@ opts = GetoptLong.new(
 asset          = ENV['ASSET']
 clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
+ec2_region     = ENV['EC2_REGION'] || 'us-east-1'
 git_args       = ENV['GIT_ARGS']
 github_token   = ENV['GITHUB_API_TOKEN']
+instance_type  = ENV['INSTANCE_TYPE'] || 't2.small'
 keypair_name   = ENV['KEYPAIR_NAME']
 memory         = ENV['MEMORY'] || 2048
 no_setup       = ENV['NO_SETUP']
@@ -44,11 +48,13 @@ vm_name        = ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
-      when '--asset';          asset          = arg
-      when '--clone-repo';     clone_repo     = arg
+      when '--asset';          asset          = arg.to_s
+      when '--clone-repo';     clone_repo     = arg.to_s
       when '--cpus';           cpus           = arg.to_i
-      when '--git-args';       git_args       = arg
-      when '--github-token';   github_token   = arg
+      when '--ec2-region';     ec2_region     = arg.to_s
+      when '--git-args';       git_args       = arg.to_s
+      when '--github-token';   github_token   = arg.to_s
+      when '--instance-type';  instance_type  = arg.to_s
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
       when '--no-setup';       no_setup       = !arg.to_i.zero?
@@ -66,6 +72,7 @@ begin
   rescue
 # @todo: Correct an invalid option error.
 end
+script = "set -x;"
 
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
@@ -75,56 +82,44 @@ Vagrant.configure(2) do |config|
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.vm.define "mt-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
-    # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
+
 
   if not no_setup
     config.vm.provision "shell", path: "scripts/provision.sh"
   end
 
   if asset
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/usr/bin/env \
+    script << %Q[/usr/bin/env \
                  CLEAN=1 \
                  OVERRIDE=1 \
                  GITHUB_API_TOKEN=#{github_token} \
-                 /vagrant/scripts/get_gh_asset.sh #{asset}
-      ]
-    end
+                 /vagrant/scripts/get_gh_asset.sh #{asset} &&]
   end
 
   if clone_repo
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/vagrant/scripts/clone_repo.sh "#{clone_repo}"]
-    end
+    script << %Q[/vagrant/scripts/clone_repo.sh "#{clone_repo}" &&]
   end
 
   if run_test
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/vagrant/scripts/run_backtest.sh #{run_test}]
-    end
+    script << %Q[/vagrant/scripts/run_backtest.sh #{run_test} &&]
   end
 
   if push_repo
     # The clone_repo parameter is required for push to work correctly.
-    config.vm.provision "shell" do |s|
-      s.binary = true # Replace Windows line endings with Unix line endings.
-      s.privileged = false # Run as a non privileged user.
-      s.inline = %Q[/usr/bin/env \
+    script << %Q[/usr/bin/env \
                  GIT_ARGS='#{git_args}' \
-                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}'
-      ]
-    end
+                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}' &&]
   end
 
   if power_off
-    config.vm.provision "shell", inline: "poweroff --verbose"
+    script << "echo Stopping the VM...; sudo poweroff --verbose &&"
+  end
+
+  config.vm.provision "shell" do |s|
+    s.binary = true # Replace Windows line endings with Unix line endings.
+    s.privileged = false # Run as a non privileged user.
+    s.inline = script << "echo done"
   end
 
   config.vm.provider "virtualbox" do |vbox, override|
@@ -147,10 +142,10 @@ Vagrant.configure(2) do |config|
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
-    aws.aws_profile = "MT-testing"
-    aws.instance_type = "t2.small"
+    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 16 }]
+    aws.instance_type = instance_type
     aws.keypair_name = keypair_name
-    aws.region = "us-east-1"
+    aws.region = ec2_region
     aws.tags = { 'Name' => 'MT4-' + vm_name }
     aws.terminate_on_shutdown = terminate
     if private_key then override.ssh.private_key_path = private_key end

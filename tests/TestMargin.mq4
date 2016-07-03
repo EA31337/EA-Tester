@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
-//|                                                   TestSpread.mq4 |
+//|                                                   TestMargin.mq4 |
 //|                            Copyright 2016, 31337 Investments Ltd |
 //|                                       https://github.com/EA31337 |
 //+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
-//| Test whether spread is non-zero. Fail on spread zero.
+//| Test adequacy of user free margin value.
 //+------------------------------------------------------------------+
 
 /*
@@ -25,20 +25,14 @@
 
 #property strict
 int OnInit() {
-    long symbol_spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
-    int real_spread = (int)MathRound((Ask - Bid) * MathPow(10, Digits));
-    double lot_step = MarketInfo(_Symbol, MODE_LOTSTEP);
-    Print("Testing spread...");
-    PrintFormat("Reported spread: %d points", symbol_spread);
-    PrintFormat("Real spread    : %d points", real_spread);
-    PrintFormat("Ask/Bid        : %g/%g", NormalizeDouble(Ask, Digits), NormalizeDouble(Bid, Digits));
-    PrintFormat("Symbol digits  : %g", Digits);
-    PrintFormat("Lot step       : %g", lot_step);
-    if (real_spread > 0 && symbol_spread == real_spread) {
-        Print("Spread is valid.");
+    Print("Testing MODE_MARGINREQUIRED...");
+    // Free margin required to open 1 lot for buying.
+    double market_marginrequired = MarketInfo(_Symbol, MODE_MARGINREQUIRED);
+    if (market_marginrequired > 0) {
+        PrintFormat("Free margin is valid: %g", market_marginrequired);
         return INIT_SUCCEEDED;
     } else {
-        Print("Error: Spread is not correct!");
+        PrintFormat("Error: Invalid MODE_MARGINREQUIRED: %g", market_marginrequired);
         return INIT_FAILED;
     }
 }

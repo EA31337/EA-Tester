@@ -73,7 +73,7 @@ clean_files() {
   exec 1>&2
   echo "Cleaning previous test data..."
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
-  find "$TESTER_DIR/files" -type f $VPRINT -delete
+  [ -d "$TESTER_DIR"/files ] && find "$TESTER_DIR"/files -type f $VPRINT -delete
   # Remove log files.
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
   # Remove selected symbol and group files, so they can be regenerated.
@@ -101,11 +101,12 @@ input_set() {
   local value="$2"
   local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   local vargs="-u NONE"
+  [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" || exit 1
+    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
   else
     echo "Value for '$key' is empty, ignoring."
   fi
@@ -117,6 +118,7 @@ input_get() {
   local value="$2"
   local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
   local vargs="-u NONE"
+  [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
@@ -128,6 +130,7 @@ ini_set() {
   local value="$2"
   local file="${3:-$(echo $TESTER_INI)}"
   local vargs="-u NONE"
+  [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
   [ "$VERBOSE" ] && vargs+=" -V1"
   if [ ! -z "$value" ]; then
@@ -162,7 +165,7 @@ ini_set_inputs() {
 ini_get() {
   local key="$1"
   local file="${2:-$(echo $TESTER_INI)}"
-  local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | cut -d= -f2-)"
+  local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
@@ -412,6 +415,7 @@ copy_ini() {
 # Find EA file and return path.
 find_ea() {
   local file="$1"
+  [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "$1.mq?" -o -name "$1.ex?" ')' -print -quit)
   local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
@@ -419,7 +423,7 @@ find_ea() {
 
 # Copy EA file given file path.
 copy_ea() {
-  local file="$1"
+  local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
@@ -578,7 +582,6 @@ show_trace() {
 ##  @param $1 integer  (optional) Exit status. If not set, use '$?'
 onexit() {
   local exit_status=${1:-$?}
-  set +x
   clean_up
   [ "$VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
