@@ -130,6 +130,7 @@ while getopts $ARGS arg; do
       MT_VER=${OPTARG:-4x}
       type unzip 2> /dev/null
       configure_display
+      install_filever >&2 &
       install_mt $MT_VER
       . $CWD/.vars.inc.sh # Reload variables.
       ;;
@@ -157,6 +158,13 @@ echo "Checking platform..." >&2
 
 # Re-load variables.
 . $CWD/.vars.inc.sh
+
+# Check version of installed platform.
+wait
+if [ wine filever >& /dev/null ]; then
+  echo "Installed Terminal: $(filever terminal.exe)"
+  echo "Installed MetaEditor: $(filever metaeditor.exe)"
+fi
 
 # Copy ini files.
 copy_ini

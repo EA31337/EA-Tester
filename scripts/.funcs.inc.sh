@@ -527,10 +527,6 @@ install_mt() {
       echo "Error: Unknown platform version, try either 4 or 5." >&2
       exit 1
   esac
-  set -x
-  echo "Installed Terminal: $(filever terminal.exe)"
-  echo "Installed MetaEditor: $(filever metaeditor.exe)"
-  set +x
 }
 
 ## Install filever
