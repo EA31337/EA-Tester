@@ -48,4 +48,4 @@ wineserver -k
 
 find ~ /opt -name terminal.exe -print -quit
 echo "Installation successful." >&2
-echo "$0 done." >&2
+echo "$BASH_SOURCE done." >&2
