@@ -362,10 +362,12 @@ if [ -n "$INCLUDE" ]; then
 fi
 if [ -n "$EA_OPTS" ]; then
   echo "Applying EA settings ($EA_OPTS)..." >&2
-  IFS='='; ea_option=($EA_OPTS)
-  IFS=$' \t\n' # Restore IFS.
   [ -f "$EA_INI" ]
-  ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
+  IFS=','; ea_options=($EA_OPTS); restore_ifs
+  for opt_pair in "${ea_options[@]}"; do
+    IFS='='; ea_option=($opt_pair); restore_ifs
+    ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
+  done
 fi
 if [ -n "$CURRENCY" ]; then
   echo "Configuring base currency ($CURRENCY)..." >&2
