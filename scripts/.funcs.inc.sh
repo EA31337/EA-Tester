@@ -506,7 +506,6 @@ enhance_gif() {
 install_mt() {
   type wget > /dev/null
   local mt_ver=$1
-  (wine filever >& /dev/null || install_filever >&2) &
   case $mt_ver in
     4)
       . $CWD/install_mt4.sh
@@ -528,8 +527,10 @@ install_mt() {
       echo "Error: Unknown platform version, try either 4 or 5." >&2
       exit 1
   esac
+  set -x
   echo "Installed Terminal: $(filever terminal.exe)"
   echo "Installed MetaEditor: $(filever metaeditor.exe)"
+  set +x
 }
 
 ## Install filever
