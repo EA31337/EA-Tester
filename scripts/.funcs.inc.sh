@@ -530,12 +530,12 @@ install_mt() {
 }
 
 ## Install filever
-install_filever() {
+install_support_tools() {
   type wget cabextract install wine >&2
   wine filever > /dev/null && return
   local tools_url="http://web.archive.org/https://download.microsoft.com/download/d/3/8/d38066aa-4e37-4ae8-bce3-a4ce662b2024/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
-  echo "Installing filever tool..." >&2
+  echo "Installing support tools..." >&2
   cd "$dtmp"
   wget "$tools_url"
   cabextract -F support.cab *.exe
@@ -549,7 +549,7 @@ install_filever() {
 # Usage: filever terminal.exe
 filever() {
   type awk > /dev/null
-  wine filever >& /dev/null || install_filever >&2
+  wine filever >& /dev/null || install_support_tools >&2
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
