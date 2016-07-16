@@ -40,6 +40,7 @@ after_script:
 - tree ~/.wine/drive_c/Program*
 before_cache:
 - set +e
+- set -x
 - test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete
 cache:
   apt: true
