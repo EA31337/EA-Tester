@@ -565,9 +565,10 @@ clean_up() {
   kill $(jobs -p) 2> /dev/null || true
 }
 
-## Kill  the currently running wineserver.
+## Kills the currently running wineserver.
 kill_wine() {
-  (wineserver -k || true)
+  type wineserver 2> /dev/null || return
+  wineserver -k || true
 }
 
 # Restore IFS.
