@@ -22,6 +22,7 @@ initialize() {
 
   # Activate trace on demand.
   [ "$TRACE" ] && set -x
+  # Exit immediately if a command exits with a non-zero status.
   [ ! "$NOFAIL" ] && set -e
 }
 
@@ -506,6 +507,7 @@ enhance_gif() {
 install_mt() {
   type wget > /dev/null
   local mt_ver=$1
+  configure_display
   case $mt_ver in
     4)
       . $CWD/install_mt4.sh
