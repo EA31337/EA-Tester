@@ -296,7 +296,7 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      INCLUDE=${OPTARG}
+      INCLUDE="${INCLUDE} ${OPTARG}"
       ;;
 
     l) # Lot step.
@@ -358,7 +358,7 @@ if [ -n "$INCLUDE" ]; then
     type bc
     echo "Invoking include file ($INCLUDE)..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-    . "$INCLUDE"
+    . <(cat $INCLUDE)
   else
     echo "ERROR: Please specify .set file first (-f)." >&2
     exit 1
