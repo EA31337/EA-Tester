@@ -4,6 +4,7 @@ set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml="
+[ "$TRACE" ] && set -x
 
 # Check the dependencies.
 #type winetricks

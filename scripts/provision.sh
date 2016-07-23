@@ -5,6 +5,7 @@
 #
 
 # Initialize script.
+[ "$TRACE" ] && set -x
 if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
   echo "Error: This script needs to be run within VM." >&2
   exit 1
