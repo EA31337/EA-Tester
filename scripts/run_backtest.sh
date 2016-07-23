@@ -11,6 +11,7 @@ type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 ## Initialize.
 . $CWD/.funcs.inc.sh
 . $CWD/.vars.inc.sh
+configure_display
 
 ## Define local functions.
 
@@ -129,7 +130,6 @@ while getopts $ARGS arg; do
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4x}
       type unzip 2> /dev/null
-      configure_display
       install_mt $MT_VER
       . $CWD/.vars.inc.sh # Reload variables.
       ;;
@@ -425,7 +425,6 @@ fi
 clean_files
 
 # Run the test under the platform.
-configure_display
 live_logs &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
