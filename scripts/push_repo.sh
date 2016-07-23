@@ -10,6 +10,7 @@ dir="$(basename "$repo")"
 message="${message:-$(echo "$branch")}"
 
 [ -d "$dir" ] && cd "$dir"
+git status || pwd
 [ "$branch" ] && git checkout -mB "$branch"
 git add -vA && git status && git diff
 git commit -am "$message" "$GIT_ARGS" && git push "$repo" "$branch" -vf || true
