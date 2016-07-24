@@ -93,7 +93,7 @@ parse_results() {
         enhance_gif "$REPORT_GIF"
         ;;
       O)
-        DEST="${DEST:-$(echo $CWD)}"
+        DEST="${DEST:-$CWD}"
         echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
@@ -112,6 +112,9 @@ parse_results() {
             ini_set "^$input" "$value" "$SETORG"
           done
         fi
+        ;;
+      *)
+        ignores="$arg=$OPTARG"
         ;;
       esac
   done
