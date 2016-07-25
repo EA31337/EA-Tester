@@ -12,6 +12,15 @@ message="${message:-$(echo "$branch")}"
 
 [ -d "$dir" ] && cd "$dir"
 git status || pwd
+
+# Checkout or create the given branch.
 [ "$branch" ] && git checkout -mB "$branch"
+
+# Pull the changes from upstream branch or ignore.
+git pull -r -Xours origin "$branch" || true
+
+# Add all files and display the changes.
 git add -vA && git status && git diff
+
+# Commit and push the changes.
 git commit -am "$message" "$GIT_ARGS" && git push "$repo" "$branch" -vf || true
