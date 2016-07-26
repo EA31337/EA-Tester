@@ -11,6 +11,7 @@ dir="$(basename "$repo")"
 message="${message:-$(echo "$branch")}"
 
 [ -d "$dir" ] && cd "$dir"
+git --version
 git status || pwd
 
 # Checkout or create the given branch.
