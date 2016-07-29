@@ -149,6 +149,9 @@ ini_set_ea() {
   local key=$1
   local value=$2
   ini_set ^$key $value "$EA_INI"
+  if [ $? -ne 0 ]; then
+    echo "$key=$value" >> "$EA_INI"
+  fi
 }
 
 # Set inputs in the EA INI file.
