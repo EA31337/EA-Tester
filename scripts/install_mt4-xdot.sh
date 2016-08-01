@@ -4,6 +4,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 DTMP=$(mktemp -d)
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml="
+[ "$TRACE" ] && set -x
 
 # Check the dependencies.
 type wget xdotool xwininfo wine winetricks ar >&2
@@ -48,4 +49,4 @@ wineserver -k
 
 find ~ /opt -name terminal.exe -print -quit
 echo "Installation successful." >&2
-echo "$0 done." >&2
+echo "$BASH_SOURCE done." >&2

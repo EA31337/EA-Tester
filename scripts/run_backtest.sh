@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:r:Rs:S:oO:tTvxX:y:"
+ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -11,6 +11,7 @@ type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 ## Initialize.
 . $CWD/.funcs.inc.sh
 . $CWD/.vars.inc.sh
+configure_display
 
 ## Define local functions.
 
@@ -92,7 +93,7 @@ parse_results() {
         enhance_gif "$REPORT_GIF"
         ;;
       O)
-        DEST="${DEST:-$(echo $CWD)}"
+        DEST="${DEST:-$CWD}"
         echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
@@ -112,6 +113,9 @@ parse_results() {
           done
         fi
         ;;
+      *)
+        ignores="$arg=$OPTARG"
+        ;;
       esac
   done
 }
@@ -129,7 +133,6 @@ while getopts $ARGS arg; do
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4x}
       type unzip 2> /dev/null
-      configure_display
       install_mt $MT_VER
       . $CWD/.vars.inc.sh # Reload variables.
       ;;
@@ -158,6 +161,10 @@ echo "Checking platform..." >&2
 # Re-load variables.
 . $CWD/.vars.inc.sh
 
+# Check the version of installed platform.
+echo "Installed Terminal: $(filever terminal.exe)"
+echo "Installed MetaEditor: $(filever metaeditor.exe)"
+
 # Copy ini files.
 copy_ini
 
@@ -166,12 +173,8 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-    e) # EA name.
-      EA_NAME=${OPTARG}
-      EA_PATH=$(find_ea "$EA_NAME")
-      [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-      copy_ea "$EA_PATH"
-      ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+    b) # Backtest data to test.
+      BT_SRC=${OPTARG}
       ;;
 
     C) # Clear previous backtest data files.
@@ -179,77 +182,89 @@ while getopts $ARGS arg; do
       clean_bt
       ;;
 
+    e) # EA name.
+      EA_NAME=${OPTARG}
+      EA_PATH=$(find_ea "$EA_NAME")
+      ;;
+
+    f) # The .set file to run the test.
+      SETORG="$OPTARG"
+      SETFILE="${EA_NAME}.set"
+      ;;
+
+    I) # Change tester INI file with custom settings.
+      TEST_OPTS=${OPTARG}
+      ;;
+
     m) # Which months to test (default: 1-12)
       IFS='-' MONTHS=(${OPTARG})
       IFS=$' \t\n' # Restore IFS.
       ;;
 
-  esac
-done
-
-# Parse the secondary arguments.
-OPTIND=1
-while getopts $ARGS arg; do
-  case ${arg} in
-
-    b) # Backtest data to test.
-      BT_SRC=${OPTARG}
+    p) # Symbol pair to test (e.g. EURUSD).
+      SYMBOL=${OPTARG}
       ;;
 
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
       START_DATE="$YEAR.${MONTHS[0]:-01}.01"
       END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
-      echo "Configuring test period ($START_DATE-$END_DATE)..." >&2
-      ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
-      ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
-      ;;
-
-    p) # Symbol pair to test (e.g. EURUSD).
-      SYMBOL=${OPTARG}
-      echo "Configuring symbol pair ($SYMBOL)..." >&2
-      ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
-      ;;
-
-    I) # Change tester INI file with custom settings.
-      TEST_OPTS=${OPTARG}
-      echo "Applying tester settings ($TEST_OPTS)..." >&2
-      IFS=','; test_options=($TEST_OPTS); restore_ifs
-      for opt_pair in "${test_options[@]}"; do
-        IFS='='; test_option=($opt_pair); restore_ifs
-        ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
-      done
       ;;
 
   esac
 done
 
+if [ -n "$EA_PATH" ]; then
+  [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
+  copy_ea "$EA_PATH"
+  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+fi
+
+if [ -n "$START_DATE" ]; then
+  echo "Configuring start test period ($START_DATE)..." >&2
+  ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
+fi
+if [ -n "$END_DATE" ]; then
+  echo "Configuring end test period ($END_DATE)..." >&2
+  ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
+fi
+
+if [ -n "$SYMBOL" ]; then
+  echo "Configuring symbol pair ($SYMBOL)..." >&2
+  ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
+else
+  SYMBOL="$(ini_get TestSymbol)"
+fi
+
+if [ -n "$TEST_OPTS" ]; then
+  echo "Applying tester settings ($TEST_OPTS)..." >&2
+  IFS=','; test_options=($TEST_OPTS); restore_ifs
+  for opt_pair in "${test_options[@]}"; do
+    IFS='='; test_option=($opt_pair); restore_ifs
+    ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+  done
+fi
+
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
-SYMBOL="$(ini_get TestSymbol)"
-SERVER="$(ini_get Server)"
+SERVER="${SERVER:-$(ini_get Server)}"
 EA_INI="$TESTER_DIR/$EA_NAME.ini"
+SETFILE="${EA_NAME}.set"
 cp $VFLAG "$TPL_EA" "$EA_INI"
 copy_srv
 check_files
 
-# Parse the tertiary arguments.
-OPTIND=1
-while getopts $ARGS arg; do
-  case ${arg} in
-
-    f) # The .set file to run the test.
-      SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
-      echo "Configuring EA parameters ($SETFILE)..." >&2
-      [ -f "$SETORG" ] || { echo "ERROR: Set file not found ($SETORG)!" >&2; exit 1; }
-      cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      ;;
-
-  esac
-done
+if [ -n "$SETORG" ]; then
+  if [ -f "$SETORG" ]; then
+    echo "Configuring EA parameters ($SETFILE)..." >&2
+    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+    ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+  else
+    echo "ERROR: Set file not found ($SETORG)!" >&2
+    exit 1
+  fi
+fi
 
 # Download backtest data if needed.
 echo "Checking backtest data (${BT_SRC:-DS})..."
@@ -269,63 +284,42 @@ while getopts $ARGS arg; do
 
     c) # Base currency for test (e.g. USD).
       CURRENCY=${OPTARG}
-      echo "Configuring base currency ($CURRENCY)..." >&2
-      ini_set "^currency" "$CURRENCY" "$EA_INI"
       ;;
 
     d) # Deposit amount to test (e.g. 2000).
       DEPOSIT=${OPTARG}
-      echo "Configuring deposit ($DEPOSIT)..." >&2
-      ini_set "^deposit" "$DEPOSIT" "$EA_INI"
       ;;
 
     D) # Change market digits.
       DIGITS=${OPTARG}
-      echo "Configuring digits ($DIGITS)..." >&2
-      set_digits $DIGITS
       ;;
 
     E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
       EA_OPTS=${OPTARG}
-      echo "Applying EA settings ($EA_OPTS)..." >&2
-      IFS='='; ea_option=($EA_OPTS)
-      IFS=$' \t\n' # Restore IFS.
-      [ -f "$EA_INI" ]
-      ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
       ;;
 
     i) # Invoke file with custom rules.
-      type bc
-      INCLUDE=${OPTARG}
-      SETFILE="${EA_NAME}.set"
-      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-      echo "Invoking include file ($INCLUDE)..." >&2
-      ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-      . "$INCLUDE"
+      INCLUDE="${INCLUDE} ${OPTARG}"
       ;;
 
     l) # Lot step.
       LOTSTEP=${OPTARG}
-      echo "Configuring lot step ($LOTSTEP)..." >&2
-      set_lotstep $LOTSTEP
       ;;
 
     o) # Run optimization test.
       OPTIMIZATION=true
-      echo "Configuring optimization mode..." >&2
-      ini_set "^TestOptimization" true "$TESTER_INI"
       ;;
 
     O) # Output directory to save the test results.
       DEST=${OPTARG}
-      echo "Checking destination ($DEST)..." >&2
-      [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
+      ;;
+
+    P) # Period to test.
+      PERIOD=${OPTARG}
       ;;
 
     r) # The name of the test report file.
       REPORT="tester/$(basename "${OPTARG}")"
-      echo "Configuring test report ($REPORT)..." >&2
-      ini_set "^TestReport" "$REPORT" "$TESTER_INI"
       ;;
 
     R) # Set files to read-only.
@@ -334,19 +328,10 @@ while getopts $ARGS arg; do
 
     s) # Spread to test.
       SPREAD=${OPTARG}
-      echo "Configuring spread ($SPREAD)..." >&2
-      set_spread $SPREAD
       ;;
 
     S) # Set EA option in SET file (e.g. VerboseInfo=1,TakeProfit=0).
       SET_OPTS=${OPTARG}
-      echo "Setting EA options ($SET_OPTS)..." >&2
-      [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-      IFS=','; set_options=($SET_OPTS); restore_ifs
-      for set_pair in "${set_options[@]}"; do
-        IFS='='; set_option=($set_pair); restore_ifs
-        input_set "${set_option[0]}" "${set_option[1]}"
-      done
       ;;
 
     t)
@@ -370,13 +355,79 @@ while getopts $ARGS arg; do
   esac
 done
 
+# Apply settings.
+if [ -n "$INCLUDE" ]; then
+  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+    type bc
+    echo "Invoking include file ($INCLUDE)..." >&2
+    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+    . <(cat $INCLUDE)
+  else
+    echo "ERROR: Please specify .set file first (-f)." >&2
+    exit 1
+  fi
+fi
+if [ -n "$EA_OPTS" ]; then
+  echo "Applying EA settings ($EA_OPTS)..." >&2
+  [ -f "$EA_INI" ]
+  IFS=','; ea_options=($EA_OPTS); restore_ifs
+  for opt_pair in "${ea_options[@]}"; do
+    IFS='='; ea_option=($opt_pair); restore_ifs
+    ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
+  done
+fi
+if [ -n "$CURRENCY" ]; then
+  echo "Configuring base currency ($CURRENCY)..." >&2
+  ini_set "^currency" "$CURRENCY" "$EA_INI"
+fi
+if [ -n "$DEPOSIT" ]; then
+  echo "Configuring deposit ($DEPOSIT)..." >&2
+  ini_set "^deposit" "$DEPOSIT" "$EA_INI"
+fi
+if [ -n "$DIGITS" ]; then
+  echo "Configuring digits ($DIGITS)..." >&2
+  set_digits $DIGITS
+fi
+if [ -n "$LOTSTEP" ]; then
+  echo "Configuring lot step ($LOTSTEP)..." >&2
+  set_lotstep $LOTSTEP
+fi
+if [ -n "$PERIOD" ]; then
+  echo "Configuring period ($PERIOD)..." >&2
+  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+fi
+if [ -n "$REPORT" ]; then
+  echo "Configuring test report ($REPORT)..." >&2
+  ini_set "^TestReport" "$REPORT" "$TESTER_INI"
+fi
+if [ -n "$SPREAD" ]; then
+  echo "Configuring spread ($SPREAD)..." >&2
+  set_spread $SPREAD
+fi
+if [ -n "$SET_OPTS" ]; then
+  echo "Setting EA options ($SET_OPTS)..." >&2
+  [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+  IFS=','; set_options=($SET_OPTS); restore_ifs
+  for set_pair in "${set_options[@]}"; do
+    IFS='='; set_option=($set_pair); restore_ifs
+    input_set "${set_option[0]}" "${set_option[1]}"
+  done
+fi
+if [ "$OPTIMIZATION" ]; then
+  echo "Configuring optimization mode..." >&2
+  ini_set "^TestOptimization" true "$TESTER_INI"
+fi
+if [ -n "$DEST" ]; then
+  echo "Checking destination ($DEST)..." >&2
+  [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
+fi
+
 # Prepare before test run.
 [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
   || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 clean_files
 
 # Run the test under the platform.
-configure_display
 live_logs &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@

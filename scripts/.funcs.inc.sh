@@ -22,6 +22,7 @@ initialize() {
 
   # Activate trace on demand.
   [ "$TRACE" ] && set -x
+  # Exit immediately if a command exits with a non-zero status.
   [ ! "$NOFAIL" ] && set -e
 }
 
@@ -30,6 +31,7 @@ configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
   export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
   export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
+  sleep 1
   xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 }
 
@@ -147,6 +149,9 @@ ini_set_ea() {
   local key=$1
   local value=$2
   ini_set ^$key $value "$EA_INI"
+  if [ $? -ne 0 ]; then
+    echo "$key=$value" >> "$EA_INI"
+  fi
 }
 
 # Set inputs in the EA INI file.
@@ -506,6 +511,7 @@ enhance_gif() {
 install_mt() {
   type wget > /dev/null
   local mt_ver=$1
+  configure_display
   case $mt_ver in
     4)
       . $CWD/install_mt4.sh
@@ -530,12 +536,12 @@ install_mt() {
 }
 
 ## Install filever
-install_filever() {
+install_support_tools() {
   type wget cabextract install wine >&2
   wine filever > /dev/null && return
   local tools_url="http://web.archive.org/https://download.microsoft.com/download/d/3/8/d38066aa-4e37-4ae8-bce3-a4ce662b2024/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
-  echo "Installing filever tool..." >&2
+  echo "Installing support tools..." >&2
   cd "$dtmp"
   wget "$tools_url"
   cabextract -F support.cab *.exe
@@ -549,7 +555,7 @@ install_filever() {
 # Usage: filever terminal.exe
 filever() {
   type awk > /dev/null
-  wine filever >& /dev/null || install_filever >&2
+  wine filever >& /dev/null || install_support_tools >&2
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
@@ -563,9 +569,10 @@ clean_up() {
   kill $(jobs -p) 2> /dev/null || true
 }
 
-## Kill  the currently running wineserver.
+## Kills the currently running wineserver.
 kill_wine() {
-  (wineserver -k || true)
+  type wineserver 2> /dev/null || return
+  wineserver -k || true
 }
 
 # Restore IFS.

@@ -23,6 +23,7 @@ opts = GetoptLong.new(
   [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ], # Name of EC2 security group.
   [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ], # Name of subnet ID (EC2).
   [ '--terminate',      GetoptLong::OPTIONAL_ARGUMENT ], # Terminate instance when set.
+  [ '--volume-size',    GetoptLong::OPTIONAL_ARGUMENT ], # Volume size (in GB).
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ], # Name of the VM.
 )
 
@@ -44,7 +45,9 @@ run_test       = ENV['RUN_TEST']
 security_group = ENV['SECURITY_GROUP']
 subnet_id      = ENV['SUBNET_ID']
 terminate      = ENV['TERMINATE']
+volume_size    = ENV['VOLUME_SIZE'] || 16
 vm_name        = ENV['VM_NAME'] || 'default'
+
 begin
   opts.each do |opt, arg|
     case opt
@@ -66,6 +69,7 @@ begin
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
       when '--terminate';      terminate      = !arg.to_i.zero?
+      when '--volume-size';    volume_size    = arg.to_i
       when '--vm-name';        vm_name        = arg
     end # case
   end # each
@@ -80,7 +84,7 @@ Vagrant.configure(2) do |config|
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
-  config.vm.define "mt-#{provider}-#{vm_name}"
+  config.vm.define "MT-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
 
@@ -108,6 +112,7 @@ Vagrant.configure(2) do |config|
   if push_repo
     # The clone_repo parameter is required for push to work correctly.
     script << %Q[/usr/bin/env \
+                 TRACE=1 \
                  GIT_ARGS='#{git_args}' \
                  /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}' &&]
   end
@@ -142,7 +147,7 @@ Vagrant.configure(2) do |config|
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
-    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 16 }]
+    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => volume_size }]
     aws.instance_type = instance_type
     aws.keypair_name = keypair_name
     aws.region = ec2_region
@@ -151,7 +156,7 @@ Vagrant.configure(2) do |config|
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
     if subnet_id then aws.subnet_id = subnet_id end
-    override.nfs.functional = false
+    override.nfs.functional = false # # @see: https://github.com/mitchellh/vagrant/issues/1437
     override.ssh.username = "ubuntu"
     override.vm.box = "mt4-backtest"
     override.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"

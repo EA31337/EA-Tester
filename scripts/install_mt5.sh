@@ -4,6 +4,7 @@ set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml="
+[ "$TRACE" ] && set -x
 
 # Check the dependencies.
 #type winetricks
@@ -19,4 +20,4 @@ echo "Installing platform..." >&2
 sh -s "$CWD"/winetricks_mt5.verb < <(wget -qO- $WURL)
 
 echo "Installation successful." >&2
-echo "$0 done." >&2
+echo "$BASH_SOURCE done." >&2

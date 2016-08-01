@@ -5,6 +5,7 @@
 #
 
 # Initialize script.
+[ "$TRACE" ] && set -x
 if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
   echo "Error: This script needs to be run within VM." >&2
   exit 1
@@ -46,6 +47,7 @@ apt-get install -qy dbus                                                      # 
 apt-get install -qy git realpath links html2text tree pv                      # Required commands.
 apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image).
 apt-get install -qy wine1.8 winbind xvfb xdotool                              # Wine from PPA/Wine and tools for MT4 installer.
+apt-get install -qy libgnutls-dev                                             # GNU TLS library for secure connections.
 
 # Set-up hostname.
 grep $(hostname) /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
