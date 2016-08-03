@@ -197,8 +197,7 @@ while getopts $ARGS arg; do
       ;;
 
     m) # Which months to test (default: 1-12)
-      IFS='-' MONTHS=(${OPTARG})
-      IFS=$' \t\n' # Restore IFS.
+      MONTHS=${OPTARG}
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
@@ -207,12 +206,19 @@ while getopts $ARGS arg; do
 
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
-      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
-      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
       ;;
 
   esac
 done
+
+if [ -n "$MONTHS" ]; then
+  IFS='-' MONTHS=(${MONTHS})
+  IFS=$' \t\n' # Restore IFS.
+fi
+if [ -n "$YEAR" ]; then
+  START_DATE="$YEAR.${MONTHS[0]:-01}.01"
+  END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+fi
 
 if [ -n "$EA_PATH" ]; then
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
