@@ -305,7 +305,11 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      INCLUDE="${INCLUDE} ${OPTARG}"
+      if [ -n "$INCLUDE" ]; then
+        INCLUDE="${INCLUDE} ${OPTARG}"
+      else
+        INCLUDE="${OPTARG}"
+      fi
       ;;
 
     l) # Lot step.
