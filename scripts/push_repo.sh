@@ -24,4 +24,5 @@ git pull -r -Xours origin "$branch" 2> /dev/null || true
 git add -vA && git status && git diff
 
 # Commit and push the changes.
-git commit -am "$message" "$GIT_ARGS" && git push "$repo" "$branch" -vf || true
+git commit -am "$message" "$GIT_ARGS" 2> /dev/null
+git push "$repo" "$branch" -vf
