@@ -305,11 +305,8 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      if [ -n "$INCLUDE" ]; then
-        INCLUDE="${INCLUDE} ${OPTARG}"
-      else
-        INCLUDE="${OPTARG}"
-      fi
+      # @fixme: Won't work for paths with spaces.
+      INCLUDE+=(${OPTARG})
       ;;
 
     l) # Lot step.
@@ -369,15 +366,18 @@ done
 if [ -n "$INCLUDE" ]; then
   if [ -f "$TESTER_DIR/$SETFILE" ]; then
     type bc
-    echo "Invoking include file ($INCLUDE)..." >&2
+    echo "Invoking include file(s) ($INCLUDE)..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-    [ -f "$INCLUDE" ]
-    . <(cat "$INCLUDE")
+    for file in ${INCLUDE[@]}; do
+      [ -f "$INCLUDE" ]
+      . <(cat "$file")
+    done
   else
     echo "ERROR: Please specify .set file first (-f)." >&2
     exit 1
   fi
 fi
+
 if [ -n "$EA_OPTS" ]; then
   echo "Applying EA settings ($EA_OPTS)..." >&2
   [ -f "$EA_INI" ]
