@@ -105,7 +105,7 @@ input_set() {
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
@@ -134,7 +134,7 @@ ini_set() {
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -161,7 +161,7 @@ ini_set_inputs() {
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
@@ -182,7 +182,7 @@ tag_set() {
   local file="${3:-$(echo $INCLUDE)}"
   local vargs="-u NONE"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
