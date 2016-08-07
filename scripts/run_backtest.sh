@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
+ARGS="b:B:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -177,6 +177,11 @@ while getopts $ARGS arg; do
       BT_SRC=${OPTARG}
       ;;
 
+    B) # Specify early booting file.
+      # @fixme: Won't work for paths with spaces.
+      INCLUDE_BOOT+=(${OPTARG})
+      ;;
+
     C) # Clear previous backtest data files.
       clean_files
       clean_bt
@@ -210,6 +215,15 @@ while getopts $ARGS arg; do
 
   esac
 done
+
+# Apply settings.
+if [ -n "$INCLUDE_BOOT" ]; then
+  echo "Invoking include booting file(s) (${INCLUDE_BOOT[@]})..." >&2
+  for file in ${INCLUDE_BOOT[@]}; do
+    [ -f "$INCLUDE_BOOT" ]
+    . <(cat "$file")
+  done
+fi
 
 if [ -n "$MONTHS" ]; then
   IFS='-' MONTHS=(${MONTHS})
@@ -351,7 +365,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | C | e | f | G | h | I | m | M | p | v | x | y) ;;
+    b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
     *) # Display help.
       echo "$0 usage:" >&2
@@ -366,7 +380,7 @@ done
 if [ -n "$INCLUDE" ]; then
   if [ -f "$TESTER_DIR/$SETFILE" ]; then
     type bc
-    echo "Invoking include file(s) ($INCLUDE)..." >&2
+    echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
     for file in ${INCLUDE[@]}; do
       [ -f "$INCLUDE" ]
