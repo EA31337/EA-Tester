@@ -22,7 +22,7 @@ git status || pwd
 git pull -Xours -r origin "$branch" 2> /dev/null || git pull -Xours origin "$branch" 2> /dev/null || true
 
 # Add all files and display the changes.
-git add -vA && git status && git diff
+git add -vA 2> /dev/null && git status && git diff
 
 # Commit and push the changes.
 git commit -am "$message" "$GIT_ARGS" 2> /dev/null
