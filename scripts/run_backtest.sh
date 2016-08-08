@@ -194,7 +194,6 @@ while getopts $ARGS arg; do
 
     f) # The .set file to run the test.
       SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
       ;;
 
     I) # Change tester INI file with custom settings.
@@ -275,9 +274,11 @@ copy_srv
 check_files
 
 if [ -n "$SETORG" ]; then
+  echo "Configuring EA parameters ($SETFILE)..." >&2
   if [ -f "$SETORG" ]; then
-    echo "Configuring EA parameters ($SETFILE)..." >&2
     cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+  fi
+  if [ -f "$TESTER_DIR/$SETFILE" ]; then
     ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
   else
