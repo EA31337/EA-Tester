@@ -8,22 +8,22 @@ env:
     CWD="$TRAVIS_BUILD_DIR"
   matrix:
   - TEST_ARGS="-x -f /etc/hosts -h"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b N0 -D5 -e TestSpread"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b N0 -D4 -e TestLotstep"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b N0 -D5 -e TestLotstep"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b N0 -D5 -e TestMargin"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader -R"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestHSTHeader"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestHSTHeader -R"
-# - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M1" # MT bug: #72250
-# - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M5" # MT bug: #72250
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M15"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M30"
-  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1 -y 2015 -s 10 -b W2 -x"
-  - TEST_ARGS="-v -t -M4.0.0.971 -d 2000 -p EURUSD -m 1 -y 2015 -s 20 -b Z4"
-  - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 1 -y 2015 -s 10 -b DS"
-  - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 1 -y 2015 -s 10 -b DS -R"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader -R"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -D5 -e TestHSTHeader"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -D5 -e TestHSTHeader -R"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M15"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M30"
+  - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 7 -y 2015 -s 10 -b DS"
+  - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 7 -y 2015 -s 10 -b DS -R"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader -R"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestHSTHeader"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestHSTHeader -R"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M15"
+  - TEST_ARGS="-v -t -M4x -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestTimeframes -P M30"
+  - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS"
+  - TEST_ARGS="-v -t -M4x -d 3000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -R"
 matrix:
   fast_finish: true
 notifications:
