@@ -39,7 +39,7 @@ int OnInit() {
     for (int m = 0; m < ArraySize(modes); m++) {
       bands[m] = iBands(_Symbol, periods[p], 20, 2.0, 0, 0, modes[m], 0);
     }
-    correct = (bands[0] > 0 && bands[0] < Ask && bands[1] > 0 && bands[2] > Bid && bands[0] < bands[1] && bands[1] < bands[2]);
+    correct = (bands[0] > 0 && bands[1] > 0 && bands[2] > 0 && bands[0] < bands[1] && bands[1] < bands[2]);
     PrintFormat("Bands M%d          : %g/%g/%g => %s", periods[p], bands[0], bands[1], bands[2], correct ? "CORRECT" : "INCORRECT");
     result &= correct;
   }
