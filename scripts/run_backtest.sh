@@ -80,6 +80,7 @@ parse_results() {
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
+        # sed 's/ title="\(.*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
         grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" | grep -v '^\s.*;' > "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
@@ -196,7 +197,7 @@ while getopts $ARGS arg; do
       SETORG="$OPTARG"
       ;;
 
-    I) # Change tester INI file with custom settings.
+    I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
       TEST_OPTS=${OPTARG}
       ;;
 
@@ -291,7 +292,7 @@ fi
 echo "Checking backtest data (${BT_SRC:-DS})..."
 bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
-if [ ! "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
   env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 fi
 
