@@ -84,10 +84,10 @@ clean_files() {
 
 # Delete backtest data files.
 clean_bt() {
-  # Remove previous backtest files.
+  # Remove previous backtest files for the current symbol.
   exec 1>&2
-  echo "Cleaning backtest data..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
+  echo "Cleaning backtest data for ${SYMBOL}..." >&2
+  find "$TERMINAL_DIR" '(' -name "${SYMBOL}*.hst" -o -name "${SYMBOL}*.fxt" ')' $VPRINT -delete
 }
 
 # Delete compiled EAs.
