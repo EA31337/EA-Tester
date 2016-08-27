@@ -24,6 +24,12 @@ initialize() {
   [ "$TRACE" ] && set -x
   # Exit immediately if a command exits with a non-zero status.
   [ ! "$NOFAIL" ] && set -e
+
+}
+
+# Clean traps which are in use.
+clean_traps() {
+  trap - 1 2 3 15 ERR EXIT
 }
 
 # Configure display and wine.
