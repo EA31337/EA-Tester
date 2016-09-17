@@ -80,18 +80,12 @@ parse_results() {
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
-        # Define pattern for moving first 3 parameters into last column.
-        move1_pattern='s/ title="\([0-9a-zA-Z=_]*; [0-9a-zA-Z=_]*; [0-9a-zA-Z=_]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
-        grep -v mso-number "$REPORT_HTM" | \
-          sed -e "$move1_pattern" | \
-          html2text -nobs -width 105 | \
-          sed "/\[Graph\]/q" | \
-          grep -v '^\s.*;' > "$REPORT_TXT"
+        convert_html2txt "$REPORT_HTM" "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
+        convert_html2txt_full "$REPORT_HTM" "$REPORT_TXT"
         ;;
       G) # Enhance gif report files.
         REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"

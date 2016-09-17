@@ -467,6 +467,27 @@ compile_ea() {
   cd -
 }
 
+# Convert html to txt format.
+convert_html2txt() {
+  # Define pattern for moving first 3 parameters into last column.
+  local file_in=$1
+  local file_out=$2
+  local move1_pattern='s/ title="\([0-9a-zA-Z=_]*; [0-9a-zA-Z=_]*; [0-9a-zA-Z=_]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
+  grep -v mso-number "$file_in" | \
+    sed -e "$move1_pattern" | \
+    html2text -nobs -width 105 | \
+    sed "/\[Graph\]/q" \
+    > "$file_out"
+  # grep -v '^\s.*;'
+}
+
+# Convert html to txt format (full version).
+convert_html2txt_full() {
+  local file_in=$1
+  local file_out=$2
+  grep -v mso-number "$file_in" | html2text -nobs -width 105 -o "$file_out"
+}
+
 # Compile given script name.
 compile_script() {
   local name="$1"
