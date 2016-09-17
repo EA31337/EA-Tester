@@ -83,7 +83,7 @@ parse_results() {
         # Define pattern for moving first 3 parameters into last column.
         move1_pattern='s/ title="\([0-9a-zA-Z=_]*; [0-9a-zA-Z=_]*; [0-9a-zA-Z=_]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
         grep -v mso-number "$REPORT_HTM" | \
-          sed -e $move1_pattern | \
+          sed -e "$move1_pattern" | \
           html2text -nobs -width 105 | \
           sed "/\[Graph\]/q" | \
           grep -v '^\s.*;' > "$REPORT_TXT"
