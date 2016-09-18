@@ -19,7 +19,7 @@ git status || pwd
 [ "$branch" ] && git checkout -mB "$branch"
 
 # Pull the changes from upstream branch or ignore.
-git pull -Xours -r origin "$branch" 2> /dev/null || git pull -Xours origin "$branch" 2> /dev/null || true
+git pull -Xtheirs -r origin "$branch" 2> /dev/null || git pull -Xours origin "$branch" 2> /dev/null || true
 
 # Add all files and display the changes.
 git add -vA 2> /dev/null && git status && git diff
