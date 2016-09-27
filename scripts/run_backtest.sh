@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="b:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
+ARGS="b:B:c:C:d:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -80,12 +80,12 @@ parse_results() {
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 | sed "/\[Graph\]/q" | grep -v '^\s.*;' > "$REPORT_TXT"
+        convert_html2txt "$REPORT_HTM" "$REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 105 -o "$REPORT_TXT"
+        convert_html2txt_full "$REPORT_HTM" "$REPORT_TXT"
         ;;
       G) # Enhance gif report files.
         REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
@@ -177,6 +177,11 @@ while getopts $ARGS arg; do
       BT_SRC=${OPTARG}
       ;;
 
+    B) # Specify early booting file.
+      # @fixme: Won't work for paths with spaces.
+      INCLUDE_BOOT+=(${OPTARG})
+      ;;
+
     C) # Clear previous backtest data files.
       clean_files
       clean_bt
@@ -189,16 +194,14 @@ while getopts $ARGS arg; do
 
     f) # The .set file to run the test.
       SETORG="$OPTARG"
-      SETFILE="${EA_NAME}.set"
       ;;
 
-    I) # Change tester INI file with custom settings.
+    I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
       TEST_OPTS=${OPTARG}
       ;;
 
     m) # Which months to test (default: 1-12)
-      IFS='-' MONTHS=(${OPTARG})
-      IFS=$' \t\n' # Restore IFS.
+      MONTHS=${OPTARG}
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
@@ -207,12 +210,28 @@ while getopts $ARGS arg; do
 
     y) # Year to test (e.g. 2014).
       YEAR=${OPTARG}
-      START_DATE="$YEAR.${MONTHS[0]:-01}.01"
-      END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
       ;;
 
   esac
 done
+
+# Apply settings.
+if [ -n "$INCLUDE_BOOT" ]; then
+  echo "Invoking include booting file(s) (${INCLUDE_BOOT[@]})..." >&2
+  for file in ${INCLUDE_BOOT[@]}; do
+    [ -f "$INCLUDE_BOOT" ]
+    . <(cat "$file")
+  done
+fi
+
+if [ -n "$MONTHS" ]; then
+  IFS='-' MONTHS=(${MONTHS})
+  IFS=$' \t\n' # Restore IFS.
+fi
+if [ -n "$YEAR" ]; then
+  START_DATE="$YEAR.${MONTHS[0]:-01}.01"
+  END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+fi
 
 if [ -n "$EA_PATH" ]; then
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
@@ -255,9 +274,11 @@ copy_srv
 check_files
 
 if [ -n "$SETORG" ]; then
+  echo "Configuring EA parameters ($SETFILE)..." >&2
   if [ -f "$SETORG" ]; then
-    echo "Configuring EA parameters ($SETFILE)..." >&2
     cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+  fi
+  if [ -f "$TESTER_DIR/$SETFILE" ]; then
     ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
   else
@@ -270,7 +291,7 @@ fi
 echo "Checking backtest data (${BT_SRC:-DS})..."
 bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
-if [ ! "$(find "$TERMINAL_DIR" -name '*.fxt' -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
   env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
 fi
 
@@ -299,7 +320,8 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      INCLUDE="${INCLUDE} ${OPTARG}"
+      # @fixme: Won't work for paths with spaces.
+      INCLUDE+=(${OPTARG})
       ;;
 
     l) # Lot step.
@@ -344,7 +366,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | C | e | f | G | h | I | m | M | p | v | x | y) ;;
+    b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
     *) # Display help.
       echo "$0 usage:" >&2
@@ -359,14 +381,18 @@ done
 if [ -n "$INCLUDE" ]; then
   if [ -f "$TESTER_DIR/$SETFILE" ]; then
     type bc
-    echo "Invoking include file ($INCLUDE)..." >&2
+    echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-    . <(cat $INCLUDE)
+    for file in ${INCLUDE[@]}; do
+      [ -f "$INCLUDE" ]
+      . <(cat "$file")
+    done
   else
     echo "ERROR: Please specify .set file first (-f)." >&2
     exit 1
   fi
 fi
+
 if [ -n "$EA_OPTS" ]; then
   echo "Applying EA settings ($EA_OPTS)..." >&2
   [ -f "$EA_INI" ]

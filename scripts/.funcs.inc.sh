@@ -24,6 +24,12 @@ initialize() {
   [ "$TRACE" ] && set -x
   # Exit immediately if a command exits with a non-zero status.
   [ ! "$NOFAIL" ] && set -e
+
+}
+
+# Clean traps which are in use.
+clean_traps() {
+  trap - 1 2 3 15 ERR EXIT
 }
 
 # Configure display and wine.
@@ -84,10 +90,10 @@ clean_files() {
 
 # Delete backtest data files.
 clean_bt() {
-  # Remove previous backtest files.
+  # Remove previous backtest files for the current symbol.
   exec 1>&2
-  echo "Cleaning backtest data..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
+  echo "Cleaning backtest data for ${SYMBOL}..." >&2
+  find "$TERMINAL_DIR" '(' -name "${SYMBOL}*.hst" -o -name "${SYMBOL}*.fxt" ')' $VPRINT -delete
 }
 
 # Delete compiled EAs.
@@ -105,7 +111,7 @@ input_set() {
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
@@ -134,7 +140,7 @@ ini_set() {
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -161,7 +167,7 @@ ini_set_inputs() {
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
@@ -182,7 +188,7 @@ tag_set() {
   local file="${3:-$(echo $INCLUDE)}"
   local vargs="-u NONE"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
@@ -459,6 +465,27 @@ compile_ea() {
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
   cd -
+}
+
+# Convert html to txt format.
+convert_html2txt() {
+  # Define pattern for moving first 3 parameters into last column.
+  local file_in=$1
+  local file_out=$2
+  local move1_pattern='s/ title="\([0-9a-zA-Z=_.]*; [0-9a-zA-Z=_.]*; [0-9a-zA-Z=_.]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
+  grep -v mso-number "$file_in" | \
+    sed -e "$move1_pattern" | \
+    html2text -nobs -width 150 | \
+    sed "/\[Graph\]/q" \
+    > "$file_out"
+  # grep -v '^\s.*;'
+}
+
+# Convert html to txt format (full version).
+convert_html2txt_full() {
+  local file_in=$1
+  local file_out=$2
+  grep -v mso-number "$file_in" | html2text -nobs -width 105 -o "$file_out"
 }
 
 # Compile given script name.

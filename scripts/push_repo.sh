@@ -2,7 +2,8 @@
 # Script to push change to the repo.
 # Usage: push_repo.sh repo_url branch message
 set -e
-[ "$TRACE" ] && set -x
+[ "$TRACE" ] && { GIT_TRACE=1; set -x; }
+GIT_EDITOR=true
 type git 2> /dev/null
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 read repo branch message <<<$@
@@ -18,10 +19,11 @@ git status || pwd
 [ "$branch" ] && git checkout -mB "$branch"
 
 # Pull the changes from upstream branch or ignore.
-git pull -r -Xours origin "$branch" 2> /dev/null || true
+git pull -Xtheirs -r origin "$branch" 2> /dev/null || git pull -Xours origin "$branch" 2> /dev/null || true
 
 # Add all files and display the changes.
-git add -vA && git status && git diff
+git add -vA 2> /dev/null && git status && git diff
 
 # Commit and push the changes.
-git commit -am "$message" "$GIT_ARGS" && git push "$repo" "$branch" -vf || true
+git commit -am "$message" "$GIT_ARGS" 2> /dev/null
+git push "$repo" "$branch" -vf
