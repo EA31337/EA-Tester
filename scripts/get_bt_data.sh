@@ -66,10 +66,10 @@ case $bt_src in
     convert=0
   ;;
 
-  "DS-MQ")
+  "DS2")
     dest="$DOWNLOAD_DIR/$bt_key"
     echo "Downloading..." >&2
-    for url in $(printf "${rel_url/-MQ/-DS}/MQ-%s.gz " "${fxt_files[@]}") $(printf "${rel_url/-MQ/-DS}/MQ-%s.gz " "${hst_files[@]}"); do
+    for url in $(printf "${rel_url/DS2/DS}/MQ-%s.gz " "${fxt_files[@]}") $(printf "${rel_url/DS2/DS}/MQ-%s.gz " "${hst_files[@]}"); do
       wget -nv -c -P "$dest" "$url" &
     done
     wait # Wait for the background tasks to finish.
@@ -78,7 +78,7 @@ case $bt_src in
     find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
       dstfile=${file%.gz}
       gunzip $VFLAG $keep "$file"
-      mv $VFLAG ${dstfile} ${dstfile/MQ-$symbol/$symbol}
+      mv $VFLAG "${dstfile}" "${dstfile/MQ-$symbol/$symbol}"
     done
     echo "Moving..." >&2
     find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
