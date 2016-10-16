@@ -6,6 +6,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="b:B:c:C:d:D:e:E:f:hi:I:l:m:M:p:P:r:Rs:S:vxX:y:"
 
 ## Check dependencies.
+
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
 ## Initialize.
@@ -216,8 +217,12 @@ fi
 # Configure EA.
 EA_NAME="$(ini_get Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-EA_INI="$TESTER_DIR/$EA_NAME.ini"
+TESTER_DIR=$TERMINAL_DIR/MQL4/Presets
+EA_INI="$TESTER_DIR/$EA_NAME.set"
 SETFILE="${EA_NAME}.set"
+CONF_EA="script.set"
+TPL_EA="$ROOT/conf/$CONF_EA"
+
 cp $VFLAG "$TPL_EA" "$EA_INI"
 copy_srv
 check_files
