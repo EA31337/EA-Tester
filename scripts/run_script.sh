@@ -13,6 +13,8 @@ type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 . $CWD/.vars.inc.sh
 configure_display
 
+
+
 ## Define local functions.
 
 # Invoke on test success.
@@ -56,6 +58,15 @@ on_failure() {
 on_finish() {
   wineserver -k
   echo "$0 done." >&2
+}
+
+copy_script() {
+  local file=$1
+  local dest="$TERMINAL_DIR/MQL4/Scripts/$(basename "$file")"
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$TERMINAL_DIR/MQL4/Scripts"/
 }
 
 # Parse the initial arguments.
@@ -173,8 +184,8 @@ fi
 
 if [ -n "$EA_PATH" ]; then
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-  copy_ea "$EA_PATH"
-  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  copy_script "$EA_PATH"
+  ini_set "^Script" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
 fi
 
 if [ -n "$START_DATE" ]; then
@@ -379,3 +390,4 @@ fi
 live_logs &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
+
