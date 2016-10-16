@@ -1,6 +1,3 @@
-<common>
-</common>
-<inputs>
 CSV2FXT_version=0
 CsvFile=
 CreateHst=true
@@ -33,4 +30,3 @@ CreateD1=false
 TimeShiftInfo=Do not enable unless you know exactly what you're doing.
 TimeShift=false
 PriceFactor=1.0
-</inputs>

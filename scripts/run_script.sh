@@ -6,12 +6,15 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="b:B:c:C:d:D:e:E:f:hi:I:l:m:M:p:P:r:Rs:S:vxX:y:"
 
 ## Check dependencies.
+
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
 
 ## Initialize.
 . $CWD/.funcs.inc.sh
 . $CWD/.vars.inc.sh
 configure_display
+
+
 
 ## Define local functions.
 
@@ -56,6 +59,15 @@ on_failure() {
 on_finish() {
   wineserver -k
   echo "$0 done." >&2
+}
+
+copy_script() {
+  local file=$1
+  local dest="$TERMINAL_DIR/MQL4/Scripts/$(basename "$file")"
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$TERMINAL_DIR/MQL4/Scripts"/
 }
 
 # Parse the initial arguments.
@@ -173,8 +185,8 @@ fi
 
 if [ -n "$EA_PATH" ]; then
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-  copy_ea "$EA_PATH"
-  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  copy_script "$EA_PATH"
+  ini_set "^Script" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
 fi
 
 if [ -n "$START_DATE" ]; then
@@ -205,8 +217,12 @@ fi
 # Configure EA.
 EA_NAME="$(ini_get Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-EA_INI="$TESTER_DIR/$EA_NAME.ini"
+TESTER_DIR=$TERMINAL_DIR/MQL4/Presets
+EA_INI="$TESTER_DIR/$EA_NAME.set"
 SETFILE="${EA_NAME}.set"
+CONF_EA="script.set"
+TPL_EA="$ROOT/conf/$CONF_EA"
+
 cp $VFLAG "$TPL_EA" "$EA_INI"
 copy_srv
 check_files
@@ -379,3 +395,4 @@ fi
 live_logs &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2> "$TERMINAL_LOG" && on_success $@ || on_failure $@
+
