@@ -60,10 +60,32 @@ case $bt_src in
     find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
       gunzip $VFLAG $keep "$file"
     done
+    echo "Moving..." >&2
     find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
     find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
     convert=0
   ;;
+
+  "DS2")
+    dest="$DOWNLOAD_DIR/$bt_key"
+    echo "Downloading..." >&2
+    for url in $(printf "${rel_url/DS2/DS}/MQ-%s.gz " "${fxt_files[@]}") $(printf "${rel_url/DS2/DS}/MQ-%s.gz " "${hst_files[@]}"); do
+      wget -nv -c -P "$dest" "$url" &
+    done
+    wait # Wait for the background tasks to finish.
+    echo "Extracting..." >&2
+    gunzip -kh >& /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
+    find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
+      dstfile=${file%.gz}
+      gunzip $VFLAG $keep "$file"
+      mv $VFLAG "${dstfile}" "${dstfile/MQ-$symbol/$symbol}"
+    done
+    echo "Moving..." >&2
+    find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
+    find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
+    convert=0
+  ;;
+
 # "DS-raw") @fixme: 404 Not Found
 #   test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
 #   find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
