@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
+ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -266,6 +266,7 @@ fi
 
 # Configure EA.
 EA_NAME="$(ini_get TestExpert)"
+SCR_NAME="$(ini_get Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
 EA_INI="$TESTER_DIR/$EA_NAME.ini"
 SETFILE="${EA_NAME}.set"
@@ -287,21 +288,31 @@ if [ -n "$SETORG" ]; then
   fi
 fi
 
+if [ "$EA_NAME" ]; then
 # Download backtest data if needed.
-echo "Checking backtest data (${BT_SRC:-DS})..."
-bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
+  echo "Checking backtest data (${BT_SRC:-DS})..."
+  bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
-if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-  env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
+  if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+    env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
+  fi
+# Assign variables.
+  FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
-# Assign variables.
-FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
+if [ "$SCR_NAME" ]; then
+  SCR_PATH=$(find_ea "$SCR_NAME")
+  copy_script "$SCR_PATH"
+fi
 
 # Parse the main arguments.
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
+
+    A) # Action to evaluate (e.g. "dl_file URL")
+      EVAL=${OPTARG}
+      ;;
 
     c) # Base currency for test (e.g. USD).
       CURRENCY=${OPTARG}
@@ -393,6 +404,11 @@ if [ -n "$INCLUDE" ]; then
   fi
 fi
 
+if [ -n "$EVAL" ]; then
+# Action to evaluate.
+  echo "Evaluating action..." >&2
+  $CWD/eval.sh "$EVAL"
+fi
 if [ -n "$EA_OPTS" ]; then
   echo "Applying EA settings ($EA_OPTS)..." >&2
   [ -f "$EA_INI" ]
@@ -449,8 +465,10 @@ if [ -n "$DEST" ]; then
 fi
 
 # Prepare before test run.
-[ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
-  || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
+if [ "$EA_NAME" ]; then
+  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
+    || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
+fi
 clean_files
 
 # Run the test under the platform.

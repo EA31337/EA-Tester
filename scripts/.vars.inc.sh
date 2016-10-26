@@ -37,6 +37,7 @@ if [ "$TERMINAL_DIR" ]; then
   CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
   LOG_DIR="$TERMINAL_DIR/MQL4/Logs"
 fi
+LIB_DIR="MQL4/Libraries"
 EXPERTS_DIR="MQL4/Experts"
 SCRIPTS_DIR="MQL4/Scripts"
 WINE_PATH="$HOME/.wine/drive_c/Program Files"

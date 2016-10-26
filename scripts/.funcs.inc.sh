@@ -432,7 +432,7 @@ find_ea() {
   [ "$exact" ] && echo $exact || echo $match
 }
 
-# Copy EA file given file path.
+# Copy EA file given the file path.
 copy_ea() {
   local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
@@ -442,12 +442,24 @@ copy_ea() {
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
 
-# Copy script file given file path.
+# Copy script file given the file path.
 copy_script() {
   local file="$1"
+  local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+}
+
+# Copy library file (e.g. dll) given the file path.
+copy_lib() {
+  local file="$1"
+  local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
+  [ ! -s "$file" ] && file=$(find_ea "$file")
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
 }
 
 # Copy srv files into terminal dir.
@@ -457,6 +469,13 @@ copy_srv() {
   if [ "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
+}
+
+# Download the file.
+dl_file() {
+  local url="$1"
+  local dest="${2:-$DOWNLOAD_DIR}"
+  wget -cP "$dest" $url
 }
 
 # Compile given EA name.
