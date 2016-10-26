@@ -179,7 +179,7 @@ while getopts $ARGS arg; do
 
     B) # Specify early booting file.
       # @fixme: Won't work for paths with spaces.
-      INCLUDE_BOOT+=(${OPTARG})
+      INCLUDE_BOOT+=("${OPTARG}")
       ;;
 
     C) # Clear previous backtest data files.
@@ -218,7 +218,7 @@ done
 # Apply settings.
 if [ -n "$INCLUDE_BOOT" ]; then
   echo "Invoking include booting file(s) (${INCLUDE_BOOT[@]})..." >&2
-  for file in ${INCLUDE_BOOT[@]}; do
+  for file in "${INCLUDE_BOOT[@]}"; do
     [ -f "$INCLUDE_BOOT" ]
     . <(cat "$file")
   done
@@ -311,7 +311,7 @@ while getopts $ARGS arg; do
   case ${arg} in
 
     A) # Action to evaluate (e.g. "dl_file URL")
-      EVAL=${OPTARG}
+      CODE+=("${OPTARG}")
       ;;
 
     c) # Base currency for test (e.g. USD).
@@ -331,8 +331,7 @@ while getopts $ARGS arg; do
       ;;
 
     i) # Invoke file with custom rules.
-      # @fixme: Won't work for paths with spaces.
-      INCLUDE+=(${OPTARG})
+      INCLUDE+=("${OPTARG}")
       ;;
 
     l) # Lot step.
@@ -404,10 +403,12 @@ if [ -n "$INCLUDE" ]; then
   fi
 fi
 
-if [ -n "$EVAL" ]; then
-# Action to evaluate.
-  echo "Evaluating action..." >&2
-  $CWD/eval.sh "$EVAL"
+if [ -n "$CODE" ]; then
+# Action(s) to evaluate.
+  for code in "${CODE[@]}"; do
+    echo "Evaluating action ($code)..." >&2
+    $CWD/eval.sh "$code"
+  done
 fi
 if [ -n "$EA_OPTS" ]; then
   echo "Applying EA settings ($EA_OPTS)..." >&2
