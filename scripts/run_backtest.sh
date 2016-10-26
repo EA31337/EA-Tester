@@ -208,8 +208,8 @@ while getopts $ARGS arg; do
       SYMBOL=${OPTARG}
       ;;
 
-    y) # Year to test (e.g. 2014).
-      YEAR=${OPTARG}
+    y) # Year to test (e.g. 2014, 2011-2015).
+      YEARS=${OPTARG}
       ;;
 
   esac
@@ -228,9 +228,13 @@ if [ -n "$MONTHS" ]; then
   IFS='-' MONTHS=(${MONTHS})
   IFS=$' \t\n' # Restore IFS.
 fi
-if [ -n "$YEAR" ]; then
-  START_DATE="$YEAR.${MONTHS[0]:-01}.01"
-  END_DATE="$YEAR.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+if [ -n "$YEARS" ]; then
+  IFS='-' YEARS=(${YEARS})
+  IFS=$' \t\n' # Restore IFS.
+fi
+if [ -n "$YEARS" ]; then
+  START_DATE="${YEARS[0]}.${MONTHS[0]:-01}.01"
+  END_DATE="${YEARS[1]}.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
 fi
 
 if [ -n "$EA_PATH" ]; then
@@ -291,10 +295,10 @@ fi
 if [ "$EA_NAME" ]; then
 # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
-  bt_key="${SYMBOL:-EURUSD}-${YEAR:-2014}-${BT_SRC:-DS}"
+  bt_key="${SYMBOL:-EURUSD}-${YEARS:-2015}-${BT_SRC:-DS}"
 # Generate backtest files if not present.
   if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-    env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEAR:-2014} ${BT_SRC:-DS}
+    env SERVER=$SERVER $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} ${YEARS:-2015} ${BT_SRC:-DS}
   fi
 # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
