@@ -19,8 +19,8 @@ bt_src=$3
 bt_key="$1-$2-$3"
 convert=1
 
-bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%d.zip" $symbol $bt_src $symbol $year)
-rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%d" $symbol $bt_src $year)
+bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%s.zip" $symbol $bt_src $symbol $year)
+rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%s" $symbol $bt_src $year)
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_key"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
