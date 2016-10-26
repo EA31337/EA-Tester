@@ -32,6 +32,13 @@ clean_traps() {
   trap - 1 2 3 15 ERR EXIT
 }
 
+# Join string by delimiter (see: http://stackoverflow.com/a/17841619).
+join_by() {
+  local d=$1; shift;
+  echo -n "$1"; shift;
+  printf "%s" "${@/#/$d}";
+}
+
 # Configure display and wine.
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
