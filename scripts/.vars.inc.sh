@@ -38,6 +38,7 @@ if [ "$TERMINAL_DIR" ]; then
   LOG_DIR="$TERMINAL_DIR/MQL4/Logs"
 fi
 LIB_DIR="MQL4/Libraries"
+FILES_DIR="MQL4/Files"
 EXPERTS_DIR="MQL4/Experts"
 SCRIPTS_DIR="MQL4/Scripts"
 WINE_PATH="$HOME/.wine/drive_c/Program Files"

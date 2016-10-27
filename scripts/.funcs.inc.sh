@@ -463,10 +463,18 @@ copy_script() {
 copy_lib() {
   local file="$1"
   local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
-  [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
+}
+
+# Copy a file given the file path.
+copy_file() {
+  local file="$1"
+  local dest="$TERMINAL_DIR/$FILES_DIR/$(basename "$file")"
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$TERMINAL_DIR/$FILES_DIR"/
 }
 
 # Copy srv files into terminal dir.

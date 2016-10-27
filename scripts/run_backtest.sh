@@ -272,27 +272,11 @@ fi
 EA_NAME="$(ini_get TestExpert)"
 SCR_NAME="$(ini_get Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-EA_INI="$TESTER_DIR/$EA_NAME.ini"
-SETFILE="${EA_NAME}.set"
-cp $VFLAG "$TPL_EA" "$EA_INI"
-copy_srv
-check_files
-
-if [ -n "$SETORG" ]; then
-  echo "Configuring EA parameters ($SETFILE)..." >&2
-  if [ -f "$SETORG" ]; then
-    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
-  fi
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
-    ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-  else
-    echo "ERROR: Set file not found ($SETORG)!" >&2
-    exit 1
-  fi
-fi
+SETFILE="${EA_NAME:-$SCR_NAME}.set"
 
 if [ "$EA_NAME" ]; then
+  EA_INI="$TESTER_DIR/$EA_NAME.ini"
+  cp $VFLAG "$TPL_EA" "$EA_INI"
 # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
@@ -305,9 +289,28 @@ if [ "$EA_NAME" ]; then
 fi
 
 if [ "$SCR_NAME" ]; then
+  SCR_INI="$TERMINAL_DIR/$SCRIPTS_DIR/$SCR_NAME.ini"
+  cp $VFLAG "$TPL_SCR" "$SCR_INI"
   SCR_PATH=$(find_ea "$SCR_NAME")
   copy_script "$SCR_PATH"
 fi
+
+if [ -n "$SETORG" ]; then
+  echo "Configuring SET parameters ($SETFILE)..." >&2
+  if [ -f "$SETORG" ]; then
+    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+  fi
+  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+    ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+  else
+    echo "ERROR: Set file not found ($SETORG)!" >&2
+    exit 1
+  fi
+fi
+
+copy_srv
+check_files
 
 # Parse the main arguments.
 OPTIND=1
