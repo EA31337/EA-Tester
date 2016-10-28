@@ -106,8 +106,8 @@ clean_bt() {
 # Delete compiled EAs.
 clean_ea() {
   exec 1>&2
-  echo "Cleaning compiled EAs..." >&2
-  find "$TESTER_DIR" '(' -name "*.ex?" ')' -type f $VPRINT -delete
+  echo "Cleaning compiled EAs and scripts..." >&2
+  find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete
 }
 
 # Set input value in the SET file.
