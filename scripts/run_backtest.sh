@@ -224,6 +224,11 @@ if [ -n "$INCLUDE_BOOT" ]; then
   done
 fi
 
+if [ -n "$BOOT_CODE" ]; then
+  echo "Evaluating boot code ($BOOT_CODE)..." >&2
+  eval "$BOOT_CODE"
+fi
+
 if [ -n "$MONTHS" ]; then
   IFS='-' MONTHS=(${MONTHS})
   IFS=$' \t\n' # Restore IFS.
@@ -414,7 +419,7 @@ if [ -n "$CODE" ]; then
 # Action(s) to evaluate.
   for code in "${CODE[@]}"; do
     echo "Evaluating action ($code)..." >&2
-    $CWD/eval.sh "$code"
+    eval "$code"
   done
 fi
 if [ -n "$EA_OPTS" ]; then
