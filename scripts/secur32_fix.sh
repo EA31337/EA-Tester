@@ -15,3 +15,6 @@ if [ -d "/usr/lib/i386-linux-gnu" ]; then
     sudo cp -vf "$CWD/../lib/secur32.dll.so" "$CHANNEL_PATH" && echo "The secur32.dll.so has been patched." >&2
   fi
 fi
+if [ /usr/lib/i386-linux-gnu/libgnutls.so.28  ]; then
+  ln -s /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28 
+fi
