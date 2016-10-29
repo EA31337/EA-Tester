@@ -443,6 +443,7 @@ find_ea() {
 copy_ea() {
   local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
+  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
@@ -453,6 +454,7 @@ copy_ea() {
 copy_script() {
   local file="$1"
   local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
+  [ ! -d "$TERMINAL_DIR/$SCRIPTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$SCRIPTS_DIR"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
@@ -463,6 +465,7 @@ copy_script() {
 copy_lib() {
   local file="$1"
   local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
+  [ ! -d "$TERMINAL_DIR/$LIB_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$LIB_DIR"
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
@@ -472,6 +475,7 @@ copy_lib() {
 copy_file() {
   local file="$1"
   local dest="$TERMINAL_DIR/$FILES_DIR/$(basename "$file")"
+  [ ! -d "$TERMINAL_DIR/$FILES_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$FILES_DIR"
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$FILES_DIR"/
