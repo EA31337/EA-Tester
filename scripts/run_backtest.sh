@@ -189,7 +189,6 @@ while getopts $ARGS arg; do
 
     e) # EA name.
       EA_NAME=${OPTARG}
-      EA_PATH=$(find_ea "$EA_NAME")
       ;;
 
     f) # The .set file to run the test.
@@ -242,10 +241,13 @@ if [ -n "$YEARS" ]; then
   END_DATE="${YEARS[1]:-$(echo ${YEARS[0]})}.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
 fi
 
-if [ -n "$EA_PATH" ]; then
-  [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-  copy_ea "$EA_PATH"
-  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+if [ -n "$EA_NAME" ]; then
+  EA_PATH=$(find_ea "$EA_NAME")
+  if [ -n "$EA_PATH" ]; then
+    [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
+    copy_ea "$EA_PATH"
+    ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  fi
 fi
 
 if [ -n "$START_DATE" ]; then
