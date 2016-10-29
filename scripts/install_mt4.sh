@@ -9,13 +9,14 @@ export WINEDLLOVERRIDES="mscoree,mshtml="
 #type winetricks
 
 echo "Installing winhttp..." >&2
-sh -s winhttp < <(wget -qO- $WURL)
+#sh -s winhttp < <(wget -qO- $WURL)
 
 # Check whether libgnutls needs patching.
+#LUC
 [ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
 
 echo "Installing platform..." >&2
-#sh -s mt4 < <(wget -qO- $WURL)
+sh -s mt4 < <(wget -qO- $WURL)
 
 echo "Installation successful." >&2
 echo "$0 done." >&2
