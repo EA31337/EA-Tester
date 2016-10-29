@@ -22,6 +22,8 @@
 
 #property strict
 
+input bool SaveCSV = False;
+
 int handle;
 long bar_counter = 0;
 long tick_counter = 0;
@@ -39,13 +41,15 @@ int OnInit() {
   PrintFormat("Ask/Bid        : %g/%g", NormalizeDouble(Ask, Digits), NormalizeDouble(Bid, Digits));
   PrintFormat("Symbol digits  : %g", Digits);
   // Init file.
-  handle = FileOpen(_Symbol + "_ticks.csv", FILE_CSV|FILE_WRITE,',');
-  if (handle > 0) {
-    FileWrite(handle, "Datatime", "Bid", "Ask", "Volume");
-  }
-  else {
-    Alert("Failed to create a file!");
-    return INIT_FAILED;
+  if (SaveCSV) {
+    handle = FileOpen(_Symbol + "_ticks.csv", FILE_CSV|FILE_WRITE,',');
+    if (handle > 0) {
+      FileWrite(handle, "Datatime", "Bid", "Ask", "Volume");
+    }
+    else {
+      Alert("Failed to create a file!");
+      return INIT_FAILED;
+    }
   }
   return INIT_SUCCEEDED;
 }
@@ -55,7 +59,7 @@ int OnInit() {
 void OnTick() {
   static long last_bar = 0;
   tick_counter++;
-  if (handle > 0) {
+  if (SaveCSV && handle > 0) {
     FileWrite(handle, TimeToStr(TimeCurrent(), TIME_DATE|TIME_MINUTES|TIME_SECONDS), Bid, Ask, Volume[0]);
   }
   if (last_bar != iTime(NULL, 0, 0)) {
@@ -68,7 +72,7 @@ void OnTick() {
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason) {
   Print("Deinitializing...");
-  if (handle > 0) {
+  if (SaveCSV && handle > 0) {
     FileClose(handle);
   }
   Print("### Statistics");
