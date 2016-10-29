@@ -5,74 +5,51 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
-  [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ], # Asset to download (see: get_gh_asset.sh).
-  [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ], # Clone git repository.
-  [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ], # Number of CPUs.
-  [ '--ec2-region',     GetoptLong::OPTIONAL_ARGUMENT ], # EC2 region.
-  [ '--git-args',       GetoptLong::OPTIONAL_ARGUMENT ], # Git arguments for commit (e.g. author).
-  [ '--github-token',   GetoptLong::OPTIONAL_ARGUMENT ], # GitHub API access token.
-  [ '--instance-type',  GetoptLong::OPTIONAL_ARGUMENT ], # EC2 instance type.
-  [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ], # SSH access keypair name (EC2).
-  [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ], # Size of memory.
-  [ '--no-setup',       GetoptLong::OPTIONAL_ARGUMENT ], # No setup when set.
-  [ '--power-off',      GetoptLong::OPTIONAL_ARGUMENT ], # Power off when set.
-  [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ], # Path to private key.
-  [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ], # Name of provider (e.g. aws).
-  [ '--push-repo',      GetoptLong::OPTIONAL_ARGUMENT ], # Push changes when set.
-  [ '--run-test',       GetoptLong::OPTIONAL_ARGUMENT ], # Arguments for run_backtest.sh.
-  [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ], # Name of EC2 security group.
-  [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ], # Name of subnet ID (EC2).
-  [ '--terminate',      GetoptLong::OPTIONAL_ARGUMENT ], # Terminate instance when set.
-  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ], # Name of the VM.
+  [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--keypair-name',   GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--memory',         GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--private-key',    GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--provider',       GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--security-group', GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--subnet-id',      GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ]
+  #[ '--file-ea',  GetoptLong::OPTIONAL_ARGUMENT ], # EA file.
+  #[ '--dir-bt',   GetoptLong::OPTIONAL_ARGUMENT ], # Dir with backtest files.
+  #[ '--dir-sets', GetoptLong::OPTIONAL_ARGUMENT ]  # Dir with set files.
 )
 
-asset          = ENV['ASSET']
-clone_repo     = ENV['CLONE_REPO']
-cpus           = ENV['CPUS'] || 2
-ec2_region     = ENV['EC2_REGION'] || 'us-east-1'
-git_args       = ENV['GIT_ARGS']
-github_token   = ENV['GITHUB_API_TOKEN']
-instance_type  = ENV['INSTANCE_TYPE'] || 't2.small'
-keypair_name   = ENV['KEYPAIR_NAME']
-memory         = ENV['MEMORY'] || 2048
-no_setup       = ENV['NO_SETUP']
-power_off      = ENV['POWER_OFF']
-private_key    = ENV['PRIVATE_KEY']
-provider       = ENV['PROVIDER'] || 'virtualbox'
-push_repo      = ENV['PUSH_REPO']
-run_test       = ENV['RUN_TEST']
-security_group = ENV['SECURITY_GROUP']
-subnet_id      = ENV['SUBNET_ID']
-terminate      = ENV['TERMINATE']
-vm_name        = ENV['VM_NAME'] || 'default'
+cpus=ENV['CPUS'] || 2
+keypair_name=ENV['KEYPAIR_NAME']
+memory=ENV['MEMORY'] || 2048
+private_key=ENV['PRIVATE_KEY']
+provider=ENV['PROVIDER'] || 'virtualbox'
+security_group=ENV['SECURITY_GROUP']
+subnet_id=ENV['SUBNET_ID']
+vm_name=ENV['VM_NAME'] || 'default'
 begin
   opts.each do |opt, arg|
     case opt
-      when '--asset';          asset          = arg.to_s
-      when '--clone-repo';     clone_repo     = arg.to_s
       when '--cpus';           cpus           = arg.to_i
-      when '--ec2-region';     ec2_region     = arg.to_s
-      when '--git-args';       git_args       = arg.to_s
-      when '--github-token';   github_token   = arg.to_s
-      when '--instance-type';  instance_type  = arg.to_s
       when '--keypair-name';   keypair_name   = arg
       when '--memory';         memory         = arg.to_i
-      when '--no-setup';       no_setup       = !arg.to_i.zero?
-      when '--power-off';      power_off      = arg.to_i
       when '--private-key';    private_key    = arg
       when '--provider';       provider       = arg
-      when '--push-repo';      push_repo      = !arg.to_i.zero?
-      when '--run-test';       run_test       = arg
       when '--security-group'; security_group = arg
       when '--subnet-id';      subnet_id      = arg
-      when '--terminate';      terminate      = !arg.to_i.zero?
       when '--vm-name';        vm_name        = arg
+=begin
+# @todo: When implementing below, please make sure that running of: 'vagrant -f destroy' would be supported (no invalid option error is shown).
+      when '--file-ea'
+        file_ea==arg
+      when '--dir-bt'
+        dir_bt=arg
+      when '--dir-sets'
+        dir_sets=arg
+=end
     end # case
   end # each
   rescue
-# @todo: Correct an invalid option error.
 end
-script = "set -x;"
 
 # Vagrantfile API/syntax version.
 Vagrant.configure(2) do |config|
@@ -82,45 +59,9 @@ Vagrant.configure(2) do |config|
 # config.ssh.pty = true # Use pty for provisioning. Could hang the script.
   config.vm.define "mt-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
+  config.vm.provision "shell", path: "scripts/provision.sh"
+    # :args => '--file-ea' + opt['--file-ea'].to_s + ' --dir-bt' + opt['--dir-bt'].to_s + ' --dir-sets' + opt['--dir-sets'].to_s # @todo
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
-
-
-  if not no_setup
-    config.vm.provision "shell", path: "scripts/provision.sh"
-  end
-
-  if asset
-    script << %Q[/usr/bin/env \
-                 CLEAN=1 \
-                 OVERRIDE=1 \
-                 GITHUB_API_TOKEN=#{github_token} \
-                 /vagrant/scripts/get_gh_asset.sh #{asset} &&]
-  end
-
-  if clone_repo
-    script << %Q[/vagrant/scripts/clone_repo.sh "#{clone_repo}" &&]
-  end
-
-  if run_test
-    script << %Q[/vagrant/scripts/run_backtest.sh #{run_test} &&]
-  end
-
-  if push_repo
-    # The clone_repo parameter is required for push to work correctly.
-    script << %Q[/usr/bin/env \
-                 GIT_ARGS='#{git_args}' \
-                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}' &&]
-  end
-
-  if power_off
-    script << "echo Stopping the VM...; sudo poweroff --verbose &&"
-  end
-
-  config.vm.provision "shell" do |s|
-    s.binary = true # Replace Windows line endings with Unix line endings.
-    s.privileged = false # Run as a non privileged user.
-    s.inline = script << "echo done"
-  end
 
   config.vm.provider "virtualbox" do |vbox, override|
     vbox.customize [ "modifyvm", :id, "--natdnshostresolver1", "on"]
@@ -142,12 +83,13 @@ Vagrant.configure(2) do |config|
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
     aws.ami = "ami-fce3c696"
-    aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => 16 }]
-    aws.instance_type = instance_type
+    aws.aws_profile = "MT-testing"
+    aws.elastic_ip = true
+    aws.instance_type = "t2.small"
     aws.keypair_name = keypair_name
-    aws.region = ec2_region
+    aws.region = "us-east-1"
     aws.tags = { 'Name' => 'MT4-' + vm_name }
-    aws.terminate_on_shutdown = terminate
+    aws.terminate_on_shutdown = true
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
     if subnet_id then aws.subnet_id = subnet_id end

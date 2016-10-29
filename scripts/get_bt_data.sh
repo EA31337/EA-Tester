@@ -24,8 +24,8 @@ rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_key"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
-fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ) # ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
-hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
+fxt_files=( ${symbol}1_0.fxt ) # ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
+hst_files=( ${symbol}1.hst ) # ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
 
 csv2data() {
   if [ $convert -eq 0 ]; then return; fi
@@ -107,8 +107,7 @@ esac
 csv2data
 
 # Store the backtest data type.
-[ -f "$CUSTOM_INI" ] \
-  && ini_set "bt_data" "$bt_key" "$CUSTOM_INI" \
-  || echo "bt_data=$bt_key" > "$CUSTOM_INI"
+[ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"
+ini_set "bt_data" "$bt_key" "$CUSTOM_INI"
 
 echo "$0 done."

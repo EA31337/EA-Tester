@@ -6,11 +6,8 @@
 
 # Initialize script.
 if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
-  echo "Error: This script needs to be run within VM." >&2
+  echo "This script needs to be run within VM."
   exit 1
-elif [ -f ~/.provisioned ]; then
-  echo "Note: System already provisioned, skipping." >&2
-  exit 0
 fi
 whoami && lsb_release -a && pwd
 type curl || apt-get -y install curl
@@ -61,7 +58,4 @@ git init /opt
 # Give user write permission for /opt.
 chown -R $USER /opt
 
-# Mark system as provisioned.
-> ~/.provisioned
-
-echo "$0 done." >&2
+echo "$0 done."

@@ -22,7 +22,21 @@ initialize() {
 
   # Activate trace on demand.
   [ "$TRACE" ] && set -x
+  # Exit immediately if a command exits with a non-zero status.
   [ ! "$NOFAIL" ] && set -e
+
+}
+
+# Clean traps which are in use.
+clean_traps() {
+  trap - 1 2 3 15 ERR EXIT
+}
+
+# Join string by delimiter (see: http://stackoverflow.com/a/17841619).
+join_by() {
+  local d=$1; shift;
+  echo -n "$1"; shift;
+  printf "%s" "${@/#/$d}";
 }
 
 # Configure display and wine.
@@ -30,6 +44,7 @@ configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
   export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
   export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
+  sleep 1
   xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
 }
 
@@ -82,17 +97,17 @@ clean_files() {
 
 # Delete backtest data files.
 clean_bt() {
-  # Remove previous backtest files.
+  # Remove previous backtest files for the current symbol.
   exec 1>&2
-  echo "Cleaning backtest data..." >&2
-  find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' $VPRINT -delete
+  echo "Cleaning backtest data for ${SYMBOL}..." >&2
+  find "$TERMINAL_DIR" '(' -name "${SYMBOL}*.hst" -o -name "${SYMBOL}*.fxt" ')' $VPRINT -delete
 }
 
 # Delete compiled EAs.
 clean_ea() {
   exec 1>&2
-  echo "Cleaning compiled EAs..." >&2
-  find "$TESTER_DIR" '(' -name "*.ex?" ')' -type f $VPRINT -delete
+  echo "Cleaning compiled EAs and scripts..." >&2
+  find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete
 }
 
 # Set input value in the SET file.
@@ -103,7 +118,7 @@ input_set() {
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
@@ -132,7 +147,7 @@ ini_set() {
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -147,6 +162,9 @@ ini_set_ea() {
   local key=$1
   local value=$2
   ini_set ^$key $value "$EA_INI"
+  if [ $? -ne 0 ]; then
+    echo "$key=$value" >> "$EA_INI"
+  fi
 }
 
 # Set inputs in the EA INI file.
@@ -156,7 +174,7 @@ ini_set_inputs() {
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
@@ -177,7 +195,7 @@ tag_set() {
   local file="${3:-$(echo $INCLUDE)}"
   local vargs="-u NONE"
   [ -f "$file" ]
-  [ "$VERBOSE" ] && vargs+=" -V1"
+  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
@@ -421,7 +439,7 @@ find_ea() {
   [ "$exact" ] && echo $exact || echo $match
 }
 
-# Copy EA file given file path.
+# Copy EA file given the file path.
 copy_ea() {
   local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
@@ -431,12 +449,32 @@ copy_ea() {
   cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
 }
 
-# Copy script file given file path.
+# Copy script file given the file path.
 copy_script() {
   local file="$1"
+  local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+}
+
+# Copy library file (e.g. dll) given the file path.
+copy_lib() {
+  local file="$1"
+  local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
+}
+
+# Copy a file given the file path.
+copy_file() {
+  local file="$1"
+  local dest="$TERMINAL_DIR/$FILES_DIR/$(basename "$file")"
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$TERMINAL_DIR/$FILES_DIR"/
 }
 
 # Copy srv files into terminal dir.
@@ -448,12 +486,40 @@ copy_srv() {
   fi
 }
 
+# Download the file.
+dl_file() {
+  local url="$1"
+  local dest="${2:-$DOWNLOAD_DIR}"
+  wget -cP "$dest" $url
+}
+
 # Compile given EA name.
 compile_ea() {
   local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
   cd -
+}
+
+# Convert html to txt format.
+convert_html2txt() {
+  # Define pattern for moving first 3 parameters into last column.
+  local file_in=$1
+  local file_out=$2
+  local move1_pattern='s/ title="\([0-9a-zA-Z=_.]*; [0-9a-zA-Z=_.]*; [0-9a-zA-Z=_.]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
+  grep -v mso-number "$file_in" | \
+    sed -e "$move1_pattern" | \
+    html2text -nobs -width 150 | \
+    sed "/\[Graph\]/q" \
+    > "$file_out"
+  # grep -v '^\s.*;'
+}
+
+# Convert html to txt format (full version).
+convert_html2txt_full() {
+  local file_in=$1
+  local file_out=$2
+  grep -v mso-number "$file_in" | html2text -nobs -width 105 -o "$file_out"
 }
 
 # Compile given script name.
@@ -506,6 +572,7 @@ enhance_gif() {
 install_mt() {
   type wget > /dev/null
   local mt_ver=$1
+  configure_display
   case $mt_ver in
     4)
       . $CWD/install_mt4.sh
@@ -530,12 +597,12 @@ install_mt() {
 }
 
 ## Install filever
-install_filever() {
+install_support_tools() {
   type wget cabextract install wine >&2
   wine filever > /dev/null && return
-  local tools_url="http://web.archive.org/https://download.microsoft.com/download/d/3/8/d38066aa-4e37-4ae8-bce3-a4ce662b2024/WindowsXP-KB838079-SupportTools-ENU.exe"
+  local tools_url="https://github.com/EA31337/FX-MT-VM/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
-  echo "Installing filever tool..." >&2
+  echo "Installing support tools..." >&2
   cd "$dtmp"
   wget "$tools_url"
   cabextract -F support.cab *.exe
@@ -549,7 +616,7 @@ install_filever() {
 # Usage: filever terminal.exe
 filever() {
   type awk > /dev/null
-  wine filever >& /dev/null || install_filever >&2
+  wine filever >& /dev/null || install_support_tools >&2
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
@@ -563,9 +630,10 @@ clean_up() {
   kill $(jobs -p) 2> /dev/null || true
 }
 
-## Kill  the currently running wineserver.
+## Kills the currently running wineserver.
 kill_wine() {
-  (wineserver -k || true)
+  type wineserver 2> /dev/null || return
+  wineserver -k || true
 }
 
 # Restore IFS.
