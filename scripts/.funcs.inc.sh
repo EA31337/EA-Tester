@@ -2,6 +2,7 @@
 # .funcs.inc.sh file
 #
 
+
 [ "$VERBOSE" ] && echo "Loading $0... " >&2
 
 #
