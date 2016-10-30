@@ -80,5 +80,5 @@ void OnDeinit(const int reason) {
   PrintFormat("Ticks        : %d", tick_counter);
   PrintFormat("Ticks per bar: %g", tick_counter/bar_counter);
   PrintFormat("Ticks per min: %g", tick_counter/bar_counter/Period());
-  PrintFormat("Ticks per sec: %.2f", (double)tick_counter/bar_counter/Period()/60);
+  // PrintFormat("Ticks per sec: %.2f", (double)tick_counter/bar_counter/Period()/60);
 }
