@@ -598,7 +598,7 @@ install_mt() {
 
 # Validate platform dirs.
 validate_dirs() {
-  for dir in "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" "$EXPERTS_DIR" "$SCRIPTS_DIR" "$FILES_DIR" "$LIB_DIR"
+  for dir in "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" "$EXPERTS_DIR" "$SCRIPTS_DIR" "$FILES_DIR" "$LIB_DIR" "$LOG_DIR"
   do
     [ -d "$dir" ] || mkdir $VFLAG "$dir"
   done
