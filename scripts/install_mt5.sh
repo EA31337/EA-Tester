@@ -17,7 +17,7 @@ sh -s winhttp < <(wget -qO- $WURL)
 
 
 echo "Installing platform..." >&2
-sh -s "$CWD"/winetricks_mt5.verb < <(wget -qO- $WURL)
+sh -s "$CWD"/install_mt5.verb < <(wget -qO- $WURL)
 
 echo "Installation successful." >&2
-echo "$BASH_SOURCE done." >&2
+echo "${BASH_SOURCE[0]} done." >&2

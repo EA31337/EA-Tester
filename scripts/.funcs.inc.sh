@@ -32,6 +32,13 @@ clean_traps() {
   trap - 1 2 3 15 ERR EXIT
 }
 
+# Join string by delimiter (see: http://stackoverflow.com/a/17841619).
+join_by() {
+  local d=$1; shift;
+  echo -n "$1"; shift;
+  printf "%s" "${@/#/$d}";
+}
+
 # Configure display and wine.
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
@@ -99,8 +106,8 @@ clean_bt() {
 # Delete compiled EAs.
 clean_ea() {
   exec 1>&2
-  echo "Cleaning compiled EAs..." >&2
-  find "$TESTER_DIR" '(' -name "*.ex?" ')' -type f $VPRINT -delete
+  echo "Cleaning compiled EAs and scripts..." >&2
+  find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete
 }
 
 # Set input value in the SET file.
@@ -432,22 +439,42 @@ find_ea() {
   [ "$exact" ] && echo $exact || echo $match
 }
 
-# Copy EA file given file path.
+# Copy EA file given the file path.
 copy_ea() {
   local file=$1
-  local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
+  local dest="$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
+  cp $VFLAG "$file" "$EXPERTS_DIR"/
 }
 
-# Copy script file given file path.
+# Copy script file given the file path.
 copy_script() {
   local file="$1"
+  local dest="$SCRIPTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
+  [ "$file" == "$dest" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+  cp $VFLAG "$file" "$SCRIPTS_DIR"/
+}
+
+# Copy library file (e.g. dll) given the file path.
+copy_lib() {
+  local file="$1"
+  local dest="$LIB_DIR/$(basename "$file")"
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$LIB_DIR"/
+}
+
+# Copy a file given the file path.
+copy_file() {
+  local file="$1"
+  local dest="$FILES_DIR/$(basename "$file")"
+  [ "$file" == "$dest" ] && return
+  exec 1>&2
+  cp $VFLAG "$file" "$FILES_DIR"/
 }
 
 # Copy srv files into terminal dir.
@@ -459,11 +486,18 @@ copy_srv() {
   fi
 }
 
+# Download the file.
+dl_file() {
+  local url="$1"
+  local dest="${2:-$DOWNLOAD_DIR}"
+  wget -cP "$dest" $url
+}
+
 # Compile given EA name.
 compile_ea() {
   local name="$1"
   cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
+  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Experts/$name"
   cd -
 }
 
@@ -492,7 +526,7 @@ convert_html2txt_full() {
 compile_script() {
   local name="$1"
   cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$SCRIPTS_DIR/$name"
+  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
   cd -
 }
 
@@ -562,11 +596,19 @@ install_mt() {
   esac
 }
 
+# Validate platform dirs.
+validate_dirs() {
+  for dir in "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" "$EXPERTS_DIR" "$SCRIPTS_DIR" "$FILES_DIR" "$LIB_DIR" "$LOG_DIR"
+  do
+    [ -d "$dir" ] || mkdir $VFLAG "$dir"
+  done
+}
+
 ## Install filever
 install_support_tools() {
   type wget cabextract install wine >&2
   wine filever > /dev/null && return
-  local tools_url="http://web.archive.org/https://download.microsoft.com/download/d/3/8/d38066aa-4e37-4ae8-bce3-a4ce662b2024/WindowsXP-KB838079-SupportTools-ENU.exe"
+  local tools_url="https://github.com/EA31337/FX-MT-VM/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
   echo "Installing support tools..." >&2
   cd "$dtmp"

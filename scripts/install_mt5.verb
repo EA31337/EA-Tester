@@ -1,6 +1,6 @@
 #!/bin/sh
 
-w_metadata winetricks_mt5 apps \
+w_metadata install_mt5 apps \
     title="Meta Trader 5" \
     year="2005" \
     media="download" \

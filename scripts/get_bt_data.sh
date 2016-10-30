@@ -12,6 +12,7 @@ xargs=$(which gxargs || which xargs)
 
 # Check user input.
 [ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5]"; exit 1; }
+[ "$VERBOSE" ] && VFLAG="-v"
 [ "$TRACE" ] && set -x
 symbol=$1
 year=$2
@@ -19,8 +20,8 @@ bt_src=$3
 bt_key="$1-$2-$3"
 convert=1
 
-bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%d.zip" $symbol $bt_src $symbol $year)
-rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%d" $symbol $bt_src $year)
+bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%s.zip" $symbol $bt_src $symbol $year)
+rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%s" $symbol $bt_src $year)
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_key"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
@@ -60,10 +61,32 @@ case $bt_src in
     find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
       gunzip $VFLAG $keep "$file"
     done
+    echo "Moving..." >&2
     find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
     find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
     convert=0
   ;;
+
+  "DS2")
+    dest="$DOWNLOAD_DIR/$bt_key"
+    echo "Downloading..." >&2
+    for url in $(printf "${rel_url/DS2/DS}/MQ-%s.gz " "${fxt_files[@]}") $(printf "${rel_url/DS2/DS}/MQ-%s.gz " "${hst_files[@]}"); do
+      wget -nv -c -P "$dest" "$url" &
+    done
+    wait # Wait for the background tasks to finish.
+    echo "Extracting..." >&2
+    gunzip -kh >& /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
+    find "$dest" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
+      dstfile=${file%.gz}
+      gunzip $VFLAG $keep "$file"
+      mv $VFLAG "${dstfile}" "${dstfile/MQ-$symbol/$symbol}"
+    done
+    echo "Moving..." >&2
+    find "$dest" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
+    find "$dest" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
+    convert=0
+  ;;
+
 # "DS-raw") @fixme: 404 Not Found
 #   test -s "$bt_csv/$symbol-$year.zip" || wget -cNP "$bt_csv" "$bt_url"  # Download backtest data files.
 #   find "$bt_csv" -name "*.zip" -execdir unzip -qn {} ';' # Extract the backtest data.
@@ -106,9 +129,9 @@ esac
 # Convert CSV tick files to backtest files.
 csv2data
 
-# Store the backtest data type.
+# Store the backtest data type in INI file.
 [ -f "$CUSTOM_INI" ] \
   && ini_set "bt_data" "$bt_key" "$CUSTOM_INI" \
   || echo "bt_data=$bt_key" > "$CUSTOM_INI"
 
-echo "$BASH_SOURCE done."
+echo "${BASH_SOURCE[0]} done." >&2
