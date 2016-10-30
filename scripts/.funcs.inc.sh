@@ -427,7 +427,7 @@ copy_ini() {
   # Copy the configuration file, so platform can find it.
   exec 1>&2
   echo "Copying ini files..."
-  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR"
+  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR" -p
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 }
@@ -445,7 +445,7 @@ find_ea() {
 copy_ea() {
   local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR"
+  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR" -p
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
@@ -456,7 +456,7 @@ copy_ea() {
 copy_script() {
   local file="$1"
   local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$SCRIPTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$SCRIPTS_DIR"
+  [ ! -d "$TERMINAL_DIR/$SCRIPTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$SCRIPTS_DIR" -p
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
@@ -467,7 +467,7 @@ copy_script() {
 copy_lib() {
   local file="$1"
   local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$LIB_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$LIB_DIR"
+  [ ! -d "$TERMINAL_DIR/$LIB_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$LIB_DIR" -p
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
@@ -477,7 +477,7 @@ copy_lib() {
 copy_file() {
   local file="$1"
   local dest="$TERMINAL_DIR/$FILES_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$FILES_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$FILES_DIR"
+  [ ! -d "$TERMINAL_DIR/$FILES_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$FILES_DIR" -p
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$FILES_DIR"/
