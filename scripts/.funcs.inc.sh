@@ -577,7 +577,6 @@ install_mt() {
   case $mt_ver in
     4)
       . $CWD/install_mt4.sh
-      validate_dirs
     ;;
     4x)
       . $CWD/install_mt4-xdot.sh
