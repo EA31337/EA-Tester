@@ -239,7 +239,7 @@ if [ -n "$YEARS" ]; then
 fi
 if [ -n "$YEARS" ]; then
   START_DATE="${YEARS[0]}.${MONTHS[0]:-01}.01"
-  END_DATE="${YEARS[1]:-$(echo ${YEARS[0]})}.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.30"
+  END_DATE="${YEARS[1]:-$(echo ${YEARS[0]})}.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.31"
 fi
 
 if [ -n "$EA_NAME" ]; then

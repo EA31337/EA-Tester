@@ -110,4 +110,4 @@ csv2data
 [ ! -f "$CUSTOM_INI" ] && touch "$CUSTOM_INI"
 ini_set "bt_data" "$bt_key" "$CUSTOM_INI"
 
-echo "${BASH_SOURCE[0]} done."
+echo "${BASH_SOURCE[0]} done." >&2
