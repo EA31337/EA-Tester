@@ -9,13 +9,8 @@ export WINEDLLOVERRIDES="mscoree,mshtml="
 # Check the dependencies.
 type wget xdotool xwininfo wine winetricks ar >&2
 
-# @fixme: This breaks MT4 install on CI.
-#echo "Installing winhttp..." >&2
-#curl -o "$DTMP"/winetricks $WURL
-#sh $DTMP/winetricks winhttp
-
 # Check whether libgnutls needs patching.
-[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
+[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/fix_libgnutls.sh
 
 echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe

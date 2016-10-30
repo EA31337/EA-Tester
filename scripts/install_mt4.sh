@@ -6,14 +6,8 @@ WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetri
 export WINEDLLOVERRIDES="mscoree,mshtml="
 [ "$TRACE" ] && set -x
 
-# Check the dependencies.
-#type winetricks
-
-echo "Installing winhttp..." >&2
-sh -s winhttp < <(wget -qO- $WURL)
-
 # Check whether libgnutls needs patching.
-#[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
+[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/fix_libgnutls.sh
 
 echo "Installing platform..." >&2
 sh -s mt4 < <(wget -qO- $WURL)
