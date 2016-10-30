@@ -108,6 +108,8 @@ esac
 csv2data
 
 # Store the backtest data type in INI file.
-[ ! -f "$CUSTOM_INI" ] && echo "bt_data=$bt_key" > "$CUSTOM_INI" || ini_set "bt_data" "$bt_key" "$CUSTOM_INI"
+[ -f "$CUSTOM_INI" ] \
+  && ini_set "bt_data" "$bt_key" "$CUSTOM_INI" \
+  || echo "bt_data=$bt_key" > "$CUSTOM_INI"
 
 echo "${BASH_SOURCE[0]} done." >&2
