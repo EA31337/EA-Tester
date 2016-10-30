@@ -443,39 +443,39 @@ find_ea() {
 # Copy EA file given the file path.
 copy_ea() {
   local file=$1
-  local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
+  local dest="$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$TERMINAL_DIR/$EXPERTS_DIR"/
+  cp $VFLAG "$file" "$EXPERTS_DIR"/
 }
 
 # Copy script file given the file path.
 copy_script() {
   local file="$1"
-  local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
+  local dest="$SCRIPTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$TERMINAL_DIR/$SCRIPTS_DIR"/
+  cp $VFLAG "$file" "$SCRIPTS_DIR"/
 }
 
 # Copy library file (e.g. dll) given the file path.
 copy_lib() {
   local file="$1"
-  local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
+  local dest="$LIB_DIR/$(basename "$file")"
   [ "$file" == "$dest" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
+  cp $VFLAG "$file" "$LIB_DIR"/
 }
 
 # Copy a file given the file path.
 copy_file() {
   local file="$1"
-  local dest="$TERMINAL_DIR/$FILES_DIR/$(basename "$file")"
+  local dest="$FILES_DIR/$(basename "$file")"
   [ "$file" == "$dest" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$TERMINAL_DIR/$FILES_DIR"/
+  cp $VFLAG "$file" "$FILES_DIR"/
 }
 
 # Copy srv files into terminal dir.
@@ -498,7 +498,7 @@ dl_file() {
 compile_ea() {
   local name="$1"
   cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$EXPERTS_DIR/$name"
+  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Experts/$name"
   cd -
 }
 
@@ -527,7 +527,7 @@ convert_html2txt_full() {
 compile_script() {
   local name="$1"
   cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$SCRIPTS_DIR/$name"
+  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
   cd -
 }
 
@@ -599,7 +599,8 @@ install_mt() {
 
 # Validate platform dirs.
 validate_dirs() {
-  for dir in "$TERMINAL_DIR/$MQL_DIR" "$TERMINAL_DIR/$EXPERTS_DIR" "$TERMINAL_DIR/$SCRIPTS_DIR" "$TERMINAL_DIR/$FILES_DIR" "$TERMINAL_DIR/$LIB_DIR"; do
+  for dir in "$TESTER_DIR" "$MQL_DIR" "$EXPERTS_DIR" "$SCRIPTS_DIR" "$FILES_DIR" "$LIB_DIR"
+  do
     [ -d "$dir" ] || mkdir $VFLAG "$dir"
   done
 }

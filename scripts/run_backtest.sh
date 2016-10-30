@@ -297,7 +297,7 @@ if [ "$EA_NAME" ]; then
 fi
 
 if [ "$SCR_NAME" ]; then
-  SCR_INI="$TERMINAL_DIR/$SCRIPTS_DIR/$SCR_NAME.ini"
+  SCR_INI="$SCRIPTS_DIR/$SCR_NAME.ini"
   cp $VFLAG "$TPL_SCR" "$SCR_INI"
   SCR_PATH=$(find_ea "$SCR_NAME")
   copy_script "$SCR_PATH"
