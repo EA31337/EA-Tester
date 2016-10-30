@@ -427,7 +427,6 @@ copy_ini() {
   # Copy the configuration file, so platform can find it.
   exec 1>&2
   echo "Copying ini files..."
-  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR"
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 }
@@ -445,7 +444,6 @@ find_ea() {
 copy_ea() {
   local file=$1
   local dest="$TERMINAL_DIR/$EXPERTS_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
@@ -456,7 +454,6 @@ copy_ea() {
 copy_script() {
   local file="$1"
   local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$SCRIPTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$SCRIPTS_DIR"
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
@@ -467,7 +464,6 @@ copy_script() {
 copy_lib() {
   local file="$1"
   local dest="$TERMINAL_DIR/$LIB_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$LIB_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$LIB_DIR"
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$LIB_DIR"/
@@ -477,7 +473,6 @@ copy_lib() {
 copy_file() {
   local file="$1"
   local dest="$TERMINAL_DIR/$FILES_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$FILES_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$FILES_DIR"
   [ "$file" == "$dest" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$TERMINAL_DIR/$FILES_DIR"/
@@ -582,6 +577,7 @@ install_mt() {
   case $mt_ver in
     4)
       . $CWD/install_mt4.sh
+      validate_dirs
     ;;
     4x)
       . $CWD/install_mt4-xdot.sh
@@ -600,6 +596,13 @@ install_mt() {
       echo "Error: Unknown platform version, try either 4 or 5." >&2
       exit 1
   esac
+}
+
+# Validate platform dirs.
+validate_dirs() {
+  for dir in "$TERMINAL_DIR/$MQL_DIR" "$TERMINAL_DIR/$EXPERTS_DIR" "$TERMINAL_DIR/$SCRIPTS_DIR" "$TERMINAL_DIR/$FILES_DIR" "$TERMINAL_DIR/$LIB_DIR"; do
+    [ -d "$dir" ] || mkdir $VFLAG "$dir"
+  done
 }
 
 ## Install filever
