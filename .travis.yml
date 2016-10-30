@@ -42,6 +42,8 @@ script:
 - "$CWD/scripts/run_backtest.sh $TEST_ARGS"
 after_script:
 - tree ~/.wine/drive_c/Program*
+after_failure:
+- tree ~/.wine/drive_c/Program*
 before_cache:
 - set +e
 - test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete
