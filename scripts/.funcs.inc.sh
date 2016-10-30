@@ -456,7 +456,6 @@ copy_ea() {
 copy_script() {
   local file="$1"
   local dest="$TERMINAL_DIR/$SCRIPTS_DIR/$(basename "$file")"
-  [ ! -d "$TERMINAL_DIR/$SCRIPTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$SCRIPTS_DIR" -p
   [ ! -s "$file" ] && file=$(find_ea "$file")
   [ "$file" == "$dest" ] && return
   exec 1>&2
