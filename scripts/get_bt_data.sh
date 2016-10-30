@@ -129,7 +129,7 @@ esac
 # Convert CSV tick files to backtest files.
 csv2data
 
-# Store the backtest data type.
+# Store the backtest data type in INI file.
 [ -f "$CUSTOM_INI" ] \
   && ini_set "bt_data" "$bt_key" "$CUSTOM_INI" \
   || echo "bt_data=$bt_key" > "$CUSTOM_INI"
