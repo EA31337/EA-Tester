@@ -19,3 +19,7 @@ if [ -d "/usr/lib/i386-linux-gnu" ]; then
     ln -vs /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28
   fi
 fi
+if [ ! -f /usr/lib/i386-linux-gnu/libgnutls.so.28  ]; then
+  ln -s /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28 
+fi
+
