@@ -37,11 +37,11 @@ if [ "$TERMINAL_DIR" ]; then
   CUSTOM_INI="$TESTER_DIR/$CONF_CUSTOM"
   CUSTOM_LOG="$TESTER_DIR/logs/backtest.log"
   LOG_DIR="$TERMINAL_DIR/$MQL_DIR/Logs"
+  LIB_DIR="$TERMINAL_DIR/$MQL_DIR/Libraries"
+  FILES_DIR="$TERMINAL_DIR/$MQL_DIR/Files"
+  EXPERTS_DIR="$TERMINAL_DIR/$MQL_DIR/Experts"
+  SCRIPTS_DIR="$TERMINAL_DIR/$MQL_DIR/Scripts"
 fi
-LIB_DIR="$MQL_DIR/Libraries"
-FILES_DIR="$MQL_DIR/Files"
-EXPERTS_DIR="$MQL_DIR/Experts"
-SCRIPTS_DIR="$MQL_DIR/Scripts"
 WINE_PATH="$HOME/.wine/drive_c/Program Files"
 REPO_URL="https://github.com/EA31337/FX-MT-VM"
 
