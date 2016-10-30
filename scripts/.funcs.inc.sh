@@ -426,6 +426,7 @@ copy_ini() {
   # Copy the configuration file, so platform can find it.
   exec 1>&2
   echo "Copying ini files..."
+  [ ! -d "$TERMINAL_DIR/$EXPERTS_DIR" ] || mkdir $VFLAG "$TERMINAL_DIR/$EXPERTS_DIR"
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 }
