@@ -19,4 +19,4 @@ echo "Installing platform..." >&2
 sh -s "$CWD"/winetricks_mt5.verb < <(wget -qO- $WURL)
 
 echo "Installation successful." >&2
-echo "$0 done." >&2
+echo "${BASH_SOURCE[0]} done." >&2

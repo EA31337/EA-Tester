@@ -43,4 +43,4 @@ GH_ASSET="$GH_REPO/releases/assets/$id"
 # Download asset file.
 echo "Downloading asset..." >&2
 curl $CURL_ARGS -H 'Accept: application/octet-stream' "$GH_ASSET?access_token=$GITHUB_API_TOKEN"
-echo "$0 done." >&2
+echo "${BASH_SOURCE[0]} done." >&2

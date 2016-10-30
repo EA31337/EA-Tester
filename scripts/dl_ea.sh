@@ -11,4 +11,4 @@ wget -qNP $DIR/MQL4/Experts $1
 git --git-dir=/opt/.git add -A
 git --git-dir=/opt/.git commit -m"$0: Downloaded EA." -a
 
-echo "$0 done."
+echo "${BASH_SOURCE[0]} done."
