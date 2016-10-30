@@ -14,8 +14,8 @@ if [ -d "/usr/lib/i386-linux-gnu" ]; then
     echo 'Overwriting file to use the new version of libgnutls28...' >&2
     sudo cp -vf "$CWD/../lib/secur32.dll.so" "$CHANNEL_PATH" && echo "The secur32.dll.so has been patched." >&2
   fi
-fi
-if [ ! -f /usr/lib/i386-linux-gnu/libgnutls.so.28  ]; then
-echo "Make symbolic links libgnutls.so.28"
-  ln -s /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28 
+  if [ ! -f /usr/lib/i386-linux-gnu/libgnutls.so.28  ]; then
+    echo "Make symbolic links libgnutls.so.28"
+    ln -vs /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28
+  fi
 fi
