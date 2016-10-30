@@ -135,6 +135,7 @@ while getopts $ARGS arg; do
       type unzip 2> /dev/null
       install_mt $MT_VER
       . $CWD/.vars.inc.sh # Reload variables.
+      validate_dirs
       ;;
 
     v) # Verbose mode.
