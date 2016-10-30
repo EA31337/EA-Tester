@@ -133,4 +133,4 @@ csv2data
   && ini_set "bt_data" "$bt_key" "$CUSTOM_INI" \
   || echo "bt_data=$bt_key" > "$CUSTOM_INI"
 
-echo "$BASH_SOURCE done."
+echo "${BASH_SOURCE[0]} done." >&2

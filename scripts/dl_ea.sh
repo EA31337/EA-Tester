@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-type wget || { echo "Please install wget before continuing."; exit 1; }
+type wget || { echo "Error: Please install wget before continuing." >&2; exit 1; }
 TERMINAL_EXE="$(find /opt -name terminal.exe -print -quit)"
 DIR="$(dirname "$TERMINAL_EXE")"
 
@@ -11,4 +11,4 @@ wget -qNP $DIR/MQL4/Experts $1
 git --git-dir=/opt/.git add -A
 git --git-dir=/opt/.git commit -m"$0: Downloaded EA." -a
 
-echo "$BASH_SOURCE done."
+echo "${BASH_SOURCE[0]} done." >&2

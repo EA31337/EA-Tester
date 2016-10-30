@@ -19,4 +19,4 @@ echo "Installing platform..." >&2
 sh -s mt4 < <(wget -qO- $WURL)
 
 echo "Installation successful." >&2
-echo "$BASH_SOURCE done." >&2
+echo "${BASH_SOURCE[0]} done." >&2
