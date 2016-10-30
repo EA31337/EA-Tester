@@ -148,7 +148,7 @@ ini_set() {
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
