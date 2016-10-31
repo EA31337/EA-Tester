@@ -244,11 +244,8 @@ fi
 
 if [ -n "$EA_NAME" ]; then
   EA_PATH=$(find_ea "$EA_NAME")
-  if [ -n "$EA_PATH" ]; then
-    [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-    copy_ea "$EA_PATH"
-    ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
-  fi
+  [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
+  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
 fi
 
 if [ -n "$START_DATE" ]; then
@@ -295,6 +292,11 @@ if [ "$EA_NAME" ]; then
   fi
 # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
+fi
+
+# Copy EA.
+if [ -n "$EA_PATH" ]; then
+  copy_ea "$EA_PATH"
 fi
 
 if [ "$SCR_NAME" ]; then
