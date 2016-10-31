@@ -13,7 +13,7 @@ echo "Installing winhttp..." >&2
 sh -s winhttp < <(wget -qO- $WURL)
 
 # Check whether libgnutls needs patching.
-#[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/secur32_fix.sh
+[ -d "/usr/lib/i386-linux-gnu" ] && $CWD/fix_libgnutls.sh
 
 
 echo "Installing platform..." >&2
