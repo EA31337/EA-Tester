@@ -495,7 +495,7 @@ dl_file() {
 
 # Compile given EA name.
 compile_ea() {
-  local name="$1"
+  local name="${1:-$EA_NAME}"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Experts/$name"
   cd -

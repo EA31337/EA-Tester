@@ -288,7 +288,7 @@ if [ "$EA_NAME" ]; then
 # Generate backtest files if not present.
   if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]})" ${BT_SRC:-DS}
+      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]:-2015})" ${BT_SRC:-DS}
   fi
 # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
