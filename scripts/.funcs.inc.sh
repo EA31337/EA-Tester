@@ -434,8 +434,8 @@ copy_ini() {
 find_ea() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "$1.mq?" -o -name "$1.ex?" ')' -print -quit)
-  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "*$1*.mq?" -o -name "*$1*.ex?" ')' -print -quit)
+  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "$1.mq?" -o -name "$1.ex?" -o -name "$1" ')' -print -quit)
+  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "*$1*.mq?" -o -name "*$1*.ex?" -o -name "$1" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
@@ -444,7 +444,7 @@ copy_ea() {
   local file=$1
   local dest="$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
-  [ "$file" == "$dest" ] && return
+  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
 }
@@ -454,7 +454,7 @@ copy_script() {
   local file="$1"
   local dest="$SCRIPTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(find_ea "$file")
-  [ "$file" == "$dest" ] && return
+  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$SCRIPTS_DIR"/
 }
@@ -463,7 +463,7 @@ copy_script() {
 copy_lib() {
   local file="$1"
   local dest="$LIB_DIR/$(basename "$file")"
-  [ "$file" == "$dest" ] && return
+  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$LIB_DIR"/
 }
@@ -472,7 +472,7 @@ copy_lib() {
 copy_file() {
   local file="$1"
   local dest="$FILES_DIR/$(basename "$file")"
-  [ "$file" == "$dest" ] && return
+  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$FILES_DIR"/
 }
@@ -598,10 +598,26 @@ install_mt() {
 
 # Validate platform dirs.
 validate_dirs() {
-  for dir in "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" "$EXPERTS_DIR" "$SCRIPTS_DIR" "$FILES_DIR" "$LIB_DIR" "$LOG_DIR" "$TICKDATA_DIR" "$LOG_DIR"
+  for dir in \
+    "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" \
+    "$EXPERTS_DIR" "$SCRIPTS_DIR" \
+    "$FILES_DIR" "$LIB_DIR" \
+    "$LOG_DIR" "$TICKDATA_DIR"
   do
     [ -d "$dir" ] || mkdir $VFLAG "$dir"
+   #[ -d "$dir" ] || { quick_run; return; }
   done
+}
+
+# Run platform and kill it.
+# @todo
+quick_run() {
+  local scrname="${1:-PrintPaths}"
+  copy_ini
+  ini_set "^Script" $scrname
+  copy_script $scrname
+  (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG"
+  show_logs
 }
 
 ## Install filever
@@ -640,7 +656,7 @@ clean_up() {
 
 ## Kills the currently running wineserver.
 kill_wine() {
-  type wineserver 2> /dev/null || return
+  type wineserver > /dev/null || return
   wineserver -k || true
 }
 
