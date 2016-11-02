@@ -143,6 +143,7 @@ while getopts $ARGS arg; do
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
+#EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
       type html2text sed >&2
       ;;
 

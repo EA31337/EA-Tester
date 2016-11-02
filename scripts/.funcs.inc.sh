@@ -118,7 +118,7 @@ input_set() {
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
@@ -147,7 +147,7 @@ ini_set() {
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -161,8 +161,9 @@ ini_set() {
 ini_set_ea() {
   local key=$1
   local value=$2
-  ini_set ^$key $value "$EA_INI" \
-    || echo "$key=$value" >> "$EA_INI"
+  grep -q ^$key "$EA_INI" \
+    && ini_set ^$key $value "$EA_INI" \
+    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq "$EA_INI"
 }
 
 # Set inputs in the EA INI file.
@@ -172,7 +173,7 @@ ini_set_inputs() {
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
@@ -193,7 +194,7 @@ tag_set() {
   local file="${3:-$(echo $INCLUDE)}"
   local vargs="-u NONE"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
