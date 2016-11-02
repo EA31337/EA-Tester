@@ -231,11 +231,11 @@ fi
 
 if [ -n "$MONTHS" ]; then
   IFS='-' MONTHS=(${MONTHS})
-  IFS=$' \t\n' # Restore IFS.
+  restore_ifs
 fi
 if [ -n "$YEARS" ]; then
   IFS='-' YEARS=(${YEARS})
-  IFS=$' \t\n' # Restore IFS.
+  restore_ifs
 fi
 if [ -n "$YEARS" ]; then
   START_DATE="${YEARS[0]}.${MONTHS[0]:-01}.01"
