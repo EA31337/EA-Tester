@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
+ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
@@ -393,6 +393,10 @@ while getopts $ARGS arg; do
       [ -f "$OPTARG" ] || { echo "ERROR: Script specified by -X parameter does no exist." >&2; exit 1; }
       ;;
 
+    V) # Enables visual mode.
+      VISUAL_MODE=1
+      ;;
+
     # Placeholders for parameters used somewhere else.
     b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
@@ -481,6 +485,10 @@ fi
 if [ -n "$DEST" ]; then
   echo "Checking destination ($DEST)..." >&2
   [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
+fi
+if [ "$VISUAL_MODE" ]; then
+  echo "Enabling visual mode..." >&2
+  ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
 # Prepare before test run.
