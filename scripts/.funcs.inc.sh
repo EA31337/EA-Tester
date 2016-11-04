@@ -494,9 +494,11 @@ dl_file() {
 
 # Compile given EA name.
 compile_ea() {
-  local name="${1:-$EA_NAME}"
+  local name=${1:-$EA_NAME}
   cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Experts/$name"
+  local rel_path=$(find $MQL_DIR/Experts -name "$name*")
+  wine metaeditor.exe ${@:2} /log /compile:"$rel_path"
+  [ -f "$TERMINAL_DIR"/MQL4.log ] && { iconv -f utf-16 -t utf-8 "$TERMINAL_DIR"/MQL?.log | grep -A10 "${name%.*}"; } || true
   cd -
 }
 
