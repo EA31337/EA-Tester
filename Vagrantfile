@@ -114,7 +114,7 @@ Vagrant.configure(2) do |config|
     script << %Q[/usr/bin/env \
                  TRACE=1 \
                  GIT_ARGS='#{git_args}' \
-                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}' &&]
+                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' '#{vm_name}' &&]
   end
 
   if power_off
