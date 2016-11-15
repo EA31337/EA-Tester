@@ -98,12 +98,12 @@ parse_results() {
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
-      v)
-        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
-        find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
-        ;;
       o)
+        echo "Sorting test results..."
+        if [ "${MT_VER%%.*}" -ne 5 ]; then
+          # Note: To display sorted results, -o needs to be specified before -v.
+          sort_opt_results "$REPORT_HTM"
+        fi
         echo "Saving optimization results..."
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
@@ -112,6 +112,11 @@ parse_results() {
             ini_set "^$input" "$value" "$SETORG"
           done
         fi
+        ;;
+      v)
+        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
+        find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       *)
         ignores="$arg=$OPTARG"
@@ -164,8 +169,10 @@ echo "Checking platform..." >&2
 . $CWD/.vars.inc.sh
 
 # Check the version of installed platform.
-echo "Installed Terminal: $(filever terminal.exe)"
-echo "Installed MetaEditor: $(filever metaeditor.exe)"
+MT_VER=$(filever terminal.exe)
+MTE_VER=$(filever metaeditor.exe)
+echo "Installed Terminal: $MT_VER"
+echo "Installed MetaEditor: $MTE_VER"
 
 # Copy ini files.
 copy_ini

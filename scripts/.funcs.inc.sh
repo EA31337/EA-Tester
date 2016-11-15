@@ -531,6 +531,14 @@ compile_script() {
   cd -
 }
 
+# Sort optimization test result values by profit factor.
+# Usage: sort_opt_results report.html
+sort_opt_results() {
+  local file="$1"
+  # Note: {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
+  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! r /\%(\(<td\).\{-}\)\{2}\1[^>]\+\zs.*/' -scwq "$file"
+}
+
 # Enhance GIF report file.
 # Usage: enhance_gif -c1 color_name -c2 color_name -t "Text with \\\n new lines"
 # -c1 (default: blue)
