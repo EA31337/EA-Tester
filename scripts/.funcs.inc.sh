@@ -535,8 +535,8 @@ compile_script() {
 # Usage: sort_opt_results report.html
 sort_opt_results() {
   local file="$1"
-  # Note: {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
-  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! r /\%(\(<td\).\{-}\)\{2}\1[^>]\+\zs.*/' -scwq "$file"
+  # Note: {1} - Profit; {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
+  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq "$file"
 }
 
 # Enhance GIF report file.
