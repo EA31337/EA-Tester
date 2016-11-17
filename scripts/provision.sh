@@ -13,6 +13,7 @@ elif [ -f ~/.provisioned ]; then
   echo "Note: System already provisioned, skipping." >&2
   exit 0
 fi
+echo "OS Type: $OSTYPE"
 whoami && lsb_release -a && pwd
 type curl || apt-get -y install curl
 type dpkg apt-get
@@ -27,16 +28,23 @@ GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
 curl -s localhost:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://localhost:3128"
 curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://$GW:3128"
 
-# Perform an unattended installation of a Debian packages.
-export DEBIAN_FRONTEND=noninteractive
-ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
-dpkg-reconfigure debconf -f noninteractive
-echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+if type dpkg-reconfigure; then
 
-# Prepare wine dependencies.
-dpkg --add-architecture i386 || true                                                  # Add i386 architecture for Wine
-add-apt-repository -y ppa:ubuntu-wine/ppa                                             # Add PPA/Wine repository
-sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
+    # Perform an unattended installation of a Debian packages.
+    export DEBIAN_FRONTEND=noninteractive
+    [ -f /etc/apt/apt.conf.d/70debconf ] && ex +"%s@DPkg@//DPkg" -scwq -V1 /etc/apt/apt.conf.d/70debconf
+    dpkg-reconfigure debconf -f noninteractive
+    echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+
+    # Prepare wine dependencies.
+    sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
+
+    # Add i386 architecture for Wine
+    dpkg --add-architecture i386
+fi
+
+# Add PPA/Wine repository
+add-apt-repository -y ppa:ubuntu-wine/ppa
 
 # Update APT repositories
 apt-get -qq update
