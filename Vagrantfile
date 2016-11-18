@@ -28,7 +28,6 @@ opts = GetoptLong.new(
 )
 
 asset          = ENV['ASSET']
-asset_override = ENV['ASSET_OVERRIDE']
 clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
 ec2_region     = ENV['EC2_REGION'] || 'us-east-1'
@@ -99,7 +98,7 @@ Vagrant.configure(2) do |config|
                  CLEAN=1 \
                  OVERRIDE=1 \
                  GITHUB_API_TOKEN=#{github_token} \
-                 ASSET_OVERRIDE=#{asset_override} \
+                 ASSET_OVERRIDE=#{ENV['ASSET_OVERRIDE']} \
                  /vagrant/scripts/get_gh_asset.sh #{asset} &&]
   end
 
@@ -108,7 +107,9 @@ Vagrant.configure(2) do |config|
   end
 
   if run_test
-    script << %Q[/vagrant/scripts/run_backtest.sh #{run_test} &&]
+    script << %Q[/usr/bin/env \
+                 BOOT_CODE=#{ENV['BOOT_CODE']} \
+                 /vagrant/scripts/run_backtest.sh #{run_test} &&]
   end
 
   if push_repo
