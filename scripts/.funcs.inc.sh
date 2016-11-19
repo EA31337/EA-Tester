@@ -539,42 +539,70 @@ sort_opt_results() {
   ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq "$file"
 }
 
-# Enhance GIF report file.
+# Enhance a GIF report file.
 # Usage: enhance_gif -c1 color_name -c2 color_name -t "Text with \\\n new lines"
-# -c1 (default: blue)
-# -c2 (default: green)
+# @see: https://www.imagemagick.org/script/color.php
 enhance_gif() {
   local file="$1"
-  local color1='blue'
-  local color2='green'
   local text=''
+  local negate=0
+  local font=$(fc-match --format=%{file} Arial.ttf)
+  local text_color=${GIF_TEXT_COLOR:-gray}
+  type convert > /dev/null
+  [ -f "$file" ]
 
-  while [[ $# > 1 ]]; do
+  while [[ $# > 0 ]]; do
     key="$1"
     case $key in
-      -c1|--color1)
-        color1="$2"
+      -n|--negate)
+        convert -negate "$file" "$file"
+        negate=$((1-negate))
+        ;;
+      -cvl|--color-volume) # E.g. equity, volume.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#00B000" || opaque="#FF4FFF"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
         shift
-      ;;
-      -c2|--color2)
-        color2="$2"
+        ;;
+      -cbl|--color-balance) # E.g. balance.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#0000B0" || opaque="#FFFF4F"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -cbg|--color-bg) # E.g. background.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#F8F8F8" || opaque="#070707"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -cgr|--color-grid) # E.g. grid.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#C8C8C8" || opaque="#373737"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -ctx|--color-text) # E.g. axis text.
+        color=$2
+        [[ $negate = 0 ]] && opaque="black" || opaque="white"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -stc|--set-color-text)
+        text_color=$2
         shift
         ;;
       -t|--text)
-        text="$2"
+        text=$2
+        [[ $negate = 0 ]] && color="black" || color="white"
+        # Consider adding extras such as: +antialias.
+        convert "$file" -fill $text_color -font $font -pointsize 8 -annotate +7+27 "$text" "$file" || exit 1
         shift
         ;;
     esac
     shift
   done
-
-  type convert > /dev/null
-
-  local font=$(fc-match --format=%{file} Arial.ttf)
-  convert -negate "$file" "$file"
-  convert "$file" -fuzz 0% -fill "$color1" -opaque "#ff4fff" "$file"
-  convert "$file" -fuzz 0% -fill "$color2" -opaque "#ffff4f" "$file"
-  convert "$file" -fill white +antialias -font $font -pointsize 9 -annotate +7+27 "$text" "$file"
+  unset opaque color text_color
 }
 
 ## Install platform.

@@ -90,7 +90,11 @@ parse_results() {
       G) # Enhance gif report files.
         REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
         echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
-        enhance_gif "$REPORT_GIF"
+        enhance_gif "$REPORT_GIF" ${GIF_ENHANCE:-"-n"}
+        if [ -f "$REPORT_TXT" ]; then
+          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$REPORT_TXT")
+          enhance_gif "$REPORT_GIF" -t "$gif_text"
+        fi
         ;;
       O)
         DEST="${DEST:-$CWD}"
