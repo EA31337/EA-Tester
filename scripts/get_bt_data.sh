@@ -11,13 +11,11 @@ xargs=$(which gxargs || which xargs)
 . $CWD/.vars.inc.sh
 
 # Check user input.
-[ $# -ne 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5]"; exit 1; }
+[ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]"; exit 1; }
 [ "$VERBOSE" ] && VFLAG="-v"
 [ "$TRACE" ] && set -x
-symbol=$1
-year=$2
-bt_src=$3
-bt_key="$1-$2-$3"
+read symbol year bt_src period <<<$@
+bt_key="$symbol-$year-$bt_src-$period"
 convert=1
 
 bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%s.zip" $symbol $bt_src $symbol $year)
@@ -25,8 +23,8 @@ rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/
 dest="$TERMINAL_DIR/history/downloads"
 bt_csv="$dest/$bt_key"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
-fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ) # ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
 hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
+fxt_files=()
 
 csv2data() {
   if [ $convert -eq 0 ]; then return; fi
@@ -43,6 +41,39 @@ csv2data() {
 
 test ! -d "$dest/scripts" && git clone "$scripts" "$dest/scripts" # Download scripts.
 mkdir -p $VFLAG "$bt_csv" || true
+
+# Select tick data files based on the required timeframe.
+case $period in
+  "M1")
+    fxt_files=( ${symbol}1_0.fxt )
+  ;;
+  "M5")
+    fxt_files=( ${symbol}5_0.fxt )
+  ;;
+  "M15")
+    fxt_files=( ${symbol}15_0.fxt )
+  ;;
+  "M30")
+    fxt_files=( ${symbol}30_0.fxt )
+  ;;
+  "H1")
+    fxt_files=( ${symbol}60_0.fxt )
+  ;;
+  "H4")
+    fxt_files=( ${symbol}240_0.fxt )
+  ;;
+  "D1")
+    fxt_files=( ${symbol}1440_0.fxt )
+  ;;
+  "W1")
+    fxt_files=( ${symbol}10080_0.fxt )
+  ;;
+  "MN")
+    fxt_files=( ${symbol}43200_0.fxt )
+  ;;
+  *)
+    fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
+esac
 
 set_write_perms
 clean_bt

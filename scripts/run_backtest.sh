@@ -291,16 +291,6 @@ SETFILE="${EA_NAME:-$SCR_NAME}.set"
 if [ "$EA_NAME" ]; then
   EA_INI="$TESTER_DIR/$EA_NAME.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
-# Download backtest data if needed.
-  echo "Checking backtest data (${BT_SRC:-DS})..."
-  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
-# Generate backtest files if not present.
-  if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-    env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]:-2015})" ${BT_SRC:-DS}
-  fi
-# Assign variables.
-  FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
 # Copy EA.
@@ -469,6 +459,8 @@ fi
 if [ -n "$PERIOD" ]; then
   echo "Configuring period ($PERIOD)..." >&2
   ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+else
+  PERIOD=$(ini_get ^TestPeriod)
 fi
 if [ -n "$REPORT" ]; then
   echo "Configuring test report ($REPORT)..." >&2
@@ -498,6 +490,19 @@ fi
 if [ "$VISUAL_MODE" ]; then
   echo "Enabling visual mode..." >&2
   ini_set "^TestVisualEnable" true "$TESTER_INI"
+fi
+
+if [ "$EA_NAME" ]; then
+# Download backtest data if needed.
+  echo "Checking backtest data (${BT_SRC:-DS})..."
+  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
+# Generate backtest files if not present.
+  if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+    env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
+      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
+  fi
+# Assign variables.
+  FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
 # Prepare before test run.
