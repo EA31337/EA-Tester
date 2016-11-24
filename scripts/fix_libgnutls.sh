@@ -6,8 +6,8 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 echo "Checking version of secur32.dll.so..." >&2
 if [ -d "/usr/lib/i386-linux-gnu" ]; then
   CHANNEL_PATH=$(find /usr/lib/i386-linux-gnu -type f -name 'secur32.dll.so')
+  which timeout > /dev/null && { timeout 2 sudo id; exit 1; }
   if [[ -n $(strings "$CHANNEL_PATH" 2> /dev/null | grep 'libgnutls.so.26') ]]; then
-    which timeout 2> /dev/null && timeout 2 sudo id
     echo "Found that Wine's secur32 channel is using libgnutls26 at '$CHANNEL_PATH'." >&2
     echo "Installing libgnutls28..." >&2
     sudo apt-get -qy install libgnutls28:i386
@@ -16,6 +16,6 @@ if [ -d "/usr/lib/i386-linux-gnu" ]; then
   fi
   if [ ! -f /usr/lib/i386-linux-gnu/libgnutls.so.28  ]; then
     echo "Symlinking libgnutls.so.28..."
-    ln -vs /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28
+    sudo ln -vs /usr/lib/i386-linux-gnu/libgnutls-deb0.so.28 /usr/lib/i386-linux-gnu/libgnutls.so.28
   fi
 fi
