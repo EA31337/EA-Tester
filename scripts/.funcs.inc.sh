@@ -42,7 +42,7 @@ join_by() {
 # Configure display and wine.
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
-  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+  export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe=" # Disable gecko and default browser in wine.
   export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
   sleep 1
   xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
