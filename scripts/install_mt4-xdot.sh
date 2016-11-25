@@ -2,7 +2,6 @@
 # Script to install MT platform using xdotool..
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 DTMP=$(mktemp -d)
-WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 [ "$TRACE" ] && set -x
 
@@ -10,14 +9,14 @@ export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 type wget xdotool xwininfo wine winetricks ar >&2
 
 echo "Downloading MT4 installer..." >&2
-[ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 https://download.mql5.com/cdn/web/metaquotes.software.corp/mt4/mt4setup.exe
+[ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}
 
 echo "Starting MT4 Setup in Wine..." >&2
 wine "$HOME/mt4setup.exe" &
 
 set +e
 echo "Waiting for Wine to initialize..."
-while ! WID=$(xdotool search --name "MetaTrader Setup"); do
+while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
   sleep 2
 done
 
@@ -31,7 +30,7 @@ xwininfo -id $WID -tree
 while pgrep -l mt4setup; do sleep 5; done
 
 echo "Waiting for MT4 platform to start..." >&2
-while ! WID=$(xdotool search --name "Account"); do
+while ! WID=$(xdotool search --name "MetaTrader"); do
   sleep 2
 done
 xwininfo -id $WID -tree
