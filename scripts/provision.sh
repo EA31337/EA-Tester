@@ -44,7 +44,7 @@ if type dpkg-reconfigure; then
 fi
 
 # Add PPA/Wine repository
-add-apt-repository -y ppa:ubuntu-wine/ppa
+add-apt-repository -y ppa:wine/wine-builds
 
 # Update APT repositories
 apt-get -qq update
@@ -58,8 +58,9 @@ apt-get install -qy software-properties-common python-software-properties     # 
 apt-get install -qy ca-certificates
 
 # Install wine and dependencies.
-apt-get install -qy wine1.8 winbind xvfb xdotool                              # Wine from PPA/Wine and tools for MT4 installer.
-apt-get install -qy libgnutls-dev                                             # GNU TLS library for secure connections.
+apt-get install -qy --install-recommends wine-staging winehq-staging
+apt-get install -qy xvfb xdotool                                              # Wine from PPA/Wine and tools for MT4 installer.
+#apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
 
 # Set-up hostname.
 grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
