@@ -3,7 +3,7 @@ set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
-type git wget zip unzip pv xargs tee
+type git wget zip unzip xargs tee
 xargs=$(which gxargs || which xargs)
 
 # Initialize functions and variables.
