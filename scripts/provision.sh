@@ -59,7 +59,7 @@ apt-get install -qy ca-certificates
 
 # Install wine and dependencies.
 apt-get install -qy --install-recommends wine-staging winehq-staging
-apt-get install -qy xvfb xdotool                                              # Wine from PPA/Wine and tools for MT4 installer.
+apt-get install -qy xvfb xdotool x11-utils                                    # Wine from PPA/Wine and tools for MT4 installer.
 #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
 
 # Set-up hostname.
