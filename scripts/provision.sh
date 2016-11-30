@@ -51,7 +51,7 @@ apt-get -qq update
 
 # Install necessary packages
 apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
-apt-get install -qy binutils coreutils moreutils cabextract                   # Common CLI utils.
+apt-get install -qy binutils coreutils moreutils cabextract unzip             # Common CLI utils.
 apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
 apt-get install -qy git realpath links html2text tree pv bc                   # Required commands.
 apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image).
