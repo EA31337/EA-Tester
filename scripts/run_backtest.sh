@@ -414,18 +414,11 @@ done
 
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
-    type bc
-    echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
-    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-    for file in ${INCLUDE[@]}; do
-      [ -f "$INCLUDE" ]
-      . <(cat "$file")
-    done
-  else
-    echo "ERROR: Please specify .set file first (-f)." >&2
-    exit 1
-  fi
+  echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
+  for file in ${INCLUDE[@]}; do
+    [ -f "$INCLUDE" ]
+    . <(cat "$file")
+  done
 fi
 
 if [ -n "$CODE" ]; then
@@ -482,6 +475,10 @@ if [ -n "$SET_OPTS" ]; then
     IFS='='; set_option=($set_pair); restore_ifs
     input_set "${set_option[0]}" "${set_option[1]}"
   done
+fi
+if [ -f "$TESTER_DIR/$SETFILE" ]; then
+  echo "Copying parameters from SET into INI file..." >&2
+  ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
 fi
 if [ "$OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
