@@ -77,6 +77,15 @@ parse_results() {
   save_time
   while getopts $ARGS arg; do
     case $arg in
+      G) # Enhance gif report files.
+        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
+        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
+        enhance_gif "$REPORT_GIF" ${GIF_ENHANCE:-"-n"}
+        if [ -f "$REPORT_TXT" ]; then
+          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$REPORT_TXT")
+          enhance_gif "$REPORT_GIF" -t "$gif_text"
+        fi
+        ;;
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
@@ -86,15 +95,6 @@ parse_results() {
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         convert_html2txt_full "$REPORT_HTM" "$REPORT_TXT"
-        ;;
-      G) # Enhance gif report files.
-        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
-        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
-        enhance_gif "$REPORT_GIF" ${GIF_ENHANCE:-"-n"}
-        if [ -f "$REPORT_TXT" ]; then
-          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$REPORT_TXT")
-          enhance_gif "$REPORT_GIF" -t "$gif_text"
-        fi
         ;;
       O)
         DEST="${DEST:-$CWD}"
@@ -316,6 +316,7 @@ if [ -n "$SETORG" ]; then
   fi
   if [ -f "$TESTER_DIR/$SETFILE" ]; then
     ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    echo "Copying parameters from SET into INI file..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
   else
     echo "ERROR: Set file not found ($SETORG)!" >&2
@@ -429,12 +430,22 @@ if [ -n "$CODE" ]; then
   done
 fi
 if [ -n "$EA_OPTS" ]; then
-  echo "Applying EA settings ($EA_OPTS)..." >&2
+  echo "Applying EA backtest settings ($EA_OPTS)..." >&2
   [ -f "$EA_INI" ]
   IFS=','; ea_options=($EA_OPTS); restore_ifs
   for opt_pair in "${ea_options[@]}"; do
     IFS='='; ea_option=($opt_pair); restore_ifs
     ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
+  done
+fi
+if [ -n "$SET_OPTS" ]; then
+  echo "Setting EA options ($SET_OPTS)..." >&2
+  [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+  IFS=','; set_options=($SET_OPTS); restore_ifs
+  for set_pair in "${set_options[@]}"; do
+    IFS='='; set_option=($set_pair); restore_ifs
+    input_set "${set_option[0]}" "${set_option[1]}"
+    ini_set_ea "${set_option[0]}" "${set_option[1]}"
   done
 fi
 if [ -n "$CURRENCY" ]; then
@@ -466,19 +477,6 @@ fi
 if [ -n "$SPREAD" ]; then
   echo "Configuring spread ($SPREAD)..." >&2
   set_spread $SPREAD
-fi
-if [ -n "$SET_OPTS" ]; then
-  echo "Setting EA options ($SET_OPTS)..." >&2
-  [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-  IFS=','; set_options=($SET_OPTS); restore_ifs
-  for set_pair in "${set_options[@]}"; do
-    IFS='='; set_option=($set_pair); restore_ifs
-    input_set "${set_option[0]}" "${set_option[1]}"
-  done
-fi
-if [ -f "$TESTER_DIR/$SETFILE" ]; then
-  echo "Copying parameters from SET into INI file..." >&2
-  ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
 fi
 if [ "$OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
