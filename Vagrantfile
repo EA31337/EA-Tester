@@ -160,6 +160,7 @@ Vagrant.configure(2) do |config|
     aws.region = ec2_region
     aws.tags = { 'Name' => 'MT4-' + vm_name }
     aws.terminate_on_shutdown = terminate
+    aws.user_data = 'sed -i\'.bak\' -e \'s/^\(Defaults\s\+requiretty\)/# \1/\' /etc/sudoers'
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
     if subnet_id then aws.subnet_id = subnet_id end
