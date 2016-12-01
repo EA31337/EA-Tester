@@ -5,6 +5,7 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
+  [ '--ami',            GetoptLong::OPTIONAL_ARGUMENT ], # AMI to use.
   [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ], # Asset to download (see: get_gh_asset.sh).
   [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ], # Clone git repository.
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ], # Number of CPUs.
@@ -27,6 +28,7 @@ opts = GetoptLong.new(
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ], # Name of the VM.
 )
 
+ami            = ENV['AMI'] || "ami-fce3c696"
 asset          = ENV['ASSET']
 clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
@@ -151,7 +153,7 @@ Vagrant.configure(2) do |config|
 
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
-    aws.ami = "ami-fce3c696"
+    aws.ami = ami
     aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => volume_size }]
     aws.instance_type = instance_type
     aws.keypair_name = keypair_name
