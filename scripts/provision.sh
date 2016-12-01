@@ -35,7 +35,7 @@ case "$(uname -s)" in
 
         # Perform an unattended installation of a Debian packages.
         export DEBIAN_FRONTEND=noninteractive
-        [ -f /etc/apt/apt.conf.d/70debconf ] && ex +"%s@DPkg@//DPkg" -scwq -V1 /etc/apt/apt.conf.d/70debconf
+        [ -f /etc/apt/apt.conf.d/70debconf ] && ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
         dpkg-reconfigure debconf -f noninteractive
         echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
 
