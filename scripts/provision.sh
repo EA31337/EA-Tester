@@ -67,7 +67,7 @@ case "$(uname -s)" in
     #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
 
     # Setup swap file if none.
-    if [[ ! $(swapon -s) ]]; then
+    if [ -z "$(swapon -s)" ]; then
       if [ -f /var/cache/swap/swapfile ]; then
         swapon /var/cache/swap/swapfile
       else
