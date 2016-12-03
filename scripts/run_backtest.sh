@@ -6,7 +6,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
+type git pgrep xargs ex xxd xterm od perl > /dev/null
 
 ## Initialize.
 . $CWD/.funcs.inc.sh
