@@ -513,7 +513,7 @@ convert_html2txt() {
     html2text -nobs -width 150 | \
     sed "/\[Graph\]/q" \
     > "$file_out"
-  # grep -v '^\s.*;'
+  if [ $? -ne 0 ]; then exit 1; fi # Fail on error.
 }
 
 # Convert html to txt format (full version).
