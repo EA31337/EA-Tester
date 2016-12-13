@@ -85,8 +85,8 @@ Vagrant.configure(2) do |config|
 
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
-  config.ssh.keep_alive = true # Send keep-alive packets to keep connections alive.
-  config.ssh.pty = true # Use pty for provisioning.
+  config.ssh.keep_alive = true # Sends keep-alive packets to keep connections alive.
+  config.ssh.pty = false # Use pty for provisioning. Bug: mitchellh/vagrant/8118.
   config.vm.define "MT-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
