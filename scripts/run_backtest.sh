@@ -413,6 +413,13 @@ while getopts $ARGS arg; do
   esac
 done
 
+# Configure test period.
+if [ -n "$PERIOD" ]; then
+  echo "Configuring test period ($PERIOD)..." >&2
+  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+else
+  PERIOD=$(ini_get ^TestPeriod)
+fi
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
   echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
@@ -463,12 +470,6 @@ fi
 if [ -n "$LOTSTEP" ]; then
   echo "Configuring lot step ($LOTSTEP)..." >&2
   set_lotstep $LOTSTEP
-fi
-if [ -n "$PERIOD" ]; then
-  echo "Configuring period ($PERIOD)..." >&2
-  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
-else
-  PERIOD=$(ini_get ^TestPeriod)
 fi
 if [ -n "$REPORT" ]; then
   echo "Configuring test report ($REPORT)..." >&2
