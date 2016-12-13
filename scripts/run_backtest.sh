@@ -418,6 +418,8 @@ done
 if [ -n "$PERIOD" ]; then
   echo "Configuring test period ($PERIOD)..." >&2
   ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+else
+  PERIOD=$(ini_get ^TestPeriod)
 fi
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
