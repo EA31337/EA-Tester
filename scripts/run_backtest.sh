@@ -414,13 +414,6 @@ while getopts $ARGS arg; do
   esac
 done
 
-# Configure test period.
-if [ -n "$PERIOD" ]; then
-  echo "Configuring test period ($PERIOD)..." >&2
-  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
-else
-  PERIOD=$(ini_get ^TestPeriod)
-fi
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
   echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
@@ -430,8 +423,14 @@ if [ -n "$INCLUDE" ]; then
   done
 fi
 
-if [ -n "$CODE" ]; then
+# Configure test period.
+if [ -n "$PERIOD" ]; then
+  echo "Configuring test period ($PERIOD)..." >&2
+  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+fi
+
 # Action(s) to evaluate.
+if [ -n "$CODE" ]; then
   for code in "${CODE[@]}"; do
     echo "Evaluating action ($code)..." >&2
     eval "$code"
