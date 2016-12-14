@@ -417,8 +417,6 @@ done
 if [ -n "$PERIOD" ]; then
   echo "Configuring test period ($PERIOD)..." >&2
   ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
-else
-  PERIOD=$(ini_get ^TestPeriod)
 fi
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
@@ -492,6 +490,7 @@ if [ "$VISUAL_MODE" ]; then
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
+PERIOD=$(ini_get ^TestPeriod)
 if [ "$EA_NAME" ]; then
 # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
