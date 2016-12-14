@@ -456,8 +456,9 @@ if [ -n "$SET_OPTS" ]; then
     ini_set_ea "${set_option[0]}" "${set_option[1]}"
   done
   if [ "$VERBOSE" -gt 0 ]; then
-    # Print final version of the SET file.
-    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
+    # Print final version of SET file in compressed base64 format for debug purposes.
+    # Note: Read by: printf "FOO" | base64 -d | gunzip -d > file.set
+    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | gzip -9c | base64 -w0)" >&2
   fi
 fi
 if [ -n "$CURRENCY" ]; then
@@ -499,10 +500,10 @@ fi
 
 PERIOD=$(ini_get ^TestPeriod)
 if [ "$EA_NAME" ]; then
-# Download backtest data if needed.
+  # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
-# Generate backtest files if not present.
+  # Generate backtest files if not present.
   if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
       $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
