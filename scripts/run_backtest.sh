@@ -455,6 +455,10 @@ if [ -n "$SET_OPTS" ]; then
     input_set "${set_option[0]}" "${set_option[1]}"
     ini_set_ea "${set_option[0]}" "${set_option[1]}"
   done
+  if [ "$VERBOSE" -gt 0 ]; then
+    # Print final version of the SET file.
+    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
+  fi
 fi
 if [ -n "$CURRENCY" ]; then
   echo "Configuring base currency ($CURRENCY)..." >&2
