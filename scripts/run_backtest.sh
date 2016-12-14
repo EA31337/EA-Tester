@@ -470,9 +470,8 @@ if [ -n "$SET_OPTS" ]; then
     ini_set_ea "${set_option[0]}" "${set_option[1]}"
   done
   if [ "$VERBOSE" -gt 0 ]; then
-    # Print final version of SET file in compressed base64 format for debug purposes.
-    # Note: Read by: printf "FOO" | base64 -d | gunzip -d > file.set
-    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | gzip -9c | base64 -w0)" >&2
+    # Print final version of the SET file.
+    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
   fi
 fi
 if [ -n "$CURRENCY" ]; then
