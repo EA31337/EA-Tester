@@ -623,7 +623,7 @@ install_mt() {
     4.0.0.*|5.0.0.*)
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
       cd "$WINE_PATH"
-      wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
+      wget -nv -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
       unzip -ou mt*.zip
       cd -
     ;;
@@ -665,7 +665,7 @@ install_support_tools() {
   local dtmp=$(mktemp -d)
   echo "Installing support tools..." >&2
   cd "$dtmp"
-  wget "$tools_url"
+  wget -nv "$tools_url"
   cabextract -F support.cab *.exe
   cabextract -F filever.exe *.cab
   install -v filever.exe ~/.wine/drive_c/windows
