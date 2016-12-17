@@ -100,7 +100,7 @@ parse_results() {
       O)
         DEST="${DEST:-$CWD}"
         echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
-        [ ! -d "$DEST" ] || mkdir $VFLAG "$DEST"
+        [ -d "$DEST" ] || mkdir $VFLAG "$DEST"
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
