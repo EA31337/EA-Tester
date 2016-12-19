@@ -75,7 +75,7 @@ live_logs() {
 live_stats() {
   set +x
   while sleep 60; do
-    top | head -n4
+    TERM=vt100 top | head -n4
     winedbg --command 'info wnd' | grep -v Empty | cut -c67- | paste -sd,
   done
 }
