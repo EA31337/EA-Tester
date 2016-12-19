@@ -61,15 +61,23 @@ check_logs() {
 
 # Display logs in real-time.
 live_logs() {
+  set +x
   local filter=${1:-modify}
   while sleep 20; do
     if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
       break;
     fi
-    echo
   done
   echo "Showing live logs..." >&2
   tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+}
+# Display performance stats in real-time.
+live_stats() {
+  set +x
+  while sleep 60; do
+    top | head -n4
+    winedbg --command 'info wnd' | grep -v Empty | cut -c67- | paste -sd,
+  done
 }
 
 # Check required files.
