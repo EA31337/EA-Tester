@@ -23,8 +23,8 @@ rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/
 dl_dir="$TERMINAL_DIR/history/downloads"
 dest_dir="$dl_dir/${bt_key%.*}"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
-hst_files=( ${symbol}1.hst ${symbol}5.hst ${symbol}15.hst ${symbol}30.hst ${symbol}60.hst ${symbol}240.hst ${symbol}1440.hst ${symbol}10080.hst ${symbol}43200.hst )
 fxt_files=()
+hst_files=()
 
 csv2data() {
   if [ $convert -eq 0 ]; then return; fi
@@ -74,6 +74,9 @@ case $period in
   *)
     fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
 esac
+for tf in 1 2 3 4 5 6 10 12 15 20 30 60 120 180 240 360 480 720 1440 10080 43200; do
+  hst_files+=( ${symbol}${tf}.hst )
+done
 
 set_write_perms
 clean_bt
