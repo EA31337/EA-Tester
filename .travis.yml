@@ -36,13 +36,18 @@ notifications:
 before_install:
 - ulimit -a && free -m
 install:
-- sudo $CWD/scripts/provision.sh
+- sudo "$CWD"/scripts/provision.sh
 before_script:
 - set -e
 script:
-- ruby -wc $CWD/Vagrantfile
-- "$CWD/scripts/run_backtest.sh $TEST_ARGS"
+- ruby -wc "$CWD"/Vagrantfile
+- bash "$CWD"/scripts/run_backtest.sh $TEST_ARGS
 after_script:
+- echo AFTER SCRIPT
+after_success:
+- echo SUCCESS!
+after_failure:
+- bash -x "$CWD"/scripts/.vars.inc.sh
 - tree ~/.wine/drive_c/Program*
 before_cache:
 - set +e
@@ -51,8 +56,8 @@ cache:
   apt: true
   pip: true
 before_deploy:
-- MT_VER=$($CWD/scripts/eval.sh filever terminal.exe)
-- $CWD/scripts/eval.sh '[ "$TERMINAL_DIR" ] && clean_bt && clean_files && clean_ea' || exit 0
+- MT_VER=$("$CWD"/scripts/eval.sh filever terminal.exe)
+- bash "$CWD"/scripts/eval.sh '[ "$TERMINAL_DIR" ] && clean_bt && clean_files && clean_ea' || exit 0
 - cd "$HOME/.wine/drive_c/Program Files (x86)"/
 - zip -vr "${HOME}/mt-${MT_VER}.zip" Meta*
 - cd ~
