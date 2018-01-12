@@ -38,7 +38,6 @@ before_install:
 install:
 - sudo "$CWD"/scripts/provision.sh
 before_script:
-- set -e
 script:
 - ruby -wc "$CWD"/Vagrantfile
 - bash "$CWD"/scripts/run_backtest.sh $TEST_ARGS
