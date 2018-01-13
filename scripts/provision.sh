@@ -13,7 +13,7 @@ elif [ -f ~/.provisioned ]; then
   echo "Note: System already provisioned, skipping." >&2
   exit 0
 fi
-echo "OS Type: $(uname -a)"
+echo "OS: $(uname -a)"
 whoami && lsb_release -a && pwd
 type curl || apt-get -y install curl
 type dpkg apt-get
@@ -27,10 +27,12 @@ GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
 curl -s localhost:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://localhost:3128"
 curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://$GW:3128"
 
+set -x
 case "$(uname -s)" in
 
   Linux)
 
+    # For Ubuntu/Debian.
     if type dpkg-reconfigure; then
 
         # Perform an unattended installation of a Debian packages.
@@ -42,18 +44,17 @@ case "$(uname -s)" in
         # Prepare wine dependencies.
         sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
 
-        # Add i386 architecture for Wine
+        # Enable 32 bit architecture for 64 bit systems.
         dpkg --add-architecture i386
     fi
 
     # Add PPA/Wine repository
-    apt-get install -qy python-software-properties      # APT dependencies (required for the add-apt-repository command on Ubuntu).
-    add-apt-repository -y ppa:wine/wine-builds          # Adds APT Wine repository.
+    apt-get install -qy python-software-properties                                # APT dependencies (required for the add-apt-repository command on Ubuntu).
+    curl -s https://dl.winehq.org/wine-builds/Release.key | apt-key add -         # Adds GPG release key.
+    add-apt-repository -y https://dl.winehq.org/wine-builds/ubuntu/               # Adds APT Wine repository.
 
     # Update APT repositories.
-    set -x
-    [ -n "$NO_APT_UPDATE" ] && apt-get -qq update
-    set +x
+    [ -n "$NO_APT_UPDATE" ] && apt-get -qq update                                 # Updates APT index.
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
@@ -65,7 +66,8 @@ case "$(uname -s)" in
     apt-get install -qy ca-certificates
 
     # Install wine and dependencies.
-    apt-get install -qy --install-recommends wine-staging winehq-staging          # Wine from PPA/Wine and tools for MT4 installer.
+    # @see: https://wiki.winehq.org/Ubuntu
+    apt-get install -qy --install-recommends winehq-staging                       # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
     #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
 
@@ -89,6 +91,7 @@ case "$(uname -s)" in
     brew install wine
   ;;
 esac
+set +x
 
 # Set-up hostname.
 grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
