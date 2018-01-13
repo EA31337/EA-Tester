@@ -43,7 +43,7 @@ if [ "$TERMINAL_DIR" ]; then
   LOG_DIR="$TESTER_DIR/logs"
   TERMINAL_LOG="$LOG_DIR/terminal.log.txt"
 fi
-WINE_PATH="$HOME/.wine/drive_c/Program Files"
+WINE_PATH="${WINE_PATH:-$HOME/.wine/drive_c/Program Files}"
 REPO_URL="https://github.com/EA31337/FX-MT-VM"
 
 # Set constants.
