@@ -169,7 +169,11 @@ done
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
 [ "$TERMINAL_EXE" ] \
-  || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
+  || {
+    echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
+    [ -n "$VERBOSE" ] && grep ^TERMINAL <(set)
+    exit 1;
+  }
 
 # Re-load variables.
 . $CWD/.vars.inc.sh
