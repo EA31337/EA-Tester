@@ -21,13 +21,13 @@ TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
 set -x
-TERMINAL_ARG="/skipupdate /portable"
-TERMINAL_DIR="${TERMINAL_DIR:-$(dirname "$(find "$HOME" "$OUT" -name terminal.exe -print -quit)")}"
-TERMINAL_EXE="$(find "$TERMINAL_DIR" -name terminal.exe -print -quit)"
-MTEDITOR_EXE="$(find "$TERMINAL_DIR" -name metaeditor.exe -print -quit)"
+TERMINAL_EXE="$(find "$ROOT" "$OUT" "$HOME" -name terminal.exe -print -quit)"
+TERMINAL_DIR="${TERMINAL_DIR:-$([ -f "$TERMINAL_EXE" ] && dirname "$TERMINAL_EXE" || true)}"
+MTEDITOR_EXE="$([ -d "$TERMINAL_DIR" ] && find "$TERMINAL_DIR" -name metaeditor.exe -print -quit || true)"
 set +x
 MQL_DIR="MQL4"
 if [ "$TERMINAL_DIR" ]; then
+  TERMINAL_ARG="/skipupdate /portable"
   TERMINAL_CNF="${TERMINAL_DIR}/config"
   TERMINAL_INI="${TERMINAL_INI:-$TERMINAL_CNF/$CONF_TERM}"
   TESTER_INI="${TESTER_INI:-$TERMINAL_CNF/$CONF_TEST}"
