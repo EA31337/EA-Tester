@@ -13,19 +13,27 @@ elif [ -f ~/.provisioned ]; then
   echo "Note: System already provisioned, skipping." >&2
   exit 0
 fi
+
+#type dpkg apt-get
+
+# Check the Linux distribution.
 echo "OS: $(uname -a)"
-whoami && lsb_release -a && pwd
-type curl || apt-get -y install curl
-type dpkg apt-get
+if [ type lsb_release ]; then
+  lsb_release -a
+  dist=$(lsb_release -i)
+  codename=$(lsb_release -c)
+fi
 
 # Init variables.
 id travis  && USER="travis"
 id vagrant && USER="vagrant"
 
-# Detect proxy.
-GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
-curl -s localhost:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://localhost:3128"
-curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://$GW:3128"
+# Detect proxy via curl.
+if [ type curl ]; then
+  GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
+  curl -s localhost:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://localhost:3128"
+  curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://$GW:3128"
+fi
 
 set -x
 case "$(uname -s)" in
@@ -51,10 +59,11 @@ case "$(uname -s)" in
     # Add PPA/Wine repository
     apt-get install -qy python-software-properties                                # APT dependencies (required for the add-apt-repository command on Ubuntu).
     curl -s https://dl.winehq.org/wine-builds/Release.key | apt-key add -         # Adds GPG release key.
-    add-apt-repository -y https://dl.winehq.org/wine-builds/ubuntu/               # Adds APT Wine repository.
+    add-apt-repository -y \
+      "deb https://dl.winehq.org/wine-builds/ubuntu/ ${codename:-trusty} main"    # Adds APT Wine repository.
 
     # Update APT repositories.
-    [ -n "$NO_APT_UPDATE" ] && apt-get -qq update                                 # Updates APT index.
+    [ -z "$NO_APT_UPDATE" ] && apt-get -qq update                                 # Updates APT index.
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
