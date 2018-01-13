@@ -10,6 +10,7 @@ fi
 # Determine platform paths.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
+WINE_PATH="${WINE_PATH:-$HOME/.wine/drive_c/Program Files}"
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
 CONF_TERM="terminal.ini"
@@ -19,10 +20,12 @@ CONF_CUSTOM="custom.ini"
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
+set -x
 TERMINAL_ARG="/skipupdate /portable"
 TERMINAL_DIR="${TERMINAL_DIR:-$(dirname "$(find "$HOME" "$OUT" -name terminal.exe -print -quit)")}"
 TERMINAL_EXE="$(find "$TERMINAL_DIR" -name terminal.exe -print -quit)"
 MTEDITOR_EXE="$(find "$TERMINAL_DIR" -name metaeditor.exe -print -quit)"
+set +x
 MQL_DIR="MQL4"
 if [ "$TERMINAL_DIR" ]; then
   TERMINAL_CNF="${TERMINAL_DIR}/config"
@@ -43,7 +46,6 @@ if [ "$TERMINAL_DIR" ]; then
   LOG_DIR="$TESTER_DIR/logs"
   TERMINAL_LOG="$LOG_DIR/terminal.log.txt"
 fi
-WINE_PATH="${WINE_PATH:-$HOME/.wine/drive_c/Program Files}"
 REPO_URL="https://github.com/EA31337/FX-MT-VM"
 
 # Set constants.

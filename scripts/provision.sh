@@ -47,18 +47,21 @@ case "$(uname -s)" in
     fi
 
     # Add PPA/Wine repository
-    add-apt-repository -y ppa:wine/wine-builds
+    apt-get install -qy python-software-properties      # APT dependencies (required for the add-apt-repository command on Ubuntu).
+    add-apt-repository -y ppa:wine/wine-builds          # Adds APT Wine repository.
 
-    # Update APT repositories
-    apt-get -qq update
+    # Update APT repositories.
+    set -x
+    [ -n "$NO_APT_UPDATE" ] && apt-get -qq update
+    set +x
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
+    apt-get install -qy python-software-properties                                # APT dependencies (required for a docker image).
     apt-get install -qy binutils coreutils moreutils cabextract zip unzip         # Common CLI utils.
     apt-get install -qy imagemagick                                               # ImageMagick.
     apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
     apt-get install -qy git realpath links html2text tree pv bc                   # Required commands.
-    apt-get install -qy software-properties-common python-software-properties     # APT dependencies (required for a docker image).
     apt-get install -qy ca-certificates
 
     # Install wine and dependencies.
