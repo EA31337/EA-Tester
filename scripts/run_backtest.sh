@@ -9,8 +9,8 @@ ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 type git pgrep xargs ex xxd od perl > /dev/null
 
 ## Initialize.
-. $CWD/.funcs.inc.sh
-. $CWD/.vars.inc.sh
+. "$CWD"/.funcs.inc.sh
+. "$CWD"/.vars.inc.sh
 configure_display
 
 ## Define local functions.
@@ -25,7 +25,7 @@ on_success() {
   ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   ! check_logs ".\+ cannot open" || exit 1
-  ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated
+  ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated.
   ! check_logs ".\+ not initialized" || exit 1
   ! check_logs ".\+ file error" || exit 1
   ! check_logs ".\+ data error" || exit 1
@@ -145,7 +145,7 @@ while getopts $ARGS arg; do
       MT_VER=${OPTARG:-4x}
       type unzip 2> /dev/null
       install_mt $MT_VER
-      . $CWD/.vars.inc.sh # Reload variables.
+      . "$CWD"/.vars.inc.sh # Reload variables.
       validate_dirs
       ;;
 
@@ -176,7 +176,7 @@ echo "Checking platform..." >&2
   }
 
 # Re-load variables.
-. $CWD/.vars.inc.sh
+. "$CWD"/.vars.inc.sh
 
 # Check the version of installed platform.
 MT_VER=$(filever terminal.exe)

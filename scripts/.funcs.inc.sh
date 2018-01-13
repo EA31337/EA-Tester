@@ -620,13 +620,13 @@ install_mt() {
   configure_display
   case $mt_ver in
     4)
-      . $CWD/install_mt4.sh
+      . "$CWD"/install_mt4.sh
     ;;
     4x)
-      . $CWD/install_mt4-xdot.sh
+      . "$CWD"/install_mt4-xdot.sh
     ;;
     5)
-      . $CWD/install_mt5.sh
+      . "$CWD"/install_mt5.sh
     ;;
     4.0.0.*|5.0.0.*)
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
