@@ -28,7 +28,7 @@ on_success() {
   ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated.
   ! check_logs ".\+ not initialized" || exit 1
   ! check_logs ".\+ file error" || exit 1
-# ! check_logs ".\+ data error" || exit 1 # @fixme: https://github.com/FX31337/FX-BT-Scripts/issues/86
+  ! check_logs ".\+ data error" || exit 1
   ! check_logs ".\+ deficient data" || exit 1
   ! check_logs "stop button .\+" || exit 1
   ! check_logs "Error: .\+" || exit 1
