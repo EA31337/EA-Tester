@@ -6,4 +6,4 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 # Initialize settings.
 . $CWD/.vars.inc.sh
 . $CWD/.funcs.inc.sh
-eval $@
+eval "$@"

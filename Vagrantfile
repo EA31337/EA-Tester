@@ -5,6 +5,7 @@ require 'getoptlong'
 
 # Parse CLI arguments.
 opts = GetoptLong.new(
+  [ '--ami',            GetoptLong::OPTIONAL_ARGUMENT ], # AMI to use.
   [ '--asset',          GetoptLong::OPTIONAL_ARGUMENT ], # Asset to download (see: get_gh_asset.sh).
   [ '--clone-repo',     GetoptLong::OPTIONAL_ARGUMENT ], # Clone git repository.
   [ '--cpus',           GetoptLong::OPTIONAL_ARGUMENT ], # Number of CPUs.
@@ -27,6 +28,7 @@ opts = GetoptLong.new(
   [ '--vm-name',        GetoptLong::OPTIONAL_ARGUMENT ], # Name of the VM.
 )
 
+ami            = ENV['AMI'] || "ami-fce3c696"
 asset          = ENV['ASSET']
 clone_repo     = ENV['CLONE_REPO']
 cpus           = ENV['CPUS'] || 2
@@ -83,11 +85,11 @@ Vagrant.configure(2) do |config|
 
   config.ssh.forward_agent = true # Enables agent forwarding over SSH connections.
   config.ssh.forward_x11 = true # Enables X11 forwarding over SSH connections.
-# config.ssh.pty = true # Use pty for provisioning. Could hang the script.
+  config.ssh.keep_alive = true # Sends keep-alive packets to keep connections alive.
+  config.ssh.pty = false # Use pty for provisioning. Bug: mitchellh/vagrant/8118.
   config.vm.define "MT-#{provider}-#{vm_name}"
   config.vm.hostname = "vagrant"
 # config.vm.synced_folder ".", "/vagrant", id: "core", nfs: true
-
 
   if not no_setup
     config.vm.provision "shell", path: "scripts/provision.sh"
@@ -98,6 +100,7 @@ Vagrant.configure(2) do |config|
                  CLEAN=1 \
                  OVERRIDE=1 \
                  GITHUB_API_TOKEN=#{github_token} \
+                 ASSET_OVERRIDE=#{ENV['ASSET_OVERRIDE']} \
                  /vagrant/scripts/get_gh_asset.sh #{asset} &&]
   end
 
@@ -106,7 +109,11 @@ Vagrant.configure(2) do |config|
   end
 
   if run_test
-    script << %Q[/vagrant/scripts/run_backtest.sh #{run_test} &&]
+    script << %Q[/usr/bin/env \
+                 BOOT_CODE=#{ENV['BOOT_CODE']} \
+                 GIF_ENHANCE=#{ENV['GIF_ENHANCE']} \
+                 GIF_TEXT_COLOR=#{ENV['GIF_TEXT_COLOR']} \
+                 /vagrant/scripts/run_backtest.sh #{run_test} &&]
   end
 
   if push_repo
@@ -114,7 +121,7 @@ Vagrant.configure(2) do |config|
     script << %Q[/usr/bin/env \
                  TRACE=1 \
                  GIT_ARGS='#{git_args}' \
-                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' 'Test results for #{vm_name}' &&]
+                 /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' '#{vm_name}' &&]
   end
 
   if power_off
@@ -146,13 +153,14 @@ Vagrant.configure(2) do |config|
 
   # AWS EC2 provider
   config.vm.provider :aws do |aws, override|
-    aws.ami = "ami-fce3c696"
+    aws.ami = ami
     aws.block_device_mapping = [{ 'DeviceName' => '/dev/sda1', 'Ebs.VolumeSize' => volume_size }]
     aws.instance_type = instance_type
     aws.keypair_name = keypair_name
     aws.region = ec2_region
     aws.tags = { 'Name' => 'MT4-' + vm_name }
     aws.terminate_on_shutdown = terminate
+    aws.user_data = 'sed -i\'.bak\' -e \'s/^\(Defaults\s\+requiretty\)/# \1/\' /etc/sudoers'
     if private_key then override.ssh.private_key_path = private_key end
     if security_group then aws.security_groups = [ security_group ] end
     if subnet_id then aws.subnet_id = subnet_id end

@@ -1,30 +1,32 @@
 #!/bin/sh
 
-w_metadata install_mt5 apps \
-    title="MetaTrader 5" \
+w_metadata install_mt4 apps \
+    title="MetaTrader 4" \
     year="2016" \
     media="download"
 
-load_install_mt5()
+load_install_mt4()
 {
-    w_download ${MT_URL:-"https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe"}
+    w_download ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
     then
         w_call opensymbol
     fi
-            
+
+    # Opens a webpage.
     WINEDLLOVERRIDES="winebrowser.exe="
     export WINEDLLOVERRIDES
-    
+
+    # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
         Run, "$(find . -name "*.exe" -print -quit)"
-        WinWait, MetaTrader 5 Setup
+        WinWait, MetaTrader 4 Setup, license agreement
         ControlClick, Button1
         Sleep 100
         ControlClick, Button3
-        WinWait, MetaTrader 5 Setup, Installation successfully completed
+        WinWait, MetaTrader 4 Setup, Installation successfully completed
         ControlClick, Button4
         Process, Wait, terminal.exe
         Process, Close, terminal.exe

@@ -3,14 +3,14 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvxX:y:"
+ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd xdpyinfo od perl > /dev/null
+type git pgrep xargs ex xxd od perl > /dev/null
 
 ## Initialize.
-. $CWD/.funcs.inc.sh
-. $CWD/.vars.inc.sh
+. "$CWD"/.funcs.inc.sh
+. "$CWD"/.vars.inc.sh
 configure_display
 
 ## Define local functions.
@@ -25,10 +25,11 @@ on_success() {
   ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   ! check_logs ".\+ cannot open" || exit 1
-  ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated
+  ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated.
   ! check_logs ".\+ not initialized" || exit 1
   ! check_logs ".\+ file error" || exit 1
   ! check_logs ".\+ data error" || exit 1
+  ! check_logs ".\+ deficient data" || exit 1
   ! check_logs "stop button .\+" || exit 1
   ! check_logs "Error: .\+" || exit 1
   ! check_logs "Configuration issue .\+" || exit 1
@@ -77,6 +78,15 @@ parse_results() {
   save_time
   while getopts $ARGS arg; do
     case $arg in
+      G) # Enhance gif report files.
+        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
+        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
+        enhance_gif "$REPORT_GIF" ${GIF_ENHANCE:-"-n"}
+        if [ -f "$REPORT_TXT" ]; then
+          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$REPORT_TXT")
+          enhance_gif "$REPORT_GIF" -t "$gif_text"
+        fi
+        ;;
       t) # Convert test report file into brief text format.
         REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
@@ -87,23 +97,19 @@ parse_results() {
         echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
         convert_html2txt_full "$REPORT_HTM" "$REPORT_TXT"
         ;;
-      G) # Enhance gif report files.
-        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
-        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
-        enhance_gif "$REPORT_GIF"
-        ;;
       O)
         DEST="${DEST:-$CWD}"
         echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
+        [ -d "$DEST" ] || mkdir $VFLAG "$DEST"
         cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
         ;;
-      v)
-        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
-        find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
-        ;;
       o)
+        echo "Sorting test results..."
+        if [ "${MT_VER%%.*}" -ne 5 ]; then
+          # Note: To display sorted results, -o needs to be specified before -v.
+          sort_opt_results "$REPORT_HTM"
+        fi
         echo "Saving optimization results..."
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
@@ -112,6 +118,11 @@ parse_results() {
             ini_set "^$input" "$value" "$SETORG"
           done
         fi
+        ;;
+      v)
+        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
+        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
+        find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       *)
         ignores="$arg=$OPTARG"
@@ -134,7 +145,7 @@ while getopts $ARGS arg; do
       MT_VER=${OPTARG:-4x}
       type unzip 2> /dev/null
       install_mt $MT_VER
-      . $CWD/.vars.inc.sh # Reload variables.
+      . "$CWD"/.vars.inc.sh # Reload variables.
       validate_dirs
       ;;
 
@@ -143,6 +154,7 @@ while getopts $ARGS arg; do
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
+#EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
       type html2text sed >&2
       ;;
 
@@ -157,14 +169,20 @@ done
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
 [ "$TERMINAL_EXE" ] \
-  || { echo "Error: Terminal not found, please specify -M parameter with version to install it." >&2; exit 1; }
+  || {
+    [ -n "$VERBOSE" ] && grep ^TERMINAL <(set) | xargs
+    echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
+    exit 1;
+  }
 
 # Re-load variables.
-. $CWD/.vars.inc.sh
+. "$CWD"/.vars.inc.sh
 
 # Check the version of installed platform.
-echo "Installed Terminal: $(filever terminal.exe)"
-echo "Installed MetaEditor: $(filever metaeditor.exe)"
+MT_VER=$(filever terminal.exe)
+MTE_VER=$(filever metaeditor.exe)
+echo "Installed Terminal: $MT_VER"
+echo "Installed MetaEditor: $MTE_VER"
 
 # Copy ini files.
 copy_ini
@@ -231,11 +249,11 @@ fi
 
 if [ -n "$MONTHS" ]; then
   IFS='-' MONTHS=(${MONTHS})
-  IFS=$' \t\n' # Restore IFS.
+  restore_ifs
 fi
 if [ -n "$YEARS" ]; then
   IFS='-' YEARS=(${YEARS})
-  IFS=$' \t\n' # Restore IFS.
+  restore_ifs
 fi
 if [ -n "$YEARS" ]; then
   START_DATE="${YEARS[0]}.${MONTHS[0]:-01}.01"
@@ -282,16 +300,6 @@ SETFILE="${EA_NAME:-$SCR_NAME}.set"
 if [ "$EA_NAME" ]; then
   EA_INI="$TESTER_DIR/$EA_NAME.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
-# Download backtest data if needed.
-  echo "Checking backtest data (${BT_SRC:-DS})..."
-  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
-# Generate backtest files if not present.
-  if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
-    env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]})" ${BT_SRC:-DS}
-  fi
-# Assign variables.
-  FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
 # Copy EA.
@@ -313,6 +321,7 @@ if [ -n "$SETORG" ]; then
   fi
   if [ -f "$TESTER_DIR/$SETFILE" ]; then
     ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    echo "Copying parameters from SET into INI file..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
   else
     echo "ERROR: Set file not found ($SETORG)!" >&2
@@ -393,6 +402,10 @@ while getopts $ARGS arg; do
       [ -f "$OPTARG" ] || { echo "ERROR: Script specified by -X parameter does no exist." >&2; exit 1; }
       ;;
 
+    V) # Enables visual mode.
+      VISUAL_MODE=1
+      ;;
+
     # Placeholders for parameters used somewhere else.
     b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
@@ -407,35 +420,49 @@ done
 
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
-    type bc
-    echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
-    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-    for file in ${INCLUDE[@]}; do
-      [ -f "$INCLUDE" ]
-      . <(cat "$file")
-    done
-  else
-    echo "ERROR: Please specify .set file first (-f)." >&2
-    exit 1
-  fi
+  echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
+  for file in ${INCLUDE[@]}; do
+    [ -f "$INCLUDE" ]
+    . <(cat "$file")
+  done
 fi
 
-if [ -n "$CODE" ]; then
+# Configure test period.
+if [ -n "$PERIOD" ]; then
+  echo "Configuring test period ($PERIOD)..." >&2
+  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+fi
+
 # Action(s) to evaluate.
+if [ -n "$CODE" ]; then
   for code in "${CODE[@]}"; do
     echo "Evaluating action ($code)..." >&2
     eval "$code"
   done
 fi
 if [ -n "$EA_OPTS" ]; then
-  echo "Applying EA settings ($EA_OPTS)..." >&2
+  echo "Applying EA backtest settings ($EA_OPTS)..." >&2
   [ -f "$EA_INI" ]
   IFS=','; ea_options=($EA_OPTS); restore_ifs
   for opt_pair in "${ea_options[@]}"; do
     IFS='='; ea_option=($opt_pair); restore_ifs
     ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
   done
+fi
+if [ -n "$SET_OPTS" ]; then
+  echo "Setting EA options ($SET_OPTS)..." >&2
+  [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+  IFS=','; set_options=($SET_OPTS); restore_ifs
+  for set_pair in "${set_options[@]}"; do
+    IFS='='; set_option=($set_pair); restore_ifs
+    input_set "${set_option[0]}" "${set_option[1]}"
+    ini_set_ea "${set_option[0]}" "${set_option[1]}"
+  done
+  if [ "$VERBOSE" -gt 0 ]; then
+    # Print final version of SET file in compressed base64 format for debug purposes.
+    # Note: Read by: printf "FOO" | base64 -d | gunzip -d > file.set
+    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | gzip -9c | base64 -w0)" >&2
+  fi
 fi
 if [ -n "$CURRENCY" ]; then
   echo "Configuring base currency ($CURRENCY)..." >&2
@@ -453,10 +480,6 @@ if [ -n "$LOTSTEP" ]; then
   echo "Configuring lot step ($LOTSTEP)..." >&2
   set_lotstep $LOTSTEP
 fi
-if [ -n "$PERIOD" ]; then
-  echo "Configuring period ($PERIOD)..." >&2
-  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
-fi
 if [ -n "$REPORT" ]; then
   echo "Configuring test report ($REPORT)..." >&2
   ini_set "^TestReport" "$REPORT" "$TESTER_INI"
@@ -465,15 +488,6 @@ if [ -n "$SPREAD" ]; then
   echo "Configuring spread ($SPREAD)..." >&2
   set_spread $SPREAD
 fi
-if [ -n "$SET_OPTS" ]; then
-  echo "Setting EA options ($SET_OPTS)..." >&2
-  [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
-  IFS=','; set_options=($SET_OPTS); restore_ifs
-  for set_pair in "${set_options[@]}"; do
-    IFS='='; set_option=($set_pair); restore_ifs
-    input_set "${set_option[0]}" "${set_option[1]}"
-  done
-fi
 if [ "$OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
   ini_set "^TestOptimization" true "$TESTER_INI"
@@ -481,6 +495,24 @@ fi
 if [ -n "$DEST" ]; then
   echo "Checking destination ($DEST)..." >&2
   [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
+fi
+if [ "$VISUAL_MODE" ]; then
+  echo "Enabling visual mode..." >&2
+  ini_set "^TestVisualEnable" true "$TESTER_INI"
+fi
+
+PERIOD=$(ini_get ^TestPeriod)
+if [ "$EA_NAME" ]; then
+  # Download backtest data if needed.
+  echo "Checking backtest data (${BT_SRC:-DS})..."
+  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
+  # Generate backtest files if not present.
+  if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+    env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
+      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
+  fi
+# Assign variables.
+  FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
 # Prepare before test run.
@@ -492,6 +524,7 @@ clean_files
 
 # Run the test under the platform.
 live_logs &
+live_stats &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && on_success $@ || on_failure $@
 echo "$0 done"

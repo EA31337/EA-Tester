@@ -42,10 +42,10 @@ join_by() {
 # Configure display and wine.
 configure_display() {
   export DISPLAY=:0.0 # Select screen 0.
-  export WINEDLLOVERRIDES="mscoree,mshtml=" # Disable gecko in wine.
+  export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe=" # Disable gecko and default browser in wine.
   export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
   sleep 1
-  xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1024x768x16 &
+  pgrep Xvfb || Xvfb $DISPLAY -screen 0 1024x768x16 &
 }
 
 # Display recent logs.
@@ -61,15 +61,23 @@ check_logs() {
 
 # Display logs in real-time.
 live_logs() {
+  set +x
   local filter=${1:-modify}
   while sleep 20; do
     if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
       break;
     fi
-    echo
   done
   echo "Showing live logs..." >&2
   tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+}
+# Display performance stats in real-time.
+live_stats() {
+  set +x
+  while sleep 60; do
+    # TERM=vt100 top | head -n4
+    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
+  done
 }
 
 # Check required files.
@@ -118,7 +126,7 @@ input_set() {
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
@@ -147,7 +155,7 @@ ini_set() {
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -161,10 +169,9 @@ ini_set() {
 ini_set_ea() {
   local key=$1
   local value=$2
-  ini_set ^$key $value "$EA_INI"
-  if [ $? -ne 0 ]; then
-    echo "$key=$value" >> "$EA_INI"
-  fi
+  grep -q ^$key "$EA_INI" \
+    && ini_set ^$key $value "$EA_INI" \
+    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq "$EA_INI"
 }
 
 # Set inputs in the EA INI file.
@@ -174,7 +181,7 @@ ini_set_inputs() {
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
@@ -195,7 +202,7 @@ tag_set() {
   local file="${3:-$(echo $INCLUDE)}"
   local vargs="-u NONE"
   [ -f "$file" ]
-  # [ "$VERBOSE" ] && vargs+=" -V1" # @see: https://github.com/vim/vim/issues/919
+  vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
@@ -495,9 +502,11 @@ dl_file() {
 
 # Compile given EA name.
 compile_ea() {
-  local name="$1"
+  local name=${1:-$EA_NAME}
   cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Experts/$name"
+  local rel_path=$(find $MQL_DIR/Experts -name "$name*")
+  wine metaeditor.exe ${@:2} /log /compile:"$rel_path"
+  [ -f "$TERMINAL_DIR"/MQL4.log ] && { iconv -f utf-16 -t utf-8 "$TERMINAL_DIR"/MQL?.log | grep -A10 "${name%.*}"; } || true
   cd -
 }
 
@@ -506,13 +515,13 @@ convert_html2txt() {
   # Define pattern for moving first 3 parameters into last column.
   local file_in=$1
   local file_out=$2
-  local move1_pattern='s/ title="\([0-9a-zA-Z=_.]*; [0-9a-zA-Z=_.]*; [0-9a-zA-Z=_.]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
+  local move1_pattern='s/ title="\([-0-9a-zA-Z=_.]*; [-0-9a-zA-Z=_.]*; [-0-9a-zA-Z=_.]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
   grep -v mso-number "$file_in" | \
     sed -e "$move1_pattern" | \
     html2text -nobs -width 150 | \
     sed "/\[Graph\]/q" \
     > "$file_out"
-  # grep -v '^\s.*;'
+  if [ $? -ne 0 ]; then exit 1; fi # Fail on error.
 }
 
 # Convert html to txt format (full version).
@@ -530,42 +539,78 @@ compile_script() {
   cd -
 }
 
-# Enhance GIF report file.
+# Sort optimization test result values by profit factor.
+# Usage: sort_opt_results report.html
+sort_opt_results() {
+  local file="$1"
+  # Note: {1} - Profit; {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
+  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq "$file"
+}
+
+# Enhance a GIF report file.
 # Usage: enhance_gif -c1 color_name -c2 color_name -t "Text with \\\n new lines"
-# -c1 (default: blue)
-# -c2 (default: green)
+# @see: https://www.imagemagick.org/script/color.php
 enhance_gif() {
   local file="$1"
-  local color1='blue'
-  local color2='green'
   local text=''
+  local negate=0
+  local font=$(fc-match --format=%{file} Arial.ttf)
+  local text_color=${GIF_TEXT_COLOR:-gray}
+  type convert > /dev/null
+  [ -f "$file" ]
 
-  while [[ $# > 1 ]]; do
+  while [[ $# > 0 ]]; do
     key="$1"
     case $key in
-      -c1|--color1)
-        color1="$2"
+      -n|--negate)
+        convert -negate "$file" "$file"
+        negate=$((1-negate))
+        ;;
+      -cvl|--color-volume) # E.g. equity, volume.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#00B000" || opaque="#FF4FFF"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
         shift
-      ;;
-      -c2|--color2)
-        color2="$2"
+        ;;
+      -cbl|--color-balance) # E.g. balance.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#0000B0" || opaque="#FFFF4F"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -cbg|--color-bg) # E.g. background.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#F8F8F8" || opaque="#070707"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -cgr|--color-grid) # E.g. grid.
+        color=$2
+        [[ $negate = 0 ]] && opaque="#C8C8C8" || opaque="#373737"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -ctx|--color-text) # E.g. axis text.
+        color=$2
+        [[ $negate = 0 ]] && opaque="black" || opaque="white"
+        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+        shift
+        ;;
+      -stc|--set-color-text)
+        text_color=$2
         shift
         ;;
       -t|--text)
-        text="$2"
+        text=$2
+        [[ $negate = 0 ]] && color="black" || color="white"
+        # Consider adding extras such as: +antialias.
+        convert "$file" -fill $text_color -font $font -pointsize 8 -annotate +7+27 "$text" "$file" || exit 1
         shift
         ;;
     esac
     shift
   done
-
-  type convert > /dev/null
-
-  local font=$(fc-match --format=%{file} Arial.ttf)
-  convert -negate "$file" "$file"
-  convert "$file" -fuzz 0% -fill "$color1" -opaque "#ff4fff" "$file"
-  convert "$file" -fuzz 0% -fill "$color2" -opaque "#ffff4f" "$file"
-  convert "$file" -fill white +antialias -font $font -pointsize 9 -annotate +7+27 "$text" "$file"
+  unset opaque color text_color
 }
 
 ## Install platform.
@@ -575,19 +620,19 @@ install_mt() {
   configure_display
   case $mt_ver in
     4)
-      . $CWD/install_mt4.sh
+      . "$CWD"/install_mt4.sh
     ;;
     4x)
-      . $CWD/install_mt4-xdot.sh
+      . "$CWD"/install_mt4-xdot.sh
     ;;
     5)
-      . $CWD/install_mt5.sh
+      . "$CWD"/install_mt5.sh
     ;;
     4.0.0.*|5.0.0.*)
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
       cd "$WINE_PATH"
-      wget $VFLAG -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
-      unzip -ou mt*.zip
+      wget -nv -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
+      unzip -ou "mt-$mt_ver.zip"
       cd -
     ;;
     *)
@@ -628,7 +673,7 @@ install_support_tools() {
   local dtmp=$(mktemp -d)
   echo "Installing support tools..." >&2
   cd "$dtmp"
-  wget "$tools_url"
+  wget -nv "$tools_url"
   cabextract -F support.cab *.exe
   cabextract -F filever.exe *.cab
   install -v filever.exe ~/.wine/drive_c/windows
