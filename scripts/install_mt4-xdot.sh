@@ -2,19 +2,21 @@
 # Script to install MT platform using xdotool..
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 DTMP=$(mktemp -d)
+EXEFILE=mt4setup.exe
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 [ "$TRACE" ] && set -x
+set +e
 
 # Check the dependencies.
-type wget xdotool xwininfo wine winetricks ar >&2
+type wget xdotool xwininfo wine ar >&2
 
 echo "Downloading MT4 installer..." >&2
-[ ! -f "$HOME/mt4setup.exe" ] && wget -P "$HOME" -ct3 ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}
+[ ! -f "$HOME/$EXEFILE" ] && wget -P "$HOME" -ct3 ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/$EXEFILE"}
 
 echo "Starting MT4 Setup in Wine..." >&2
-wine "$HOME/mt4setup.exe" &
+[ -f "$HOME/$EXEFILE" ]
+wine "$HOME/$EXEFILE" &
 
-set +e
 echo "Waiting for Wine to initialize..."
 while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
   sleep 2
