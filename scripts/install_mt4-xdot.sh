@@ -13,7 +13,7 @@ type wget xdotool xwininfo wine ar >&2
 
 echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/$EXEFILE" ] \
-  && wget -P "$HOME" -ct3 ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/$EXEFILE"}
+  && wget -O "$HOME/$EXEFILE" -ct3 --content-disposition ${MT_URL:-"https://www.xm.co.uk/download/xmuk-mt4"}
 
 echo "Starting MT4 Setup in Wine..." >&2
 [ -f "$HOME/$EXEFILE" ]
@@ -24,7 +24,7 @@ live_stats &
 
 echo "Waiting for Wine to initialize..."
 while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
-  winedbg --command "info wnd"
+  winedbg --command "info wnd" | grep Meta || true
   sleep 5
 done
 
