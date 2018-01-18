@@ -24,14 +24,14 @@ live_stats &
 
 echo "Waiting for Wine to initialize..."
 while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
-  winedbg --command "info wnd" | grep Meta || true
   sleep 5
+  winedbg --command "info wnd" | grep Meta || true
 done
 
 echo "Title: $(xdotool getwindowname $WID)..."
 
 echo "Sending installer keystrokes..." >&2
-xdotool key --window $WID --delay 500 space Tab Tab Tab Return Tab Tab Tab space Alt+n
+xdotool key --window $WID --delay 500 space
 
 echo "Waiting for installer to finish..." >&2
 xwininfo -id $WID -tree
