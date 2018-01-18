@@ -23,7 +23,7 @@ wine "$HOME/$EXEFILE" &
 live_stats &
 
 echo "Waiting for Wine to initialize..."
-while ! WID=$(xdotool search --name "MetaTrader 4 Setup"); do
+while ! WID=$(xdotool search --name "4 Setup"); do
   sleep 5
   winedbg --command "info wnd" | grep Meta || true
 done
