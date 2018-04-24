@@ -14,6 +14,8 @@ env:
   - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestTimeframes -P M30"
   - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestBands -P M15"
   - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestBands -P M30"
+  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestEnvelopes -P M15"
+  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestEnvelopes -P M30"
   - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestModellingQuality -P M1"
   - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestModellingQuality -P M30"
   - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2016 -s 20 -b DS -D4 -e TestLotstep -P M1"

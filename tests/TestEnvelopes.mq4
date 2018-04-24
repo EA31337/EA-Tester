@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
-//|                                                    TestBands.mq4 |
-//|                            Copyright 2018, 31337 Investments Ltd |
+//|                                                TestEnvelopes.mq4 |
+//|                            Copyright 2016, 31337 Investments Ltd |
 //|                                       https://github.com/EA31337 |
 //+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
-//| Test whether Bands indicator values are correct.
+//| Test whether Envelopes indicator values are correct.
 //+------------------------------------------------------------------+
 
 /*
@@ -26,28 +26,28 @@
 #property strict
 
 int OnInit() {
-  double bands[3] = {};
+  double envs[3] = {};
   int tf[5] = { 1, 5, 15, 30, 60 };
   int modes[3] = { MODE_LOWER, MODE_MAIN, MODE_UPPER };
   bool correct, result = TRUE;
 
-  Print("Testing values for Bands indicator...");
+  Print("Testing values for Envelopes indicator...");
   PrintFormat("Symbol            : %s", _Symbol);
   PrintFormat("Current timeframe : %d", PERIOD_CURRENT);
   PrintFormat("Bid/Ask           : %g/%g", NormalizeDouble(Bid, Digits), NormalizeDouble(Ask, Digits));
   for (int p = 0; p < ArraySize(tf); p++) {
     for (int m = 0; m < ArraySize(modes); m++) {
-      bands[m] = iBands(_Symbol, tf[p], 20, 2.0, 0, 0, modes[m], 0);
+      envs[m] = iEnvelopes(_Symbol, tf[p], 20, MODE_SMA, 0, PRICE_CLOSE, 0.10, modes[m], 0);
     }
-    correct = (bands[0] > 0 && bands[1] > 0 && bands[2] > 0 && bands[0] < bands[1] && bands[1] < bands[2]);
-    PrintFormat("Bands M%d          : %g/%g/%g => %s", tf[p], bands[0], bands[1], bands[2], correct ? "CORRECT" : "INCORRECT");
+    correct = (envs[0] > 0 && envs[1] > 0 && envs[2] > 0 && envs[0] < envs[1] && envs[1] < envs[2]);
+    PrintFormat("Envelopes M%d          : %g/%g/%g => %s", tf[p], envs[0], envs[1], envs[2], correct ? "CORRECT" : "INCORRECT");
     result &= correct;
   }
   if (result) {
-    Print("Bands values are correct!");
+    Print("Envelopes values are correct!");
     return INIT_SUCCEEDED;
   } else {
-    Print("Error: Bands values are not correct!");
+    Print("Error: Envelopes values are not correct!");
     return INIT_FAILED;
   }
 }
