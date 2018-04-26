@@ -1,39 +1,42 @@
-#!/bin/sh -e
-
+#!/usr/bin/env bash
 #
-# Provisioning script
+# Provisioning script.
+# Note: Needs to be run as root within VM environment.
 #
 
 # Initialize script.
 [ "$TRACE" ] && set -x
-if [ ! -d /vagrant ] && [ ! -d /home/travis ] && [ ! -f /.dockerinit ]; then
-  echo "Error: This script needs to be run within VM." >&2
+[ "$NOERR" ] || set -e
+if [ ! -d /vagrant ] && [ ! -d /home/travis -a ! -f /.dockerenv ]; then
+  echo "Error: This script needs to be run within container." >&2
   exit 1
 elif [ -f ~/.provisioned ]; then
   echo "Note: System already provisioned, skipping." >&2
   exit 0
 fi
 
-#type dpkg apt-get
+#--- onerror()
+##  @param $1 integer (optional) Exit status. If not set, use '$?'
+onerror() {
+  local exit_status=${1:-$?}
+  local frame=0
+  echo "ERROR: Exiting $0 with $exit_status" >&2
+  # Show simple stack trace.
+  while caller $((n++)); do :; done; >&2
+  exit $exit_status
+}
+
+# Handle bash errors. Exit on error. Trap exit.
+# Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
+trap onerror 1 2 3 15 ERR
 
 # Check the Linux distribution.
 echo "OS: $(uname -a)"
-if [ type lsb_release ]; then
-  lsb_release -a
-  dist=$(lsb_release -i)
-  codename=$(lsb_release -c)
-fi
-
-# Init variables.
-id travis  && USER="travis"
-id vagrant && USER="vagrant"
+. /etc/*-release 2>/dev/null
 
 # Detect proxy via curl.
-if [ type curl ]; then
-  GW=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
-  curl -s localhost:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://localhost:3128"
-  curl -s       $GW:3128 --connect-timeout 2 > /dev/null && export http_proxy="http://$GW:3128"
-fi
+(</dev/tcp/localhost/3128) 2> /dev/null && export http_proxy="http://localhost:3128"
+GW=$(netstat -rn 2> /dev/null | grep "^0.0.0.0 " | cut -d " " -f10) && (</dev/tcp/$GW/3128) 2> /dev/null && export http_proxy="http://$GW:3128"
 
 set -x
 case "$(uname -s)" in
@@ -41,33 +44,40 @@ case "$(uname -s)" in
   Linux)
 
     # For Ubuntu/Debian.
-    if type dpkg-reconfigure; then
+    if which dpkg-reconfigure 2> /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
         export DEBIAN_FRONTEND=noninteractive
-        [ -f /etc/apt/apt.conf.d/70debconf ] && ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
+        which ex && [ -f /etc/apt/apt.conf.d/70debconf ] && ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
         dpkg-reconfigure debconf -f noninteractive
-        echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+        echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
-        # Prepare wine dependencies.
-        sudo find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +  # Omit source repositories from updates
+        # Omit source repositories from updates for performance reasons.
+        which sed 2> /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
 
-        # Enable 32 bit architecture for 64 bit systems.
+        # Enable 32 bit architecture for 64 bit systems (required for Wine).
         dpkg --add-architecture i386
     fi
 
-    # Add PPA/Wine repository
-    apt-get install -qy python-software-properties                                # APT dependencies (required for the add-apt-repository command on Ubuntu).
-    curl -s https://dl.winehq.org/wine-builds/Release.key | apt-key add -         # Adds GPG release key.
-    add-apt-repository -y \
-      "deb https://dl.winehq.org/wine-builds/ubuntu/ ${codename:-trusty} main"    # Adds APT Wine repository.
+    # Update APT index.
+    [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
 
-    # Update APT repositories.
-    [ -z "$NO_APT_UPDATE" ] && apt-get -qq update                                 # Updates APT index.
+    # Install basic utils (such as curl, wget and Vim).
+    apt-get install -qy curl wget vim
+
+    # Add PPA/Wine repository.
+    # APT dependencies (for the add-apt-repository).
+    apt-get install -qy software-properties-common python-software-properties
+    # Adds GPG release key.
+    curl -s http://dl.winehq.org/wine-builds/Release.key | apt-key add -
+    # Adds APT Wine repository.
+    add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
+
+    # Update APT index.
+    [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qy python-software-properties                                # APT dependencies (required for a docker image).
     apt-get install -qy binutils coreutils moreutils cabextract zip unzip         # Common CLI utils.
     apt-get install -qy imagemagick                                               # ImageMagick.
     apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
@@ -76,12 +86,12 @@ case "$(uname -s)" in
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qy --install-recommends winehq-staging                       # Install Wine.
+    apt-get install -qy winehq-staging                                            # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
     #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
 
-    # Setup swap file if none.
-    if [ -z "$(swapon -s)" ]; then
+    # Setup swap file if none (exclude Docker image).
+    if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
       if [ -f /var/cache/swap/swapfile ]; then
         swapon /var/cache/swap/swapfile
       else
@@ -105,16 +115,21 @@ set +x
 # Set-up hostname.
 grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
 
+# Find not a privileged user.
+id travis  2>/dev/null && user="travis"
+id vagrant 2>/dev/null && user="vagrant"
+id ubuntu  2>/dev/null && user="ubuntu"
+
 # Set-up git.
-git config --system user.name $USER
-git config --system user.email "$USER@$HOSTNAME"
+git config --system user.name $user
+git config --system user.email "$user@$HOSTNAME"
 git config --system core.sharedRepository group
 
 # Add version control for /opt.
 git init /opt
 
 # Give user write permission for /opt.
-chown -R $USER /opt
+chown -R $user /opt
 
 # Mark system as provisioned.
 > ~/.provisioned

@@ -716,7 +716,7 @@ show_trace() {
 }
 
 #--- onexit()
-##  @param $1 integer  (optional) Exit status. If not set, use '$?'
+##  @param $1 integer (optional) Exit status. If not set, use '$?'
 onexit() {
   local exit_status=${1:-$?}
   clean_up
@@ -725,9 +725,9 @@ onexit() {
 }
 
 #--- onerror()
-##  @param $1 integer  (optional) Exit status. If not set, use '$?'
+##  @param $1 integer (optional) Exit status. If not set, use '$?'
 onerror() {
-  local exit_status=1
+  local exit_status=${1:-$?}
   local frame=0
   echo "ERROR: Exiting $0 with $exit_status" >&2
   show_trace
