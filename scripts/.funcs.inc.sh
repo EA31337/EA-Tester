@@ -701,7 +701,7 @@ clean_up() {
 
 ## Kills the currently running wineserver.
 kill_wine() {
-  type wineserver > /dev/null || return
+  type wineserver 2> /dev/null 1>&2 || { true; return; }
   wineserver -k || true
 }
 

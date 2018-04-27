@@ -15,6 +15,12 @@ configure_display
 
 ## Define local functions.
 
+# Show script usage and exit.
+usage() {
+  echo "$0 usage:" >&2
+  grep " .)\ #" "$0" >&2
+}
+
 # Invoke on test success.
 on_success() {
   echo "Checking logs..." >&2
@@ -131,13 +137,15 @@ parse_results() {
   done
 }
 
+# Show usage on no arguments.
+[ $# -eq 0 ] && { usage; exit 0; }
+
 # Parse the initial arguments.
 while getopts $ARGS arg; do
   case ${arg} in
 
     h | \?) # Display help.
-      echo "$0 usage:" >&2
-      grep " .)\ #" "$0" >&2
+      usage
       exit 0
       ;;
 

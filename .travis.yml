@@ -1,24 +1,32 @@
 language: generic
 sudo: required
 group: deprecated-2017Q4
+services:
+  - docker
 env:
   global:
   - |
+    DOCKER_REPO=ea31337/fx-mt-vm
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
+  - secure: "yH/TYN8vfNpBXiNS56lxXtC+a+hLVF5oDBjj0gjQhOmMTbY4N8eHIlwKXnxNHsVwzoFD75xS+hRnZp6xWoDlAbiSNiGQdzzX0ZCIOb24KSsx+l2cCYfOU93cHpwpo+e5XQU+7+txCBZe34pS22x1yCgF5FFsojqiB0HLFQT8+dINrxmNxpKSs6HyVrerPuQ+zy+JRRqNPqkhjGKIxGx2C4+Exr6LMbHQqHx4KGVUIxjXusinzpPDAjNirdZupGdz1TbbzmiAAgE93KtRBa0UWsaKg+BOpSbfhBuI7bDlLoRVx+zENVQfvKz8Oaz3I2ZHMHE6yb4k0dLUdsVDZsi3M2w9RA+6AMO+STIa+rLYNweiPRMZxdOGmpuvBbdiTJP/Ug/ugzhIDW4r1a3ritmuOsheN9Jx8TVnkx8HEn+TOfNxG/BE7DacLX+XePX85NGg+afWH735I+sMbYvJTfQh63DICxSzFXkAdQrZ8BMfqT372Ok1RuBDPgKZSKn/C4fZfV/pt5afrjf14DyPHZnWiZ3z9POj6Thev+kjfFN/gjNmL8GXigWMd+gJ9BsMT/b1Pdz9JXxrIzfsiLy9G9AWeIsqFZmWAYZqJ29ytsLFetTrf2jwMTQCWdnSRV2XQrhv8/um80FKYw+yLNdEMS8V8yiORZ50BtMBTcAI9kGOOKM="
   matrix:
-  - TEST_ARGS="-x -f /etc/hosts -h"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestFXTHeader"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestHSTHeader"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestTimeframes -P M15"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestTimeframes -P M30"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestBands -P M15"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestBands -P M30"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestEnvelopes -P M15"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestEnvelopes -P M30"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestModellingQuality -P M1"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestModellingQuality -P M30"
-  - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2016 -s 20 -b DS -D4 -e TestLotstep -P M1"
+  - CMD="bash -x scripts/run_backtest.sh -h"
+  - CMD="sudo scripts/provision.sh"
+  - CMD="make docker-ci"
+  - CMD="make docker-load && docker run $DOCKER_REPO id"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestFXTHeader"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestHSTHeader"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestTimeframes -P M15"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestTimeframes -P M30"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestBands -P M15"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestBands -P M30"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestEnvelopes -P M15"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestEnvelopes -P M30"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestModellingQuality -P M1"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestModellingQuality -P M30"
+# - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2016 -s 20 -b DS -D4 -e TestLotstep -P M1"
+
 # - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2017 -s 20 -b DS -D5 -e TestLotstep -P M5" # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1
 # Tests which suppose to be working in older versions only.
 # - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1-12 -y 2015 -s 10 -b DS -D5 -e TestFXTHeader -M4.0.0.971 -R"
@@ -38,11 +46,11 @@ notifications:
 before_install:
 - ulimit -a && free -m
 install:
-- sudo "$CWD"/scripts/provision.sh
 before_script:
 script:
-- ruby -wc "$CWD"/Vagrantfile
-- bash "$CWD"/scripts/run_backtest.sh $TEST_ARGS
+- ruby -wc Vagrantfile
+- bash -n scripts/*
+- eval $CMD
 after_script:
 - echo AFTER SCRIPT
 after_success:
@@ -56,6 +64,8 @@ before_cache:
 cache:
   apt: true
   pip: true
+  directories:
+  - $HOME/.docker
 before_deploy:
 - MT_VER=$("$CWD"/scripts/eval.sh filever terminal.exe)
 - bash "$CWD"/scripts/eval.sh '[ "$TERMINAL_DIR" ] && clean_bt && clean_files && clean_ea' || exit 0

@@ -3,14 +3,25 @@ FROM ubuntu:xenial
 MAINTAINER kenorb
 ENV DEBIAN_FRONTEND noninteractive
 
-# Provision container image,
-ADD "./scripts" "/opt/scripts"
-RUN "/opt/scripts/provision.sh"
-
-# Setup ubuntu user.
+# Setup default user.
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
-USER ubuntu
 WORKDIR /home/ubuntu
 
-CMD ["/bin/bash"]
-#CMD ["/opt/provision.sh"]
+# Provision container image,
+ADD scripts /opt/scripts
+RUN /opt/scripts/provision.sh
+
+# Backtest input.
+ENV DEST /opt/results
+ARG YEARS
+ENV YEARS ${YEAR:-2017}
+
+# Run test.
+USER ubuntu
+ADD conf /opt/conf
+ADD tests /opt/tests
+CMD ["/opt/scripts/run_backtest.sh"]
+RUN /opt/scripts/run_backtest.sh -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M30
+
+# Publish results.
+VOLUME /opt/results

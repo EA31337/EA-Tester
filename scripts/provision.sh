@@ -44,16 +44,16 @@ case "$(uname -s)" in
   Linux)
 
     # For Ubuntu/Debian.
-    if which dpkg-reconfigure 2> /dev/null; then
+    if which dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
         export DEBIAN_FRONTEND=noninteractive
-        which ex && [ -f /etc/apt/apt.conf.d/70debconf ] && ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
+        which ex > /dev/null && [ -f /etc/apt/apt.conf.d/70debconf ] && timeout 2 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
         dpkg-reconfigure debconf -f noninteractive
         echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
         # Omit source repositories from updates for performance reasons.
-        which sed 2> /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
+        which sed > /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
 
         # Enable 32 bit architecture for 64 bit systems (required for Wine).
         dpkg --add-architecture i386
@@ -78,7 +78,7 @@ case "$(uname -s)" in
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qy binutils coreutils moreutils cabextract zip unzip         # Common CLI utils.
+    apt-get install -qy less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
     apt-get install -qy imagemagick                                               # ImageMagick.
     apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
     apt-get install -qy git realpath links html2text tree pv bc                   # Required commands.
@@ -89,6 +89,9 @@ case "$(uname -s)" in
     apt-get install -qy winehq-staging                                            # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
     #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
+
+    # Erase downloaded archive files.
+    apt-get clean
 
     # Setup swap file if none (exclude Docker image).
     if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
