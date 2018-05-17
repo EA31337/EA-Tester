@@ -17,8 +17,10 @@ configure_display
 
 # Show script usage and exit.
 usage() {
-  echo "$0 usage:" >&2
+  echo "Usage:"
+  echo "$0 (args)" >&2
   grep " .)\ #" "$0" >&2
+  echo "Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -s 20 -b DS"
 }
 
 # Invoke on test success.
@@ -417,9 +419,8 @@ while getopts $ARGS arg; do
     # Placeholders for parameters used somewhere else.
     b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
-    *) # Display help.
-      echo "$0 usage:" >&2
-      grep " .)\ #" "$0" >&2
+    *)
+      usage
       exit 0
       ;;
 
