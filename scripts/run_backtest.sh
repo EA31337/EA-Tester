@@ -252,6 +252,7 @@ if [ -n "$INCLUDE_BOOT" ]; then
   done
 fi
 
+# Invoke boot code.
 if [ -n "$BOOT_CODE" ]; then
   echo "Evaluating boot code ($BOOT_CODE)..." >&2
   eval "$BOOT_CODE"
@@ -536,4 +537,11 @@ live_logs &
 live_stats &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && on_success $@ || on_failure $@
+
+# Invoke shutdown/final code.
+if [ -n "$FINAL_CODE" ]; then
+  echo "Evaluating final code ($FINAL_CODE)..." >&2
+  eval "$FINAL_CODE"
+fi
+
 echo "$0 done"
