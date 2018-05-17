@@ -1,11 +1,11 @@
 SHELL     := /usr/bin/env bash
 IMAGE_TAG := ea31337/fx-mt-vm
-IMAGE_TAR := ${HOME}/.docker/images.tar
+IMAGE_TAR := ${HOME}/.docker/images.tar.gz
 DOCKR_CFG := ${HOME}/.docker/config.json
 .PHONY: docker-load docker-build docker-push docker-run docker-save docker-clean
 docker-ci: docker-load docker-build docker-push docker-save
 docker-load:
-	if [[ -f $(IMAGE_TAR) ]]; then docker load -i $(IMAGE_TAR); fi
+	if [[ -f $(IMAGE_TAR) ]]; then gzip -dc $(IMAGE_TAR) | docker load; fi
 docker-build:
 	docker build -t $(IMAGE_TAG) .
 docker-login:
@@ -15,6 +15,6 @@ docker-push: docker-login
 docker-run:
 	docker run -it ea31337/fx-mt-vm bash
 docker-save:
-	docker save ea31337/fx-mt-vm -o ~/.docker/images.tar
+	docker save ea31337/fx-mt-vm | gzip > ~/.docker/images.tar
 docker-clean:
 	docker system prune -af
