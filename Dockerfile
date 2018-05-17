@@ -9,7 +9,8 @@ WORKDIR /home/ubuntu
 
 # Provision container image,
 ADD scripts /opt/scripts
-RUN /opt/scripts/provision.sh
+ENV PATH $PATH:/opt/scripts
+RUN provision.sh
 
 # Backtest input.
 ENV DEST /opt/results
@@ -20,8 +21,10 @@ ENV YEARS ${YEAR:-2017}
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-CMD ["/opt/scripts/run_backtest.sh"]
-RUN /opt/scripts/run_backtest.sh -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M30
+RUN run_backtest.sh -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M30
 
-# Publish results.
+# Share the results.
 VOLUME /opt/results
+
+# Final settings
+CMD ["run_backtest.sh"]
