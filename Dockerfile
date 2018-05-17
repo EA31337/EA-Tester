@@ -26,5 +26,5 @@ RUN run_backtest.sh -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -s 10 -b DS -D5 -e
 # Share the results.
 VOLUME /opt/results
 
-# Final settings
-CMD ["run_backtest.sh"]
+# Configure a container as an executable.
+ENTRYPOINT ["run_backtest.sh"]
