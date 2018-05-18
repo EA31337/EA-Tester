@@ -15,6 +15,14 @@ configure_display
 
 ## Define local functions.
 
+# Show script usage and exit.
+usage() {
+  echo "Usage:"
+  echo "$0 (args)" >&2
+  grep " .)\ #" "$0" >&2
+  echo "Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -s 20 -b DS"
+}
+
 # Invoke on test success.
 on_success() {
   echo "Checking logs..." >&2
@@ -131,13 +139,15 @@ parse_results() {
   done
 }
 
+# Show usage on no arguments.
+[ $# -eq 0 ] && { usage; exit 0; }
+
 # Parse the initial arguments.
 while getopts $ARGS arg; do
   case ${arg} in
 
     h | \?) # Display help.
-      echo "$0 usage:" >&2
-      grep " .)\ #" "$0" >&2
+      usage
       exit 0
       ;;
 
@@ -242,6 +252,7 @@ if [ -n "$INCLUDE_BOOT" ]; then
   done
 fi
 
+# Invoke boot code.
 if [ -n "$BOOT_CODE" ]; then
   echo "Evaluating boot code ($BOOT_CODE)..." >&2
   eval "$BOOT_CODE"
@@ -409,9 +420,8 @@ while getopts $ARGS arg; do
     # Placeholders for parameters used somewhere else.
     b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
 
-    *) # Display help.
-      echo "$0 usage:" >&2
-      grep " .)\ #" "$0" >&2
+    *)
+      usage
       exit 0
       ;;
 
@@ -527,4 +537,11 @@ live_logs &
 live_stats &
 echo "Testing..." >&2
 (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && on_success $@ || on_failure $@
+
+# Invoke shutdown/final code.
+if [ -n "$FINAL_CODE" ]; then
+  echo "Evaluating final code ($FINAL_CODE)..." >&2
+  eval "$FINAL_CODE"
+fi
+
 echo "$0 done"
