@@ -7,6 +7,9 @@ if [ ! "$TERMINAL_EXE" ] && [ "$VERBOSE" ]; then
   echo "Initializing variables... (args: $*)" >&2
 fi
 
+# Determine VM.
+is_vm() { [ -d /vagrant -a -d /home/travis -a -f /.dockerenv ]; }
+
 # Determine platform paths.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
@@ -20,11 +23,11 @@ CONF_CUSTOM="custom.ini"
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
-set -x
+is_vm && set -x
 TERMINAL_EXE="$(find "$ROOT" "$OUT" "$HOME" -name terminal.exe -print -quit)"
 TERMINAL_DIR="${TERMINAL_DIR:-$([ -f "$TERMINAL_EXE" ] && dirname "$TERMINAL_EXE" || true)}"
 MTEDITOR_EXE="$([ -d "$TERMINAL_DIR" ] && find "$TERMINAL_DIR" -name metaeditor.exe -print -quit || true)"
-set +x
+is_vm && set +x
 MQL_DIR="MQL4"
 if [ "$TERMINAL_DIR" ]; then
   TERMINAL_ARG="/skipupdate /portable"

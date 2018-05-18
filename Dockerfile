@@ -13,9 +13,16 @@ ENV PATH $PATH:/opt/scripts
 RUN provision.sh
 
 # Backtest input.
-ENV DEST /opt/results
-ARG YEARS
-ENV YEARS ${YEAR:-2017}
+ENV BT_DEST /opt/results
+ARG BOOT_CODE
+ARG FINAL_CODE
+ARG BT_START_DATE
+ARG BT_END_DATE
+ENV BT_START_DATE ${BT_START_DATE:-2017.01.01}
+ARG BT_YEARS
+ENV BT_YEARS ${BT_YEARS:-2017}
+ARG BT_MONTHS
+ENV BT_MONTHS ${BT_MONTHS:-1}
 
 # Run test.
 USER ubuntu
@@ -29,4 +36,4 @@ RUN eval.sh clean_bt
 VOLUME /opt/results
 
 # Configure a container as an executable.
-ENTRYPOINT ["run_backtest.sh"]
+ENTRYPOINT ["eval.sh"]

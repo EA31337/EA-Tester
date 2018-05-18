@@ -16,7 +16,7 @@ xargs=$(which gxargs || which xargs)
 read owner repo tag name dest <<<$@
 
 # Define variables.
-DEST=${dest:-.}
+BT_DEST=${dest:-.}
 GH_API="https://api.github.com"
 GH_REPO="$GH_API/repos/$owner/$repo"
 GH_TAGS="$GH_REPO/releases/tags/$tag"
@@ -39,11 +39,11 @@ eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
 GH_ASSET="$GH_REPO/releases/assets/$id"
 
 # Changing the working folder. Create if does not exist.
-[ ! -d "$DEST" ] && mkdir -vp "$DEST"
-cd "$DEST"
+[ ! -d "$BT_DEST" ] && mkdir -vp "$BT_DEST"
+cd "$BT_DEST"
 
 # Download asset file.
 echo "Downloading asset..." >&2
-[ "$ASSET_OVERRIDE" ] && find "$DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
+[ "$ASSET_OVERRIDE" ] && find "$BT_DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
 curl $CURL_ARGS -H 'Accept: application/octet-stream' "$GH_ASSET?access_token=$GITHUB_API_TOKEN"
 echo "${BASH_SOURCE[0]} done." >&2
