@@ -10,6 +10,8 @@ docker-build:
 	docker build -t $(IMAGE_TAG) .
 docker-login:
 	if [[ ! -f $(DOCKR_CFG) ]]; then docker login -u $(DOCKER_USERNAME) --password-stdin <<<$(DOCKER_PASSWORD); fi
+docker-pull:
+	docker pull $(IMAGE_TAG)
 docker-push: docker-login
 	docker push $(IMAGE_TAG)
 docker-run:
