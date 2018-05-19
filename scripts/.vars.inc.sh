@@ -8,7 +8,7 @@ if [ ! "$TERMINAL_EXE" ] && [ "$VERBOSE" ]; then
 fi
 
 # Determine VM.
-is_vm() { [ -d /vagrant -a -d /home/travis -a -f /.dockerenv ]; }
+is_vm() { [ -d /vagrant -a -d /home/travis -a ! -f /.dockerenv ]; }
 
 # Determine platform paths.
 SCR="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
