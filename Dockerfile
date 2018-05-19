@@ -29,8 +29,7 @@ USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
 RUN run_backtest.sh -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M30
-RUN eval.sh clean_files
-RUN eval.sh clean_bt
+RUN eval.sh (clean_files && clean_bt)
 
 # Share the results.
 VOLUME /opt/results

@@ -3,7 +3,7 @@ IMAGE_TAG := ea31337/fx-mt-vm
 IMAGE_TAR := ${HOME}/.docker/images.tar.gz
 DOCKR_CFG := ${HOME}/.docker/config.json
 .PHONY: docker-load docker-build docker-push docker-run docker-save docker-clean
-docker-ci: docker-load docker-build docker-push docker-save
+docker-ci: docker-load docker-build docker-save
 docker-load:
 	if [[ -f $(IMAGE_TAR) ]]; then gzip -dc $(IMAGE_TAR) | docker load; fi
 docker-build:

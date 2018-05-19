@@ -14,7 +14,7 @@ env:
   matrix:
   - CMD="bash -x scripts/run_backtest.sh -h"
   - CMD="sudo scripts/provision.sh"
-  - CMD="make docker-ci"
+  - CMD="make docker-ci && [[ '$TRAVIS_BRANCH' == 'master' ]] && make docker-push"
   - CMD="make docker-load && docker run $DOCKER_REPO help"
   - CMD="make docker-load && docker run $DOCKER_REPO run_backtest"
   - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestFXTHeader"
@@ -54,15 +54,9 @@ script:
 - bash -n scripts/*
 - eval $CMD
 after_script:
-- echo AFTER SCRIPT
 after_success:
-- echo SUCCESS!
 after_failure:
 - bash -x "$CWD"/scripts/.vars.inc.sh
-- tree ~/.wine/drive_c/Program*
-before_cache:
-- set +e
-- test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete
 cache:
   apt: true
   pip: true
