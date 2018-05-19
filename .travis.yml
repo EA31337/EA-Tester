@@ -18,7 +18,7 @@ env:
   - CMD="make docker-ci && make docker-push DOCKER_TAG=$DOCKER_TAG"
   - CMD="make docker-load && docker run $DOCKER_REPO help"
   - CMD="make docker-load && docker run $DOCKER_REPO run_backtest"
-  - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -type f -size +10M -ls"
+  - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -xdev -type f -size +10M -ls"
   - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestFXTHeader"
   - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestHSTHeader"
   - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M15"
