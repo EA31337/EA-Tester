@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Script to download or generate the backtest data in MT4 platform format.
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
@@ -7,8 +8,9 @@ type git wget zip unzip xargs tee
 xargs=$(which gxargs || which xargs)
 
 # Initialize functions and variables.
-. $CWD/.funcs.inc.sh
-. $CWD/.vars.inc.sh
+. "$CWD"/.funcs.cmds.inc.sh
+. "$CWD"/.funcs.inc.sh
+. "$CWD"/.vars.inc.sh
 
 # Check user input.
 [ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]"; exit 1; }

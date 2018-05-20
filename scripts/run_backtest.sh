@@ -9,9 +9,10 @@ ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 type git pgrep xargs ex xxd od perl > /dev/null
 
 ## Initialize.
+. "$CWD"/.funcs.cmds.inc.sh
 . "$CWD"/.funcs.inc.sh
 . "$CWD"/.vars.inc.sh
-configure_display
+set_display
 
 ## Define local functions.
 
@@ -106,11 +107,11 @@ parse_results() {
         convert_html2txt_full "$REPORT_HTM" "$REPORT_TXT"
         ;;
       O)
-        DEST="${DEST:-$CWD}"
-        echo "Copying report files ($REPORT_BASE.* into: $DEST)..." >&2
-        [ -d "$DEST" ] || mkdir $VFLAG "$DEST"
-        cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$DEST"
-        find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$DEST" ';'
+        BT_DEST="${BT_DEST:-$CWD}"
+        echo "Copying report files ($REPORT_BASE.* into: $BT_DEST)..." >&2
+        [ -d "$BT_DEST" ] || mkdir $VFLAG "$BT_DEST"
+        cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$BT_DEST"
+        find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
         ;;
       o)
         echo "Sorting test results..."
@@ -165,7 +166,7 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       VDD="noxfer"
 #EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed >&2
+      type html2text sed > /dev/null
       ;;
 
     x) # Run the script in debug mode.
@@ -195,7 +196,7 @@ echo "Installed Terminal: $MT_VER"
 echo "Installed MetaEditor: $MTE_VER"
 
 # Copy ini files.
-copy_ini
+ini_copy
 
 # Parse the primary arguments.
 OPTIND=1
@@ -229,7 +230,7 @@ while getopts $ARGS arg; do
       ;;
 
     m) # Which months to test (default: 1-12)
-      MONTHS=${OPTARG}
+      BT_MONTHS=${OPTARG}
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
@@ -237,7 +238,7 @@ while getopts $ARGS arg; do
       ;;
 
     y) # Year to test (e.g. 2014, 2011-2015).
-      YEARS=${OPTARG}
+      BT_YEARS=${OPTARG}
       ;;
 
   esac
@@ -258,32 +259,32 @@ if [ -n "$BOOT_CODE" ]; then
   eval "$BOOT_CODE"
 fi
 
-if [ -n "$MONTHS" ]; then
-  IFS='-' MONTHS=(${MONTHS})
+if [ -n "$BT_MONTHS" ]; then
+  IFS='-' BT_MONTHS=(${BT_MONTHS})
   restore_ifs
 fi
-if [ -n "$YEARS" ]; then
-  IFS='-' YEARS=(${YEARS})
+if [ -n "$BT_YEARS" ]; then
+  IFS='-' BT_YEARS=(${BT_YEARS})
   restore_ifs
 fi
-if [ -n "$YEARS" ]; then
-  START_DATE="${YEARS[0]}.${MONTHS[0]:-01}.01"
-  END_DATE="${YEARS[1]:-$(echo ${YEARS[0]})}.${MONTHS[1]:-$(echo ${MONTHS[0]:-12})}.31"
+if [ -n "$BT_YEARS" ]; then
+  BT_START_DATE="${BT_YEARS[0]}.${BT_MONTHS[0]:-01}.01"
+  BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.31"
 fi
 
 if [ -n "$EA_NAME" ]; then
-  EA_PATH=$(find_ea "$EA_NAME")
+  EA_PATH=$(ea_find "$EA_NAME")
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
   ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
 fi
 
-if [ -n "$START_DATE" ]; then
-  echo "Configuring start test period ($START_DATE)..." >&2
-  ini_set "^TestFromDate" "$START_DATE" "$TESTER_INI"
+if [ -n "$BT_START_DATE" ]; then
+  echo "Configuring start test period ($BT_START_DATE)..." >&2
+  ini_set "^TestFromDate" "$BT_START_DATE" "$TESTER_INI"
 fi
-if [ -n "$END_DATE" ]; then
-  echo "Configuring end test period ($END_DATE)..." >&2
-  ini_set "^TestToDate"   "$END_DATE" "$TESTER_INI"
+if [ -n "$BT_END_DATE" ]; then
+  echo "Configuring end test period ($BT_END_DATE)..." >&2
+  ini_set "^TestToDate"   "$BT_END_DATE" "$TESTER_INI"
 fi
 
 if [ -n "$SYMBOL" ]; then
@@ -315,14 +316,14 @@ fi
 
 # Copy EA.
 if [ -n "$EA_PATH" ]; then
-  copy_ea "$EA_PATH"
+  ea_copy "$EA_PATH"
 fi
 
 if [ "$SCR_NAME" ]; then
   SCR_INI="$SCRIPTS_DIR/$SCR_NAME.ini"
   cp $VFLAG "$TPL_SCR" "$SCR_INI"
-  SCR_PATH=$(find_ea "$SCR_NAME")
-  copy_script "$SCR_PATH"
+  SCR_PATH=$(ea_find "$SCR_NAME")
+  script_copy "$SCR_PATH"
 fi
 
 if [ -n "$SETORG" ]; then
@@ -340,7 +341,7 @@ if [ -n "$SETORG" ]; then
   fi
 fi
 
-copy_srv
+srv_copy
 check_files
 
 # Parse the main arguments.
@@ -348,7 +349,7 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-    A) # Action to evaluate (e.g. "dl_file URL")
+    A) # Action to evaluate (e.g. "file_get URL")
       CODE+=("${OPTARG}")
       ;;
 
@@ -381,7 +382,7 @@ while getopts $ARGS arg; do
       ;;
 
     O) # Output directory to save the test results.
-      DEST=${OPTARG}
+      BT_DEST=${OPTARG}
       ;;
 
     P) # Period to test.
@@ -405,7 +406,7 @@ while getopts $ARGS arg; do
       ;;
 
     t)
-      type html2text >&2
+      type html2text > /dev/null
       ;;
 
     X)
@@ -469,9 +470,8 @@ if [ -n "$SET_OPTS" ]; then
     ini_set_ea "${set_option[0]}" "${set_option[1]}"
   done
   if [ "$VERBOSE" -gt 0 ]; then
-    # Print final version of SET file in compressed base64 format for debug purposes.
-    # Note: Read by: printf "FOO" | base64 -d | gunzip -d > file.set
-    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | gzip -9c | base64 -w0)" >&2
+    # Print final version of the SET file.
+    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
   fi
 fi
 if [ -n "$CURRENCY" ]; then
@@ -502,9 +502,9 @@ if [ "$OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
-if [ -n "$DEST" ]; then
-  echo "Checking destination ($DEST)..." >&2
-  [ -d "$DEST" ] || mkdir -p $VFLAG "$DEST"
+if [ -n "$BT_DEST" ]; then
+  echo "Checking destination ($BT_DEST)..." >&2
+  [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
 fi
 if [ "$VISUAL_MODE" ]; then
   echo "Enabling visual mode..." >&2
@@ -515,11 +515,11 @@ PERIOD=$(ini_get ^TestPeriod)
 if [ "$EA_NAME" ]; then
   # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
-  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${YEARS[@]:-2015})-${BT_SRC:-DS}"
+  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${BT_YEARS[@]:-2015})-${BT_SRC:-DS}"
   # Generate backtest files if not present.
   if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
+      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
   fi
 # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -544,4 +544,4 @@ if [ -n "$FINAL_CODE" ]; then
   eval "$FINAL_CODE"
 fi
 
-echo "$0 done"
+[ -n "$VERBOSE" ] && echo "$0 done" >&2

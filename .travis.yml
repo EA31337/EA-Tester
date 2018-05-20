@@ -9,24 +9,27 @@ env:
     DOCKER_REPO=ea31337/fx-mt-vm
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
-    BT_RUN="docker run -v $CWD/scripts:/opt/scripts:ro $DOCKER_REPO"
+    DC_RUN="docker run -v $CWD/scripts:/opt/scripts:ro $DOCKER_REPO"
+    DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo $TRAVIS_BRANCH)
   - secure: "yH/TYN8vfNpBXiNS56lxXtC+a+hLVF5oDBjj0gjQhOmMTbY4N8eHIlwKXnxNHsVwzoFD75xS+hRnZp6xWoDlAbiSNiGQdzzX0ZCIOb24KSsx+l2cCYfOU93cHpwpo+e5XQU+7+txCBZe34pS22x1yCgF5FFsojqiB0HLFQT8+dINrxmNxpKSs6HyVrerPuQ+zy+JRRqNPqkhjGKIxGx2C4+Exr6LMbHQqHx4KGVUIxjXusinzpPDAjNirdZupGdz1TbbzmiAAgE93KtRBa0UWsaKg+BOpSbfhBuI7bDlLoRVx+zENVQfvKz8Oaz3I2ZHMHE6yb4k0dLUdsVDZsi3M2w9RA+6AMO+STIa+rLYNweiPRMZxdOGmpuvBbdiTJP/Ug/ugzhIDW4r1a3ritmuOsheN9Jx8TVnkx8HEn+TOfNxG/BE7DacLX+XePX85NGg+afWH735I+sMbYvJTfQh63DICxSzFXkAdQrZ8BMfqT372Ok1RuBDPgKZSKn/C4fZfV/pt5afrjf14DyPHZnWiZ3z9POj6Thev+kjfFN/gjNmL8GXigWMd+gJ9BsMT/b1Pdz9JXxrIzfsiLy9G9AWeIsqFZmWAYZqJ29ytsLFetTrf2jwMTQCWdnSRV2XQrhv8/um80FKYw+yLNdEMS8V8yiORZ50BtMBTcAI9kGOOKM="
   matrix:
   - CMD="bash -x scripts/run_backtest.sh -h"
   - CMD="sudo scripts/provision.sh"
-  - CMD="make docker-ci"
-  - CMD="make docker-load && docker run $DOCKER_REPO"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestFXTHeader"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestHSTHeader"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestTimeframes -P M15"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestTimeframes -P M30"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestBands -P M15"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestBands -P M30"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestEnvelopes -P M15"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestEnvelopes -P M30"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2016 -s 10 -b DS -D5 -e TestModellingQuality -P M1"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 1000 -p EURUSD -m 1 -y 2017 -s 10 -b DS -D5 -e TestModellingQuality -P M30"
-  - CMD="$BT_RUN -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2016 -s 20 -b DS -D4 -e TestLotstep -P M1"
+  - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_BRANCH' == 'master' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
+  - CMD="make docker-load && docker run $DOCKER_REPO help"
+  - CMD="make docker-load && docker run $DOCKER_REPO run_backtest"
+  - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -xdev -type f -size +10M -ls"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestFXTHeader"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestHSTHeader"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M15"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M30"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestBands -P M15"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestBands -P M30"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestEnvelopes -P M15"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestEnvelopes -P M30"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestModellingQuality -P M1"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestModellingQuality -P M30"
+  - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 2000 -p EURUSD -y 2016 -m 1 -s 20 -b DS -D4 -e TestLotstep -P M1"
 
 # - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2017 -s 20 -b DS -D5 -e TestLotstep -P M5" # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1
 # Tests which suppose to be working in older versions only.
@@ -53,15 +56,9 @@ script:
 - bash -n scripts/*
 - eval $CMD
 after_script:
-- echo AFTER SCRIPT
 after_success:
-- echo SUCCESS!
 after_failure:
 - bash -x "$CWD"/scripts/.vars.inc.sh
-- tree ~/.wine/drive_c/Program*
-before_cache:
-- set +e
-- test -d ~/.wine/drive_c && find ~/.wine/drive_c -type l -delete
 cache:
   apt: true
   pip: true
