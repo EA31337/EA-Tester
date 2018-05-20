@@ -1,4 +1,5 @@
 SHELL      := /usr/bin/env bash
+ARGS			 := $(filter-out $@,$(MAKECMDGOALS))
 IMAGE_PATH := ea31337/fx-mt-vm
 DOCKER_TAG := latest
 DOCKER_TAR := ${HOME}/.docker/images.tar.gz
@@ -14,10 +15,10 @@ docker-login:
 docker-pull:
 	docker pull $(IMAGE_PATH):$(DOCKER_TAG)
 docker-push: docker-login
-	echo docker push $(IMAGE_PATH):$(DOCKER_TAG)
+	docker push $(IMAGE_PATH):$(DOCKER_TAG)
 docker-run:
-	docker run -it ea31337/fx-mt-vm bash
+	docker run -it $(IMAGE_PATH) /fx-mt-vm bash
 docker-save:
-	docker save ea31337/fx-mt-vm | gzip > ~/.docker/images.tar
+	docker save $(IMAGE_PATH) | gzip > ~/.docker/images.tar
 docker-clean:
 	docker system prune -af
