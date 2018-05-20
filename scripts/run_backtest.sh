@@ -166,7 +166,7 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       VDD="noxfer"
 #EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed >&2
+      type html2text sed > /dev/null
       ;;
 
     x) # Run the script in debug mode.
@@ -406,7 +406,7 @@ while getopts $ARGS arg; do
       ;;
 
     t)
-      type html2text >&2
+      type html2text > /dev/null
       ;;
 
     X)
@@ -544,4 +544,4 @@ if [ -n "$FINAL_CODE" ]; then
   eval "$FINAL_CODE"
 fi
 
-echo "$0 done"
+[ -n "$VERBOSE" ] && echo "$0 done" >&2
