@@ -57,7 +57,7 @@ case "$(uname -s)" in
     fi
 
     # Add PPA/Wine repository
-    apt-get install -qy python-software-properties                                # APT dependencies (required for the add-apt-repository command on Ubuntu).
+    apt-get install -qy software-properties-common                                # APT dependencies (required for the add-apt-repository command on Ubuntu).
     curl -s https://dl.winehq.org/wine-builds/Release.key | apt-key add -         # Adds GPG release key.
     add-apt-repository -y \
       "deb https://dl.winehq.org/wine-builds/ubuntu/ ${codename:-trusty} main"    # Adds APT Wine repository.
@@ -67,7 +67,7 @@ case "$(uname -s)" in
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qy python-software-properties                                # APT dependencies (required for a docker image).
+    apt-get install -qy software-properties-common                                # APT dependencies (required for a docker image).
     apt-get install -qy binutils coreutils moreutils cabextract zip unzip         # Common CLI utils.
     apt-get install -qy imagemagick                                               # ImageMagick.
     apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
