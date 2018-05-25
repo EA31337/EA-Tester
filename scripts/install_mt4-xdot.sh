@@ -3,6 +3,7 @@
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 DTMP=$(mktemp -d)
 EXEFILE=mt4setup.exe
+WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 
 # Check the dependencies.
@@ -10,6 +11,9 @@ type wget xdotool xwininfo wine ar >&2
 
 # Load the shell functions.
 . "$CWD/.funcs.inc.sh"
+
+echo "Installing winhttp..." >&2
+sh -s winhttp < <(wget -qO- $WURL)
 
 echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/$EXEFILE" ] \
