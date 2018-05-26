@@ -21,28 +21,50 @@ sh -s winhttp < <(wget -qO- $WURL)
 echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/$EXEFILE" ] \
   && wget -O "$HOME/$EXEFILE" -ct3 --content-disposition ${MT_URL:-"https://www.xm.co.uk/download/xmuk-mt4"}
-
-echo "Starting MT4 Setup in Wine..." >&2
 [ -f "$HOME/$EXEFILE" ]
-wine "$HOME/$EXEFILE" &
 
 # Prints information of the window status in the background.
 live_stats &
 
-echo "Waiting for Wine to initialize..."
-while ! WID=$(xdotool search --name "4 Setup"); do
-  sleep 5
-  winedbg --command "info wnd" | grep Meta || true
+INSTALL_DONE=0
+while test "$INSTALL_DONE" -eq 0; do
+  echo "Starting MT4 Setup in Wine..." >&2
+  wine "$HOME/$EXEFILE" &
+
+  echo "Waiting for Wine to initialize..." >&2
+  while ! WID=$(xdotool search --name "4 Setup"); do
+    sleep 5
+    winedbg --command "info wnd" | grep Meta || true
+  done
+
+  echo "Title: $(xdotool getwindowname $WID)..."
+
+  echo "Sending installer keystrokes..." >&2
+  xdotool key --window $WID --delay 500 space
+
+  echo "Giving installer time to work..." >&2
+  sleep 30
+
+  echo "Seeing if installer is finished..." >&2
+  xdotool key --window $WID --delay 500 space
+  sleep 15
+
+  if CWID=$(xdotool search --name '^XM UK MT4$'); then
+    echo "Installer has stalled, restarting it to try again."
+    xdotool key --window $CWID --delay 500 space
+  else
+    echo "Installer has finished."
+    # Workaround for chrome launching when installer finishes.
+    killall -s KILL chrome
+    xdotool key --window $WID --delay 500 Tab space
+    INSTALL_DONE=1
+  fi
+
+  while winedbg --command "info wnd" | grep "MT4 Setu"; do
+    echo "Waiting for installer to exit..."
+    sleep 5
+  done
 done
-
-echo "Title: $(xdotool getwindowname $WID)..."
-
-echo "Sending installer keystrokes..." >&2
-xdotool key --window $WID --delay 500 space
-
-echo "Waiting for installer to finish..." >&2
-xwininfo -id $WID -tree
-while pgrep -l mt4setup; do sleep 5; done
 
 echo "Waiting for MT4 platform to start..." >&2
 while ! WID=$(xdotool search --name "MT4"); do
