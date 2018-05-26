@@ -6,6 +6,7 @@ services:
 env:
   global:
   - |
+    DOCKER_IMAGE=fx-mt-vm
     DOCKER_REPO=ea31337/fx-mt-vm
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
@@ -19,6 +20,9 @@ env:
   - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
   - CMD="make docker-load && docker run $DOCKER_REPO help"
   - CMD="make docker-load && docker run $DOCKER_REPO run_backtest"
+  - CMD="make docker-load && docker run --entrypoint /bin/bash $DOCKER_REPO /opt/scripts/install_mt4.sh"
+  - CMD="make docker-load && docker run --entrypoint /bin/bash $DOCKER_REPO /opt/scripts/install_mt4-xdot.sh"
+  - CMD="make docker-load && docker run --entrypoint /bin/bash $DOCKER_REPO /opt/scripts/install_mt5.sh"
   - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -xdev -type f -size +10M -ls"
   - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -s 10 -b DS -D5 -e TestFXTHeader"
   - CMD="$DC_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -s 10 -b DS -D5 -e TestHSTHeader"
