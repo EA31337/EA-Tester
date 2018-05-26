@@ -45,7 +45,7 @@ xwininfo -id $WID -tree
 while pgrep -l mt4setup; do sleep 5; done
 
 echo "Waiting for MT4 platform to start..." >&2
-while ! WID=$(xdotool search --name "MetaTrader"); do
+while ! WID=$(xdotool search --name "MT4"); do
   winedbg --command "info wnd $WID"
   sleep 5
 done
@@ -54,7 +54,10 @@ xwininfo -id $WID -tree
 # Close running MT4 instance, first the two login popup window, secondly application itself.
 echo "Closing application..." >&2
 xdotool key --window $WID --delay 500 Escape Escape Alt+f x
-sleep 2
+while winedbg --command "info wnd" | grep "MetaQuotes"; do
+  echo "Waiting for application to exit..."
+  sleep 5
+done
 wineserver -k
 
 find "$HOME" /opt -name terminal.exe -print -quit
