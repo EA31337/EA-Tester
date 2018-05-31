@@ -14,7 +14,7 @@ docker-load:
 docker-build:
 	docker build -t ${IMAGE_NAME}:$(DOCKER_TAG) --build-arg BUILD_DATE=$(BUILD_DATE) --build-arg VCS_REF=$(BUILD_VREF) --build-arg VERSION=$(DOCKER_TAG) .
 docker-login:
-	if [[ -z "$(DOCKER_PASSWORD)" ]]; then docker login -u $(DOCKER_USERNAME) --password-stdin <<<"$(DOCKER_PASSWORD)"; fi
+	if [[ "$(DOCKER_PASSWORD)" ]]; then docker login -u $(DOCKER_USERNAME) --password-stdin <<<"$(DOCKER_PASSWORD)"; fi
 docker-tag:
 	docker tag ${IMAGE_NAME}:$(DOCKER_TAG) $(IMAGE_ORG)/$(IMAGE_NAME):$(DOCKER_TAG)
 docker-pull:
