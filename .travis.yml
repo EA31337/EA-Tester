@@ -16,7 +16,7 @@ env:
   matrix:
   - CMD="bash -x scripts/run_backtest.sh -h"
   - CMD="sudo scripts/provision.sh"
-  - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_BRANCH' == 'master' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
+  - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
   - CMD="make docker-load && docker run $DOCKER_REPO help"
   - CMD="make docker-load && docker run $DOCKER_REPO run_backtest"
   - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -xdev -type f -size +10M -ls"
