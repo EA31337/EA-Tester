@@ -10,12 +10,12 @@ ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="FX-MT-VM" \
       org.label-schema.description="Headless backtesting for MT4 platform" \
+      org.label-schema.url="https://github.com/EA31337/FX-MT-VM" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/EA31337/FX-MT-VM" \
       org.label-schema.vendor="FX31337" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
-#     org.label-schema.url="e.g. https://www.example.com/"
 
 # Setup default user.
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
