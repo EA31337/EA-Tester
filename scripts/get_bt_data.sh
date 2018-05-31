@@ -20,8 +20,8 @@ read symbol year bt_src period <<<$@
 bt_key="$symbol-$year-$bt_src.$period"
 convert=1
 
-bt_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/archive/%s-%s.zip" $symbol $bt_src $symbol $year)
-rel_url=$(printf "https://github.com/FX31337/FX-BT-Data-%s-%s/releases/download/%s" $symbol $bt_src $year)
+bt_url=$(printf "https://github.com/FX-Data/FX-Data-%s-%s/archive/%s-%s.zip" $symbol $bt_src $symbol $year)
+rel_url=$(printf "https://github.com/FX-Data/FX-Data-%s-%s/releases/download/%s" $symbol $bt_src $year)
 dl_dir="$TERMINAL_DIR/history/downloads"
 dest_dir="$dl_dir/${bt_key%.*}"
 scripts="https://github.com/FX31337/FX-BT-Scripts.git"
