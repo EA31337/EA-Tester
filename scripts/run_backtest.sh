@@ -234,7 +234,7 @@ while getopts $ARGS arg; do
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
-      SYMBOL=${OPTARG}
+      BT_SYMBOL=${OPTARG}
       ;;
 
     y) # Year to test (e.g. 2014, 2011-2015).
@@ -287,11 +287,11 @@ if [ -n "$BT_END_DATE" ]; then
   ini_set "^TestToDate"   "$BT_END_DATE" "$TESTER_INI"
 fi
 
-if [ -n "$SYMBOL" ]; then
-  echo "Configuring symbol pair ($SYMBOL)..." >&2
-  ini_set "^TestSymbol" "$SYMBOL" "$TESTER_INI"
+if [ -n "$BT_SYMBOL" ]; then
+  echo "Configuring symbol pair ($BT_SYMBOL)..." >&2
+  ini_set "^TestSymbol" "$BT_SYMBOL" "$TESTER_INI"
 else
-  SYMBOL="$(ini_get TestSymbol)"
+  BT_SYMBOL="$(ini_get TestSymbol)"
 fi
 
 if [ -n "$TEST_OPTS" ]; then
@@ -515,11 +515,11 @@ PERIOD=$(ini_get ^TestPeriod)
 if [ "$EA_NAME" ]; then
   # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
-  bt_key="${SYMBOL:-EURUSD}-$(join_by - ${BT_YEARS[@]:-2015})-${BT_SRC:-DS}"
+  bt_key="${BT_SYMBOL:-EURUSD}-$(join_by - ${BT_YEARS[@]:-2015})-${BT_SRC:-DS}"
   # Generate backtest files if not present.
-  if [ ! "$(find "$TERMINAL_DIR" -name "${SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
+  if [ ! "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
+      $SCR/get_bt_data.sh ${BT_SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
   fi
 # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)

@@ -68,8 +68,8 @@ clean_files() {
 clean_bt() {
   # Remove previous backtest files for the current symbol.
   exec 1>&2
-  echo "Cleaning backtest data for ${SYMBOL}..." >&2
-  find "$TERMINAL_DIR" '(' -name "${SYMBOL}*.hst" -o -name "${SYMBOL}*.fxt" ')' $VPRINT -delete
+  echo "Cleaning backtest data for ${BT_SYMBOL}..." >&2
+  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' $VPRINT -delete
 }
 
 # Check the version of the given binary file.

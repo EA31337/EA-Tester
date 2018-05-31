@@ -10,7 +10,7 @@ ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="FX-MT-VM" \
       org.label-schema.description="Headless backtesting for MT4 platform" \
-#     org.label-schema.url="e.g. https://www.example.com/" \
+      org.label-schema.url="https://github.com/EA31337/FX-MT-VM" \
       org.label-schema.vcs-ref=$VCS_REF \
       org.label-schema.vcs-url="https://github.com/EA31337/FX-MT-VM" \
       org.label-schema.vendor="FX31337" \
