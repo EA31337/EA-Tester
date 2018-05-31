@@ -205,7 +205,7 @@ get_symbol_value() {
   local rel_offset=$((16#$1))
   local length=${2:-1}
   local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
   echo $(read_data "$file" $abs_offset $length)
@@ -217,7 +217,7 @@ get_symbol_double() {
   local rel_offset=$((16#$1))
   local length=${2:-8}
   local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
   echo $(read_double "$file" $abs_offset $length)
@@ -230,7 +230,7 @@ set_symbol_value() {
   local value=$(printf "%02x" $1)
   local rel_offset=$((16#$2))
   local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
   write_data "$file" $value "$(printf "%02x" $abs_offset)"
@@ -244,7 +244,7 @@ set_symbol_double() {
   local value=$1
   local rel_offset=$((16#$2))
   local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${SYMBOL:-EURUSD} | grep -o "^[^:]\+")
+  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
   local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
   [ -n "$symbol_offset" ]
   write_double "$file" $value $abs_offset
