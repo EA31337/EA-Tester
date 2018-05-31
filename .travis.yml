@@ -53,6 +53,7 @@ before_install:
 install:
 before_script:
 script:
+- set -e
 - ruby -wc Vagrantfile
 - bash -n scripts/*
 - eval $CMD
