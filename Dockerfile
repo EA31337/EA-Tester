@@ -28,21 +28,13 @@ RUN provision.sh
 
 # Backtest input.
 ENV BT_DEST /opt/results
-ARG BOOT_CODE
-ARG FINAL_CODE
-ARG BT_START_DATE
-ARG BT_END_DATE
-ENV BT_START_DATE ${BT_START_DATE:-2017.01.01}
-ARG BT_YEARS
-ENV BT_YEARS ${BT_YEARS:-2017}
-ARG BT_MONTHS
-ENV BT_MONTHS ${BT_MONTHS:-1}
+ARG MT_VER=4.0.0.1010
 
 # Run test.
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN run_backtest.sh -v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -s 10 -b DS -D5 -e TestTimeframes -P M30
+RUN run_backtest.sh -v -t -M $MT_VER -m 1 -D5 -e TestTimeframes -P M30
 
 # Clean up.
 USER root
