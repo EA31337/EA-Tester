@@ -281,10 +281,14 @@ fi
 if [ -n "$BT_START_DATE" ]; then
   echo "Configuring start test period ($BT_START_DATE)..." >&2
   ini_set "^TestFromDate" "$BT_START_DATE" "$TESTER_INI"
+else
+  BT_START_DATE="$(ini_get TestFromDate)"
 fi
 if [ -n "$BT_END_DATE" ]; then
   echo "Configuring end test period ($BT_END_DATE)..." >&2
   ini_set "^TestToDate"   "$BT_END_DATE" "$TESTER_INI"
+else
+  BT_END_DATE="$(ini_get TestToDate)"
 fi
 
 if [ -n "$BT_SYMBOL" ]; then
