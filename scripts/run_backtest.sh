@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Script to run backtest test.
-# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2015 -s 20 -b DS -r Report -O "_optimization_results"
+# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd od perl > /dev/null
+type git pgrep xargs ex xxd od perl 2>&1 > /dev/null
 
 ## Initialize.
 . "$CWD"/.funcs.cmds.inc.sh
@@ -154,7 +154,7 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip 2> /dev/null
+      type unzip 1>&2 2> /dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
       validate_dirs
@@ -166,7 +166,7 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       VDD="noxfer"
 #EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed > /dev/null
+      type html2text sed 1>&2 > /dev/null
       ;;
 
     x) # Run the script in debug mode.
@@ -237,7 +237,7 @@ while getopts $ARGS arg; do
       BT_SYMBOL=${OPTARG}
       ;;
 
-    y) # Year to test (e.g. 2014, 2011-2015).
+    y) # Year to test (e.g. 2017, 2011-2015).
       BT_YEARS=${OPTARG}
       ;;
 
@@ -283,12 +283,17 @@ if [ -n "$BT_START_DATE" ]; then
   ini_set "^TestFromDate" "$BT_START_DATE" "$TESTER_INI"
 else
   BT_START_DATE="$(ini_get TestFromDate)"
+  BT_YEARS=(${BT_START_DATE%%.*})
 fi
 if [ -n "$BT_END_DATE" ]; then
   echo "Configuring end test period ($BT_END_DATE)..." >&2
   ini_set "^TestToDate"   "$BT_END_DATE" "$TESTER_INI"
 else
   BT_END_DATE="$(ini_get TestToDate)"
+  if [[ "${BT_YEARS[0]}" != "${BT_END_DATE%%.*}" ]]; then
+    # Append ending year when the end date got a different year.
+    BT_YEARS+=(${BT_END_DATE%%.*})
+  fi
 fi
 
 if [ -n "$BT_SYMBOL" ]; then
@@ -410,7 +415,7 @@ while getopts $ARGS arg; do
       ;;
 
     t)
-      type html2text > /dev/null
+      type html2text 1>&2 > /dev/null
       ;;
 
     X)
@@ -519,13 +524,13 @@ BT_PERIOD=$(ini_get ^TestPeriod)
 if [ "$EA_NAME" ]; then
   # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
-  bt_key="${BT_SYMBOL:-EURUSD}-$(join_by - ${BT_YEARS[@]:-2015})-${BT_SRC:-DS}"
+  bt_key="${BT_SYMBOL:-EURUSD}-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}"
   # Generate backtest files if not present.
   if [ ! "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${BT_SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2015})" ${BT_SRC:-DS} ${BT_PERIOD}
+      $SCR/get_bt_data.sh ${BT_SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD}
   fi
-# Assign variables.
+  # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
