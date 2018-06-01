@@ -61,8 +61,8 @@ on_success() {
 on_failure() {
   echo "FAIL?!" >&2
   # Sometimes MT4 fails on success, therefore double checking.
-  REPORT_HTM=$(find "$TESTER_DIR" -name "$(basename "$(ini_get TestReport)").htm")
-  test -f "$REPORT_HTM" && on_success $@
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$(basename "$(ini_get TestReport)").htm")
+  test -f "$TEST_REPORT_HTM" && on_success $@
 
   echo "Printing logs..." >&2
   show_logs
@@ -80,57 +80,57 @@ on_finish() {
 # Parse report files.
 parse_results() {
   local OPTIND
-  REPORT_BASE="$(basename "$(ini_get TestReport)")"
-  REPORT_HTM=$(find "$TESTER_DIR" -name "${REPORT_BASE}.htm")
-  test -f "$REPORT_HTM" || exit 1
+  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
+  test -f "$TEST_REPORT_HTM" || exit 1
   echo "Checking the total time elapsed..." >&2
   save_time
   while getopts $ARGS arg; do
     case $arg in
       G) # Enhance gif report files.
-        REPORT_GIF="$(dirname "$REPORT_HTM")/$REPORT_BASE.gif"
-        echo "Enhancing report image ($REPORT_BASE.gif)..." >&2
-        enhance_gif "$REPORT_GIF" ${GIF_ENHANCE:-"-n"}
-        if [ -f "$REPORT_TXT" ]; then
-          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$REPORT_TXT")
-          enhance_gif "$REPORT_GIF" -t "$gif_text"
+        report_gif="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.gif"
+        echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
+        enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
+        if [ -f "$TEST_REPORT_TXT" ]; then
+          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
+          enhance_gif "$report_gif" -t "$gif_text"
         fi
         ;;
       t) # Convert test report file into brief text format.
-        REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        echo "Converting HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
-        convert_html2txt "$REPORT_HTM" "$REPORT_TXT"
+        TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
+        echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+        convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
         ;;
       T) # Convert test report file into full detailed text format.
-        REPORT_TXT="$(dirname "$REPORT_HTM")/$REPORT_BASE.txt"
-        echo "Converting full HTML report ($(basename "$REPORT_HTM")) into short text file ($(basename "$REPORT_TXT"))..." >&2
-        convert_html2txt_full "$REPORT_HTM" "$REPORT_TXT"
+        TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
+        echo "Converting full HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+        convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
         ;;
       O)
         BT_DEST="${BT_DEST:-$CWD}"
-        echo "Copying report files ($REPORT_BASE.* into: $BT_DEST)..." >&2
+        echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
         [ -d "$BT_DEST" ] || mkdir $VFLAG "$BT_DEST"
-        cp $VFLAG "$TESTER_DIR/$REPORT_BASE".* "$BT_DEST"
+        cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
         find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
         ;;
       o)
         echo "Sorting test results..."
         if [ "${MT_VER%%.*}" -ne 5 ]; then
           # Note: To display sorted results, -o needs to be specified before -v.
-          sort_opt_results "$REPORT_HTM"
+          sort_opt_results "$TEST_REPORT_HTM"
         fi
         echo "Saving optimization results..."
         if [ -z "$input_values" ]; then
           for input in ${param_list[@]}; do
-            value=$(ini_get "$input" "$REPORT_HTM")
+            value=$(ini_get "$input" "$TEST_REPORT_HTM")
             echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
             ini_set "^$input" "$value" "$SETORG"
           done
         fi
         ;;
       v)
-        echo "Printing test report ($(basename "$REPORT_HTM"))..." >&2
-        grep -v mso-number "$REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
+        echo "Printing test report ($(basename "$TEST_REPORT_HTM"))..." >&2
+        grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
         find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
         ;;
       *)
@@ -153,7 +153,7 @@ while getopts $ARGS arg; do
       ;;
 
     M) # Specify version of MetaTrader.
-      MT_VER=${OPTARG:-4x}
+      MT_VER=${OPTARG:-4.0.0.1010}
       type unzip 2> /dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
@@ -354,15 +354,15 @@ while getopts $ARGS arg; do
       ;;
 
     c) # Base currency for test (e.g. USD).
-      CURRENCY=${OPTARG}
+      BT_CURRENCY=${OPTARG}
       ;;
 
     d) # Deposit amount to test (e.g. 2000).
-      DEPOSIT=${OPTARG}
+      BT_DEPOSIT=${OPTARG}
       ;;
 
     D) # Change market digits.
-      DIGITS=${OPTARG}
+      BT_DIGITS=${OPTARG}
       ;;
 
     E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
@@ -374,7 +374,7 @@ while getopts $ARGS arg; do
       ;;
 
     l) # Lot step.
-      LOTSTEP=${OPTARG}
+      BT_LOTSTEP=${OPTARG}
       ;;
 
     o) # Run optimization test.
@@ -386,11 +386,11 @@ while getopts $ARGS arg; do
       ;;
 
     P) # Period to test.
-      PERIOD=${OPTARG}
+      BT_PERIOD=${OPTARG}
       ;;
 
     r) # The name of the test report file.
-      REPORT="tester/$(basename "${OPTARG}")"
+      TEST_REPORT="tester/$(basename "${OPTARG}")"
       ;;
 
     R) # Set files to read-only.
@@ -398,7 +398,7 @@ while getopts $ARGS arg; do
       ;;
 
     s) # Spread to test.
-      SPREAD=${OPTARG}
+      BT_SPREAD=${OPTARG}
       ;;
 
     S) # Set EA option in SET file (e.g. VerboseInfo=1,TakeProfit=0).
@@ -439,9 +439,9 @@ if [ -n "$INCLUDE" ]; then
 fi
 
 # Configure test period.
-if [ -n "$PERIOD" ]; then
-  echo "Configuring test period ($PERIOD)..." >&2
-  ini_set "^TestPeriod" "$PERIOD" "$TESTER_INI"
+if [ -n "$BT_PERIOD" ]; then
+  echo "Configuring test period ($BT_PERIOD)..." >&2
+  ini_set "^TestPeriod" "$BT_PERIOD" "$TESTER_INI"
 fi
 
 # Action(s) to evaluate.
@@ -474,29 +474,29 @@ if [ -n "$SET_OPTS" ]; then
     echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
   fi
 fi
-if [ -n "$CURRENCY" ]; then
-  echo "Configuring base currency ($CURRENCY)..." >&2
-  ini_set "^currency" "$CURRENCY" "$EA_INI"
+if [ -n "$BT_CURRENCY" ]; then
+  echo "Configuring base currency ($BT_CURRENCY)..." >&2
+  ini_set "^currency" "$BT_CURRENCY" "$EA_INI"
 fi
-if [ -n "$DEPOSIT" ]; then
-  echo "Configuring deposit ($DEPOSIT)..." >&2
-  ini_set "^deposit" "$DEPOSIT" "$EA_INI"
+if [ -n "$BT_DEPOSIT" ]; then
+  echo "Configuring deposit ($BT_DEPOSIT)..." >&2
+  ini_set "^deposit" "$BT_DEPOSIT" "$EA_INI"
 fi
-if [ -n "$DIGITS" ]; then
-  echo "Configuring digits ($DIGITS)..." >&2
-  set_digits $DIGITS
+if [ -n "$BT_DIGITS" ]; then
+  echo "Configuring digits ($BT_DIGITS)..." >&2
+  set_digits $BT_DIGITS
 fi
-if [ -n "$LOTSTEP" ]; then
-  echo "Configuring lot step ($LOTSTEP)..." >&2
-  set_lotstep $LOTSTEP
+if [ -n "$BT_LOTSTEP" ]; then
+  echo "Configuring lot step ($BT_LOTSTEP)..." >&2
+  set_lotstep $BT_LOTSTEP
 fi
-if [ -n "$REPORT" ]; then
-  echo "Configuring test report ($REPORT)..." >&2
-  ini_set "^TestReport" "$REPORT" "$TESTER_INI"
+if [ -n "$TEST_REPORT" ]; then
+  echo "Configuring test report ($TEST_REPORT)..." >&2
+  ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
 fi
-if [ -n "$SPREAD" ]; then
-  echo "Configuring spread ($SPREAD)..." >&2
-  set_spread $SPREAD
+if [ -n "$BT_SPREAD" ]; then
+  echo "Configuring spread ($BT_SPREAD)..." >&2
+  set_spread $BT_SPREAD
 fi
 if [ "$OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
@@ -511,7 +511,7 @@ if [ "$VISUAL_MODE" ]; then
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
-PERIOD=$(ini_get ^TestPeriod)
+BT_PERIOD=$(ini_get ^TestPeriod)
 if [ "$EA_NAME" ]; then
   # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
@@ -519,7 +519,7 @@ if [ "$EA_NAME" ]; then
   # Generate backtest files if not present.
   if [ ! "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL:-EURUSD}*_0.fxt" -print -quit)" ] || [ "$(ini_get "bt_data" "$CUSTOM_INI")" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh ${BT_SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2015})" ${BT_SRC:-DS} ${PERIOD}
+      $SCR/get_bt_data.sh ${BT_SYMBOL:-EURUSD} "$(join_by - ${BT_YEARS[@]:-2015})" ${BT_SRC:-DS} ${BT_PERIOD}
   fi
 # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
