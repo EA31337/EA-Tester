@@ -67,6 +67,7 @@ after_script:
 after_success:
 after_failure:
 - bash -x "$CWD"/scripts/.vars.inc.sh
+- docker history -H --no-trunc $DOCKER_REPO
 cache:
   apt: true
   pip: true
