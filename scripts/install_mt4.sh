@@ -6,6 +6,13 @@ WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetri
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 [ "$TRACE" ] && set -x
 
+echo "Checking display..." >&2
+if [ ! "$DISPLAY" ]; then
+  echo "Configuring display..." >&2
+  . "$CWD"/.funcs.cmds.inc.sh
+  set_display
+fi
+
 echo "Installing winhttp..." >&2
 sh -s winhttp < <(wget -qO- $WURL)
 
