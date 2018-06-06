@@ -21,12 +21,10 @@ load_install_mt5()
     w_ahk_do "
         Run, "$(find . -name "*.exe" -print -quit)"
         WinWait, MetaTrader 5 Setup
-        ControlClick, Button1
-        Sleep 100
-        ControlClick, Button3
-        WinWait, MetaTrader 5 Setup, Installation successfully completed
-        ControlClick, Button4
-        Process, Wait, terminal.exe
-        Process, Close, terminal.exe
+        Send, {Enter}
+        WinWait, MetaTrader 5 Setup, Congratulations! We are waiting for you...
+        Send, {Tab}{Enter}
+        Process, Wait, terminal64.exe
+        Process, Close, terminal64.exe
     "
 }
