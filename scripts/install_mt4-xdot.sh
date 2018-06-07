@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Script to install MT platform using xdotool..
+# Script to install MT platform using xdotool.
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 DTMP=$(mktemp -d)
 EXEFILE=mt4setup.exe
@@ -37,38 +37,38 @@ while test "$INSTALL_DONE" -eq 0; do
     winedbg --command "info wnd" | grep Meta || true
   done
 
-  echo "Title: $(xdotool getwindowname $WID)..."
+  echo "Title: $(xdotool getwindowname $WID)..." >&2
 
   echo "Sending installer keystrokes..." >&2
   xdotool key --window $WID --delay 500 space
 
   echo "Giving installer time to work..." >&2
-  sleep 30
+  sleep 20
 
   echo "Seeing if installer is finished..." >&2
   xdotool key --window $WID --delay 500 space
-  sleep 15
+  sleep 10
 
   if CWID=$(xdotool search --name '^XM UK MT4$'); then
-    echo "Installer has stalled, restarting it to try again."
+    echo "Installer has stalled, restarting it to try again." >&2
     xdotool key --window $CWID --delay 500 space
   else
-    echo "Installer has finished."
-    # Workaround for chrome launching when installer finishes.
-    killall -s KILL chrome
+    echo "Installer has finished." >&2
     xdotool key --window $WID --delay 500 Tab space
+    # Workaround for Chrome launching when installer finishes.
+    pkill -KILL chrome || true
     INSTALL_DONE=1
   fi
 
   while winedbg --command "info wnd" | grep "MT4 Setu"; do
-    echo "Waiting for installer to exit..."
+    echo "Waiting for installer to exit..." >&2
     sleep 5
   done
 done
 
 echo "Waiting for MT4 platform to start..." >&2
 while ! WID=$(xdotool search --name "MT4"); do
-  winedbg --command "info wnd $WID"
+  winedbg --command "info wnd $WID" | grep -vw Empty | cut -c67- | xargs
   sleep 5
 done
 xwininfo -id $WID -tree
@@ -77,7 +77,7 @@ xwininfo -id $WID -tree
 echo "Closing application..." >&2
 xdotool key --window $WID --delay 500 Escape Escape Alt+f x
 while winedbg --command "info wnd" | grep "MetaQuotes"; do
-  echo "Waiting for application to exit..."
+  echo "Waiting for application to exit..." >&2
   sleep 5
 done
 wineserver -k
