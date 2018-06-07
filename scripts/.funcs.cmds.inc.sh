@@ -93,7 +93,7 @@ install_mt() {
       . "$CWD"/install_mt4.sh
     ;;
     4x)
-      . "$CWD"/install_mt4-xdot.sh
+      . "$CWD"/install_mt4x.sh
     ;;
     5)
       . "$CWD"/install_mt5.sh
