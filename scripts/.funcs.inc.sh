@@ -115,7 +115,7 @@ get_time() {
 save_time() {
   local htime=$(($(eval get_time) / 60))
   [ "$VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
-  [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE"
+  [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
 # Read decimal value at given offset from the file.
