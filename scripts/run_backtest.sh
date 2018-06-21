@@ -54,7 +54,6 @@ on_success() {
         ;;
       esac
   done
-  exit 0
 }
 
 # Invoke on test failure.
@@ -68,13 +67,11 @@ on_failure() {
   show_logs
   echo "TEST failed." >&2
   on_finish
-  exit 1
 }
 
 # Invoke on test finish.
 on_finish() {
-  wineserver -k
-  echo "$0 done." >&2
+  kill_wine
 }
 
 # Parse report files.
@@ -542,11 +539,14 @@ if [ "$EA_NAME" ]; then
 fi
 clean_files
 
-# Run the test under the platform.
+# Run the test in the platform.
 live_logs &
 live_stats &
 echo "Testing..." >&2
-(time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && on_success $@ || on_failure $@
+(time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
+
+# Check the results.
+[ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@
 
 # Invoke shutdown/final code.
 if [ -n "$FINAL_CODE" ]; then
@@ -554,4 +554,5 @@ if [ -n "$FINAL_CODE" ]; then
   eval "$FINAL_CODE"
 fi
 
-[ -n "$VERBOSE" ] && echo "$0 done" >&2
+[ -n "$VERBOSE" ] && times >&2 && echo "$0 done" >&2
+exit $exit_status
