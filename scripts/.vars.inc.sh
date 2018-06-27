@@ -49,7 +49,7 @@ if [ "$TERMINAL_DIR" ]; then
   LOG_DIR="$TESTER_DIR/logs"
   TERMINAL_LOG="$LOG_DIR/terminal.log.txt"
 fi
-REPO_URL="https://github.com/EA31337/FX-MT-VM"
+REPO_URL="https://github.com/EA31337/EA-Tester"
 
 # Set constants.
 TRUE=0

@@ -6,8 +6,8 @@ services:
 env:
   global:
   - |
-    DOCKER_IMAGE=fx-mt-vm
-    DOCKER_REPO=ea31337/fx-mt-vm
+    DOCKER_IMAGE=ea-tester
+    DOCKER_REPO=ea31337/$DOCKER_IMAGE
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
     DOCKER_RUN="docker run -v $CWD/scripts:/opt/scripts:ro -v $HOME/.cache:/home/ubuntu/.cache:rw $DOCKER_REPO"
@@ -87,7 +87,7 @@ deploy:
   skip_cleanup: true
   file: "mt-*.zip"
   on:
-    repo: EA31337/FX-MT-VM
+    repo: EA31337/EA-Tester
     tags: true
 after_deploy:
 - echo "done."

@@ -40,7 +40,7 @@ clean_traps() {
 install_support_tools() {
   type wget cabextract install wine >&2
   wine filever > /dev/null && return
-  local tools_url="https://github.com/EA31337/FX-MT-VM/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
+  local tools_url="https://github.com/EA31337/EA-Tester/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
   echo "Installing support tools..." >&2
   cd "$dtmp"

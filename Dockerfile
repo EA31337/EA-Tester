@@ -8,11 +8,11 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
 LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="FX-MT-VM" \
+      org.label-schema.name="EA-Tester" \
       org.label-schema.description="Headless backtesting for MT4 platform" \
-      org.label-schema.url="https://github.com/EA31337/FX-MT-VM" \
+      org.label-schema.url="https://github.com/EA31337/EA-Tester" \
       org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/EA31337/FX-MT-VM" \
+      org.label-schema.vcs-url="https://github.com/EA31337/EA-Tester" \
       org.label-schema.vendor="FX31337" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"

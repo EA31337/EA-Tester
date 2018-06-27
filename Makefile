@@ -1,7 +1,7 @@
 SHELL      := /usr/bin/env bash
 ARGS			 := $(filter-out $@,$(MAKECMDGOALS))
 IMAGE_ORG  := ea31337
-IMAGE_NAME := fx-mt-vm
+IMAGE_NAME := ea-tester
 DOCKER_TAG := latest
 DOCKER_TAR := ${HOME}/.docker/images.tar.gz
 DOCKER_CFG := ${HOME}/.docker/config.json
