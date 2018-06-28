@@ -4,7 +4,7 @@ set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
-type git wget zip unzip xargs tee
+type git wget zip unzip xargs tee 1>&2 2> /dev/null
 xargs=$(which gxargs || which xargs)
 
 # Initialize functions and variables.
@@ -17,7 +17,7 @@ xargs=$(which gxargs || which xargs)
 [ "$VERBOSE" ] && VFLAG="-v"
 [ "$TRACE" ] && set -x
 read symbol year bt_src period <<<$@
-bt_key="$symbol-$year-$bt_src.$period"
+bt_key="$symbol-$year-$bt_src"
 convert=1
 
 bt_url=$(printf "https://github.com/FX-Data/FX-Data-%s-%s/archive/%s-%s.zip" $symbol $bt_src $symbol $year)
