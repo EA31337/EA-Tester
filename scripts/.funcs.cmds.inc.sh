@@ -222,7 +222,7 @@ ini_copy() {
 ea_find() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -path "$1.mq?" -o -path "$1.ex?" -o -path "$1" ')' -print -quit)
+  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -path "*/$1.mq?" -o -path "*/$1.ex?" -o -path "*/$1" ')' -print -quit)
   local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "$1" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
