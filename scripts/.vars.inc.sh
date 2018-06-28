@@ -3,10 +3,6 @@
 #
 # Initialize variables.
 
-if [ ! "$TERMINAL_EXE" ] && [ "$VERBOSE" ]; then
-  echo "Initializing variables... (args: $*)" >&2
-fi
-
 # Determine VM.
 is_vm() { [ -d /vagrant -a -d /home/travis -a ! -f /.dockerenv ]; }
 

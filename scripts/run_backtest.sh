@@ -176,7 +176,7 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-[ "$TERMINAL_EXE" ] \
+[ -f "$TERMINAL_EXE" ] \
   || {
     [ -n "$VERBOSE" ] && grep ^TERMINAL <(set) | xargs
     echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
@@ -189,8 +189,8 @@ echo "Checking platform..." >&2
 # Check the version of installed platform.
 MT_VER=$(filever terminal.exe)
 MTE_VER=$(filever metaeditor.exe)
-echo "Installed Terminal: $MT_VER"
-echo "Installed MetaEditor: $MTE_VER"
+echo "Installed Terminal: $MT_VER" >&2
+echo "Installed MetaEditor: $MTE_VER" >&2
 
 # Copy ini files.
 ini_copy

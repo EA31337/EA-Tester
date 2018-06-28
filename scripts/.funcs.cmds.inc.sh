@@ -213,7 +213,7 @@ compile_ea() {
 ini_copy() {
   # Copy the configuration file, so platform can find it.
   exec 1>&2
-  echo "Copying ini files..."
+  echo "Copying ini files..." >&2
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 }
@@ -411,7 +411,7 @@ input_set() {
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
   else
-    echo "Value for '$key' is empty, ignoring."
+    echo "Value for '$key' is empty, ignoring." >&2
   fi
 }
 
@@ -445,7 +445,7 @@ ini_set() {
       echo "$key=$value" >> "$file"
     fi
   else
-    echo "Value for '$key' is empty, ignoring."
+    echo "Value for '$key' is empty, ignoring." >&2
   fi
 }
 
