@@ -23,7 +23,7 @@ run_backtest() {
 }
 
 # Clone git repository.
-# Usage: clone_repo [url]
+# Usage: clone_repo [url] [args...]
 clone_repo() {
   $CWD/clone_repo.sh $@
 }
@@ -76,8 +76,8 @@ clean_bt() {
 # Check the version of the given binary file.
 # Usage: filever [file/terminal.exe]
 filever() {
-  type awk > /dev/null
-  wine filever >& /dev/null || install_support_tools >&2
+  type awk >/dev/null
+  wine filever &>/dev/null || install_support_tools >&2
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
@@ -86,7 +86,7 @@ filever() {
 # Install platform.
 # Usage: install_mt [ver/4.0.0.1010]
 install_mt() {
-  type wget > /dev/null
+  type wget >/dev/null
   local mt_ver=$1
   set_display
   case $mt_ver in
@@ -334,7 +334,7 @@ enhance_gif() {
   local negate=0
   local font=$(fc-match --format=%{file} Arial.ttf)
   local text_color=${GIF_TEXT_COLOR:-gray}
-  type convert > /dev/null
+  type convert >/dev/null
   [ -f "$file" ]
 
   while [[ $# > 0 ]]; do

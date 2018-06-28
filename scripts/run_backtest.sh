@@ -6,7 +6,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd od perl 2>&1 > /dev/null
+type git pgrep xargs ex xxd od perl >/dev/null
 
 ## Initialize.
 . "$CWD"/.funcs.cmds.inc.sh
@@ -151,7 +151,7 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip &>/dev/null
+      type unzip >/dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
       validate_dirs
@@ -163,7 +163,7 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       VDD="noxfer"
 #EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed &>/dev/null
+      type html2text sed >/dev/null
       ;;
 
     x) # Run the script in debug mode.
@@ -412,7 +412,7 @@ while getopts $ARGS arg; do
       ;;
 
     t)
-      type html2text &>/dev/null
+      type html2text >/dev/null
       ;;
 
     X)
