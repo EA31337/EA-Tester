@@ -34,6 +34,14 @@ get_bt_data() {
   $CWD/get_bt_data.sh $@
 }
 
+# Change the working directory.
+# Usage: chdir [dir]
+# E.g. chdir "$EXPERTS_DIR"
+chdir() {
+  local dest=$@
+  cd "$dest"
+}
+
 # Check logs for specific text.
 # Usage: check_logs [filter] [args]
 check_logs() {
