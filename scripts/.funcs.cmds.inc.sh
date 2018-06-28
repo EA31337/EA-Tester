@@ -70,6 +70,7 @@ clean_bt() {
   exec 1>&2
   echo "Cleaning backtest data for ${BT_SYMBOL}..." >&2
   find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' $VPRINT -delete
+  ini_del "bt_data" "$CUSTOM_INI"
 }
 
 # Check the version of the given binary file.
@@ -415,11 +416,10 @@ input_set() {
 }
 
 # Get input value from the SET file.
-# Usage: input_get [key] [value] [file]
+# Usage: input_get [key] [file]
 input_get() {
   local key="$1"
-  local value="$2"
-  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local file="${2:-$(echo $TESTER_DIR/$SETFILE)}"
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
@@ -434,14 +434,35 @@ ini_set() {
   local value="$2"
   local file="${3:-$(echo $TESTER_INI)}"
   local vargs="-u NONE"
-  [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
+  [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
   vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
-    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+    if grep -q "$key" "$file"; then
+      echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+      ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+    else
+      echo "$key=$value" >> "$file"
+    fi
   else
     echo "Value for '$key' is empty, ignoring."
+  fi
+}
+
+# Delete value from the INI file.
+# Usage: ini_del [key] [file]
+ini_del() {
+  local key="$1"
+  local file="${2:-$(echo $TESTER_INI)}"
+  local vargs="-u NONE"
+  [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
+  [ -f "$file" ]
+  vargs+=$EXFLAG
+  if grep -q "$key" "$file"; then
+    echo "Deleting '$key' from $(basename "$file")" >&2
+    ex +':g/'"$key"'=/d' -scwq $vargs "$file" || exit 1
+  else
+    echo "Value '$key' does not exist, ignoring." >&2
   fi
 }
 
