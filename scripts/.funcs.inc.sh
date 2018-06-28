@@ -273,7 +273,7 @@ kill_jobs() {
 # Kill the currently running wineserver.
 # Usage: kill_wine
 kill_wine() {
-  type wineserver 2> /dev/null 1>&2 || { true; return; }
+  type wineserver &>/dev/null || { true; return; }
   wineserver -k || true
 }
 

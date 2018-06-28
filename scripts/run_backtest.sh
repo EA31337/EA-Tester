@@ -151,7 +151,7 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip 1>&2 2> /dev/null
+      type unzip &>/dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
       validate_dirs
@@ -163,7 +163,7 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       VDD="noxfer"
 #EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed 1>&2 > /dev/null
+      type html2text sed &>/dev/null
       ;;
 
     x) # Run the script in debug mode.
@@ -412,7 +412,7 @@ while getopts $ARGS arg; do
       ;;
 
     t)
-      type html2text 1>&2 > /dev/null
+      type html2text &>/dev/null
       ;;
 
     X)
