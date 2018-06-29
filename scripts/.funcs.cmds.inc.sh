@@ -255,12 +255,16 @@ ini_copy() {
 }
 
 # Find EA file and return path.
+# Usage: ea_find [filename/pattern]
+# Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="$1"
+  cd "$TERMINAL_DIR"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
-  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
+  local exact=$(find . "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
+  local match=$(find . "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
+  cd - &>/dev/null
 }
 
 # Copy EA file to the platform experts dir.

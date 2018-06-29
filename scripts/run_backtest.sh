@@ -186,6 +186,9 @@ echo "Checking platform..." >&2
 # Re-load variables.
 . "$CWD"/.vars.inc.sh
 
+# Enter platform directory.
+cd "$TERMINAL_DIR"
+
 # Check the version of installed platform.
 MT_VER=$(filever terminal.exe)
 MTE_VER=$(filever metaeditor.exe)
@@ -316,7 +319,7 @@ SCR_NAME="$(ini_get Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
 SETFILE="${EA_NAME:-$SCR_NAME}.set"
 
-if [ "$EA_NAME" ]; then
+if [ "$EA_NAME" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
   EA_INI="$TESTER_DIR/$EA_NAME.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
 fi
