@@ -324,8 +324,8 @@ if [ "$EA_NAME" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
   cp $VFLAG "$TPL_EA" "$EA_INI"
 fi
 
-# Copy EA.
-if [ -n "$EA_PATH" ]; then
+# Copy EA to platform dir only if path is absolute.
+if [ -n "$EA_PATH" ] && [ "${EA_PATH::1}" == '/' ]; then
   ea_copy "$EA_PATH"
 fi
 
