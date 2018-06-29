@@ -273,10 +273,18 @@ if [ -n "$BT_YEARS" ]; then
 fi
 
 if [ -n "$EA_NAME" ]; then
+  cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EA_NAME")
   echo "Locating EA file ("$EA_NAME" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  if [ "${EA_PATH::1}" == '.' ]; then
+    # Use path relative to Experts dir when possible,
+    ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
+  else
+    # otherwise use the absolute one.
+    ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  fi
+  cd - &>/dev/null
 fi
 
 if [ -n "$BT_START_DATE" ]; then
