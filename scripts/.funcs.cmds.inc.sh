@@ -258,8 +258,8 @@ ini_copy() {
 ea_find() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -path "*/$1.mq?" -o -path "*/$1.ex?" -o -path "*/$1" ')' -print -quit)
-  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "$1" ')' -print -quit)
+  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
+  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
@@ -276,7 +276,7 @@ ea_copy() {
   set -x
   includes=$(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   for file in $includes; do
-    ea_copy ${file%.*}
+    ea_copy "$file"
   done
 }
 
