@@ -50,12 +50,15 @@ check_logs() {
 }
 
 # Display logs in real-time.
-# Usage: live_logs
+# Usage: live_logs [invert-match] [interval]
 live_logs() {
   set +x
   local filter=${1:-modify}
-  while sleep 20; do
-    if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+  local interval=${2:-20}
+  sleep $interval
+  [ "$VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
+  while sleep $interval; do
+    if [ -n "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
       break;
     fi
   done
@@ -64,10 +67,11 @@ live_logs() {
 }
 
 # Display performance stats in real-time.
-# Usage: live_stats
+# Usage: live_stats [interval]
 live_stats() {
   set +x
-  while sleep 60; do
+  local interval=${1:-60}
+  while sleep $interval; do
     # TERM=vt100 top | head -n4
     winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
   done
