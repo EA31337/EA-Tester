@@ -49,6 +49,30 @@ check_logs() {
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
+# Display logs in real-time.
+# Usage: live_logs
+live_logs() {
+  set +x
+  local filter=${1:-modify}
+  while sleep 20; do
+    if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+      break;
+    fi
+  done
+  echo "Showing live logs..." >&2
+  tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+}
+
+# Display performance stats in real-time.
+# Usage: live_stats
+live_stats() {
+  set +x
+  while sleep 60; do
+    # TERM=vt100 top | head -n4
+    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
+  done
+}
+
 # Delete compiled EAs.
 # Usage: clean_ea
 clean_ea() {
