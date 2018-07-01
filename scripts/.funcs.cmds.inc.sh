@@ -140,7 +140,7 @@ install_mt() {
       cd "$WINE_PATH"
       wget -nv -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
       unzip -ou "mt-$mt_ver.zip"
-      cd -
+      cd - &> /dev/null
     ;;
     *)
       echo "Error: Unknown platform version, try either 4 or 5." >&2
@@ -248,7 +248,7 @@ compile_ea() {
     grep -A10 "${name%.*}" <<<$results
     grep -q "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
   fi
-  cd -
+  cd - &> /dev/null
 }
 
 # Copy ini settings from templates.
@@ -360,7 +360,7 @@ compile_script() {
   local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
-  cd -
+  cd - &> /dev/null
 }
 
 # Sort optimization test result values by profit factor.

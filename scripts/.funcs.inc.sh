@@ -49,7 +49,7 @@ install_support_tools() {
   cabextract -F filever.exe *.cab
   install -v filever.exe ~/.wine/drive_c/windows
   rm -fr "$dtmp"
-  cd -
+  cd - &> /dev/null
 }
 
 # Join string by delimiter (see: http://stackoverflow.com/a/17841619).
