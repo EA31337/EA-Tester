@@ -260,8 +260,8 @@ ini_copy() {
 ea_find() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find . "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
-  local match=$(find . "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
