@@ -272,6 +272,7 @@ ea_copy() {
   local dest="$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
+  [ ! -s "$file" ] && { echo "Error: Cannot find $1!" >&2; return; }
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
   # Copy local include files.
