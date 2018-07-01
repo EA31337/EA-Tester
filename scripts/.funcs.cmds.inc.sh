@@ -19,19 +19,19 @@ help() {
 # Run backtest.
 # Usage: run_backtest [args]
 run_backtest() {
-  $CWD/run_backtest.sh $@
+  $CWD/run_backtest.sh "$@"
 }
 
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 clone_repo() {
-  $CWD/clone_repo.sh $@
+  $CWD/clone_repo.sh "$@"
 }
 
 # Get the backtest data.
 # Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
 get_bt_data() {
-  $CWD/get_bt_data.sh $@
+  $CWD/get_bt_data.sh "$@"
 }
 
 # Change the working directory.
