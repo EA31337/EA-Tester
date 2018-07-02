@@ -104,7 +104,7 @@ case "$(uname -s)" in
         chmod 600 swapfile
         mkswap swapfile
         swapon swapfile
-        cd -
+        cd - &>/dev/null
       fi
     fi
     ;;

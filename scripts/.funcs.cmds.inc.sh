@@ -19,19 +19,27 @@ help() {
 # Run backtest.
 # Usage: run_backtest [args]
 run_backtest() {
-  $CWD/run_backtest.sh $@
+  $CWD/run_backtest.sh "$@"
 }
 
 # Clone git repository.
-# Usage: clone_repo [url]
+# Usage: clone_repo [url] [args...]
 clone_repo() {
-  $CWD/clone_repo.sh $@
+  $CWD/clone_repo.sh "$@"
 }
 
 # Get the backtest data.
 # Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
 get_bt_data() {
-  $CWD/get_bt_data.sh $@
+  $CWD/get_bt_data.sh "$@"
+}
+
+# Change the working directory.
+# Usage: chdir [dir]
+# E.g. chdir "$EXPERTS_DIR"
+chdir() {
+  local dest=$@
+  \cd "$dest"
 }
 
 # Check logs for specific text.
@@ -39,6 +47,34 @@ get_bt_data() {
 check_logs() {
   local filter=$1
   find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
+}
+
+# Display logs in real-time.
+# Usage: live_logs [invert-match] [interval]
+live_logs() {
+  set +x
+  local filter=${1:-modify}
+  local interval=${2:-20}
+  sleep $interval
+  [ "$VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
+  while sleep $interval; do
+    if [ -n "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+      break;
+    fi
+  done
+  echo "Showing live logs..." >&2
+  tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+}
+
+# Display performance stats in real-time.
+# Usage: live_stats [interval]
+live_stats() {
+  set +x
+  local interval=${1:-60}
+  while sleep $interval; do
+    # TERM=vt100 top | head -n4
+    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
+  done
 }
 
 # Delete compiled EAs.
@@ -70,13 +106,14 @@ clean_bt() {
   exec 1>&2
   echo "Cleaning backtest data for ${BT_SYMBOL}..." >&2
   find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' $VPRINT -delete
+  ini_del "bt_data" "$CUSTOM_INI"
 }
 
 # Check the version of the given binary file.
 # Usage: filever [file/terminal.exe]
 filever() {
-  type awk > /dev/null
-  wine filever >& /dev/null || install_support_tools >&2
+  type awk >/dev/null
+  wine filever &>/dev/null || install_support_tools >&2
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
@@ -85,7 +122,7 @@ filever() {
 # Install platform.
 # Usage: install_mt [ver/4.0.0.1010]
 install_mt() {
-  type wget > /dev/null
+  type wget >/dev/null
   local mt_ver=$1
   set_display
   case $mt_ver in
@@ -103,7 +140,7 @@ install_mt() {
       cd "$WINE_PATH"
       wget -nv -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
       unzip -ou "mt-$mt_ver.zip"
-      cd -
+      cd - &> /dev/null
     ;;
     *)
       echo "Error: Unknown platform version, try either 4 or 5." >&2
@@ -202,9 +239,16 @@ compile_ea() {
   local name=${1:-$EA_NAME}
   cd "$TERMINAL_DIR"
   local rel_path=$(find $MQL_DIR/Experts -name "$name*")
+  [ ! -s "$rel_path" ] && { echo "Error: Cannot find ${rel_path:-$1}!" >&2; return; }
   wine metaeditor.exe ${@:2} /log /compile:"$rel_path"
-  [ -f "$TERMINAL_DIR"/MQL4.log ] && { iconv -f utf-16 -t utf-8 "$TERMINAL_DIR"/MQL?.log | grep -A10 "${name%.*}"; } || true
-  cd -
+  compiled_no=$?
+  echo "Info: Number of files compiled: $compiled_no" >&2
+  if [ -f "$TERMINAL_DIR"/MQL4.log ]; then
+    results=$(iconv -f utf-16 -t utf-8 "$TERMINAL_DIR"/MQL?.log)
+    grep -A10 "${name%.*}" <<<$results
+    grep -q "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
+  fi
+  cd - &> /dev/null
 }
 
 # Copy ini settings from templates.
@@ -212,17 +256,19 @@ compile_ea() {
 ini_copy() {
   # Copy the configuration file, so platform can find it.
   exec 1>&2
-  echo "Copying ini files..."
+  echo "Copying ini files..." >&2
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 }
 
 # Find EA file and return path.
+# Usage: ea_find [filename/pattern]
+# Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "$1.mq?" -o -name "$1.ex?" -o -name "$1" ')' -print -quit)
-  local match=$(find "$TERMINAL_DIR" "$ROOT" ~ -maxdepth 3 '(' -name "*$1*.mq?" -o -name "*$1*.ex?" -o -name "$1" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
@@ -233,8 +279,15 @@ ea_copy() {
   local dest="$EXPERTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
+  [ ! -s "$file" ] && { echo "Error: Cannot find $1!" >&2; return; }
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
+  # Copy local include files.
+  set -x
+  includes=$(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
+  for file in $includes; do
+    ea_copy "$file"
+  done
 }
 
 # Copy script file to the platform scripts dir.
@@ -307,7 +360,7 @@ compile_script() {
   local name="$1"
   cd "$TERMINAL_DIR"
   wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
-  cd -
+  cd - &> /dev/null
 }
 
 # Sort optimization test result values by profit factor.
@@ -327,7 +380,7 @@ enhance_gif() {
   local negate=0
   local font=$(fc-match --format=%{file} Arial.ttf)
   local text_color=${GIF_TEXT_COLOR:-gray}
-  type convert > /dev/null
+  type convert >/dev/null
   [ -f "$file" ]
 
   while [[ $# > 0 ]]; do
@@ -410,16 +463,15 @@ input_set() {
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
   else
-    echo "Value for '$key' is empty, ignoring."
+    echo "Value for '$key' is empty, ignoring." >&2
   fi
 }
 
 # Get input value from the SET file.
-# Usage: input_get [key] [value] [file]
+# Usage: input_get [key] [file]
 input_get() {
   local key="$1"
-  local value="$2"
-  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local file="${2:-$(echo $TESTER_DIR/$SETFILE)}"
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
@@ -434,14 +486,35 @@ ini_set() {
   local value="$2"
   local file="${3:-$(echo $TESTER_INI)}"
   local vargs="-u NONE"
-  [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
+  [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
   vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
-    echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+    if grep -q "$key" "$file"; then
+      echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+      ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+    else
+      echo "$key=$value" >> "$file"
+    fi
   else
-    echo "Value for '$key' is empty, ignoring."
+    echo "Value for '$key' is empty, ignoring." >&2
+  fi
+}
+
+# Delete value from the INI file.
+# Usage: ini_del [key] [file]
+ini_del() {
+  local key="$1"
+  local file="${2:-$(echo $TESTER_INI)}"
+  local vargs="-u NONE"
+  [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
+  [ -f "$file" ]
+  vargs+=$EXFLAG
+  if grep -q "$key" "$file"; then
+    echo "Deleting '$key' from $(basename "$file")" >&2
+    ex +':g/'"$key"'=/d' -scwq $vargs "$file" || exit 1
+  else
+    echo "Value '$key' does not exist, ignoring." >&2
   fi
 }
 

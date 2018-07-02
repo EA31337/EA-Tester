@@ -4,7 +4,7 @@
 set -e
 [ "$TRACE" ] && { GIT_TRACE=1; set -x; }
 GIT_EDITOR=true
-type git 2> /dev/null
+type git >/dev/null
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 read repo branch message <<<$@
 [ ! "$repo" ] && { echo "Usage: $0 (git@repo/url) (branch) (message) (author)"; exit 1; }

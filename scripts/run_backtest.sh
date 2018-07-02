@@ -6,7 +6,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
 
 ## Check dependencies.
-type git pgrep xargs ex xxd od perl 2>&1 > /dev/null
+type git pgrep xargs ex xxd od perl >/dev/null
 
 ## Initialize.
 . "$CWD"/.funcs.cmds.inc.sh
@@ -31,7 +31,7 @@ on_success() {
   ! check_logs "Initialization failed" || exit 1
 # ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
-  ! check_logs ".\+ no history data" || { rm $VFLAG "$CUSTOM_INI"; exit 1; }
+  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; exit 1; }
   ! check_logs ".\+ cannot start" || exit 1
   ! check_logs ".\+ cannot open" || exit 1
   ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated.
@@ -42,6 +42,7 @@ on_success() {
   ! check_logs "stop button .\+" || exit 1
   ! check_logs "Error: .\+" || exit 1
   ! check_logs "Configuration issue .\+" || exit 1
+  ! check_logs "Assert fail on .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
@@ -151,7 +152,7 @@ while getopts $ARGS arg; do
 
     M) # Specify version of MetaTrader.
       MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip 1>&2 2> /dev/null
+      type unzip >/dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
       validate_dirs
@@ -163,7 +164,7 @@ while getopts $ARGS arg; do
       VPRINT="-print"
       VDD="noxfer"
 #EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed 1>&2 > /dev/null
+      type html2text sed >/dev/null
       ;;
 
     x) # Run the script in debug mode.
@@ -176,7 +177,7 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-[ "$TERMINAL_EXE" ] \
+[ -f "$TERMINAL_EXE" ] \
   || {
     [ -n "$VERBOSE" ] && grep ^TERMINAL <(set) | xargs
     echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
@@ -186,11 +187,14 @@ echo "Checking platform..." >&2
 # Re-load variables.
 . "$CWD"/.vars.inc.sh
 
+# Enter platform directory.
+cd "$TERMINAL_DIR"
+
 # Check the version of installed platform.
 MT_VER=$(filever terminal.exe)
 MTE_VER=$(filever metaeditor.exe)
-echo "Installed Terminal: $MT_VER"
-echo "Installed MetaEditor: $MTE_VER"
+echo "Installed Terminal: $MT_VER" >&2
+echo "Installed MetaEditor: $MTE_VER" >&2
 
 # Copy ini files.
 ini_copy
@@ -270,9 +274,18 @@ if [ -n "$BT_YEARS" ]; then
 fi
 
 if [ -n "$EA_NAME" ]; then
+  cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EA_NAME")
+  echo "Locating EA file ("$EA_NAME" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
-  ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  if [ "${EA_PATH::1}" == '.' ]; then
+    # Use path relative to Experts dir when possible,
+    ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
+  else
+    # otherwise use the absolute one.
+    ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  fi
+  cd - &>/dev/null
 fi
 
 if [ -n "$BT_START_DATE" ]; then
@@ -315,13 +328,13 @@ SCR_NAME="$(ini_get Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
 SETFILE="${EA_NAME:-$SCR_NAME}.set"
 
-if [ "$EA_NAME" ]; then
+if [ "$EA_NAME" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
   EA_INI="$TESTER_DIR/$EA_NAME.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
 fi
 
-# Copy EA.
-if [ -n "$EA_PATH" ]; then
+# Copy EA to platform dir only if path is absolute.
+if [ -n "$EA_PATH" ] && [ "${EA_PATH::1}" == '/' ]; then
   ea_copy "$EA_PATH"
 fi
 
@@ -412,7 +425,7 @@ while getopts $ARGS arg; do
       ;;
 
     t)
-      type html2text 1>&2 > /dev/null
+      type html2text >/dev/null
       ;;
 
     X)
@@ -524,7 +537,7 @@ if [ "$EA_NAME" ]; then
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Generate backtest files if not present.
-  if [ ! "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
+  if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
       $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD}
   fi

@@ -38,7 +38,7 @@ clean_traps() {
 
 # Install filever
 install_support_tools() {
-  type wget cabextract install wine >&2
+  type wget cabextract install wine >/dev/null
   wine filever > /dev/null && return
   local tools_url="https://github.com/EA31337/EA-Tester/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
@@ -49,7 +49,7 @@ install_support_tools() {
   cabextract -F filever.exe *.cab
   install -v filever.exe ~/.wine/drive_c/windows
   rm -fr "$dtmp"
-  cd -
+  cd - &> /dev/null
 }
 
 # Join string by delimiter (see: http://stackoverflow.com/a/17841619).
@@ -57,30 +57,6 @@ join_by() {
   local d=$1; shift;
   echo -n "$1"; shift;
   printf "%s" "${@/#/$d}";
-}
-
-# Display logs in real-time.
-# Usage: live_logs
-live_logs() {
-  set +x
-  local filter=${1:-modify}
-  while sleep 20; do
-    if [ "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
-      break;
-    fi
-  done
-  echo "Showing live logs..." >&2
-  tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
-}
-
-# Display performance stats in real-time.
-# Usage: live_stats
-live_stats() {
-  set +x
-  while sleep 60; do
-    # TERM=vt100 top | head -n4
-    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
-  done
 }
 
 # Check required files.
@@ -273,7 +249,7 @@ kill_jobs() {
 # Kill the currently running wineserver.
 # Usage: kill_wine
 kill_wine() {
-  type wineserver 2> /dev/null 1>&2 || { true; return; }
+  type wineserver &>/dev/null || { true; return; }
   wineserver -k || true
 }
 

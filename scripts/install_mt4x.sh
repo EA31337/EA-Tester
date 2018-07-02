@@ -8,7 +8,7 @@ WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetri
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 
 # Check the dependencies.
-type wget xdotool xwininfo wine ar >&2
+type wget xdotool xwininfo wine ar >/dev/null
 
 # Load the shell functions.
 . "$CWD/.funcs.inc.sh"
