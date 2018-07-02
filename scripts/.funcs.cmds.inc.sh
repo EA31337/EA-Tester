@@ -283,7 +283,6 @@ ea_copy() {
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
   # Copy local include files.
-  set -x
   includes=$(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   for file in $includes; do
     ea_copy "$file"
