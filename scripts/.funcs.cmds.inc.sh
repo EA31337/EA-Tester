@@ -234,17 +234,19 @@ file_get() {
 }
 
 # Compile given EA name.
-# Usage: compile_ea
+# Usage: compile_ea [pattern] [log_file]
 compile_ea() {
   local name=${1:-$EA_NAME}
+  local logfile=${2:-$name}
+  type iconv >/dev/null
   cd "$TERMINAL_DIR"
   local rel_path=$(find $MQL_DIR/Experts -name "$name*")
   [ ! -s "$rel_path" ] && { echo "Error: Cannot find ${rel_path:-$1}!" >&2; return; }
-  wine metaeditor.exe ${@:2} /log /compile:"$rel_path"
+  wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
   compiled_no=$?
   echo "Info: Number of files compiled: $compiled_no" >&2
-  if [ -f "$TERMINAL_DIR"/MQL4.log ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$TERMINAL_DIR"/MQL?.log)
+  if [ -f "$logfile" ]; then
+    results=$(iconv -f utf-16 -t utf-8 "$logfile")
     grep -A10 "${name%.*}" <<<$results
     grep -q "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
   fi
