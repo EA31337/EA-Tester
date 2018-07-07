@@ -236,7 +236,7 @@ file_get() {
 # Compile given EA name.
 # Usage: compile_ea [pattern] [log_file]
 compile_ea() {
-  local name=${1:-$EA_NAME}
+  local name=${1:-$TEST_EXPERT}
   local logfile=${2:-$name}
   type iconv >/dev/null
   cd "$TERMINAL_DIR"
@@ -269,8 +269,8 @@ ini_copy() {
 ea_find() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
-  local match=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
