@@ -219,8 +219,8 @@ while getopts $ARGS arg; do
       clean_bt
       ;;
 
-    e) # EA name.
-      EA_NAME=${OPTARG}
+    e) # EA name (TestExpert).
+      TEST_EXPERT=${OPTARG}
       ;;
 
     f) # The .set file to run the test.
@@ -274,11 +274,11 @@ if [ -n "$BT_YEARS" ]; then
   BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.31"
 fi
 
-if [ -n "$EA_NAME" ]; then
+if [ -n "$TEST_EXPERT" ]; then
   cd "$EXPERTS_DIR"
-  EA_PATH=$(ea_find "$EA_NAME")
-  echo "Locating EA file ("$EA_NAME" => "$EA_PATH")..." >&2
-  [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
+  EA_PATH=$(ea_find "$TEST_EXPERT")
+  echo "Locating EA file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
+  [ -f "$EA_PATH" ] || { echo "Error: EA file ($TEST_EXPERT) not found in '$ROOT'!" >&2; exit 1; }
   if [ "${EA_PATH::1}" == '.' ]; then
     # Use path relative to Experts dir when possible,
     ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
@@ -324,13 +324,14 @@ if [ -n "$TEST_OPTS" ]; then
 fi
 
 # Configure EA.
-EA_NAME="$(ini_get TestExpert)"
-SCR_NAME="$(ini_get Script)"
+TEST_EXPERT="$(ini_get ^TestExpert)"
+EXPERT="$(ini_get ^Expert)"
+SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-SETFILE="${EA_NAME:-$SCR_NAME}.set"
+SETFILE="${TEST_EXPERT:-$SCR_NAME}.set"
 
-if [ "$EA_NAME" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
-  EA_INI="$TESTER_DIR/$EA_NAME.ini"
+if [ "$TEST_EXPERT" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
+  EA_INI="$TESTER_DIR/$TEST_EXPERT.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
 fi
 
@@ -532,7 +533,7 @@ if [ "$VISUAL_MODE" ]; then
 fi
 
 BT_PERIOD=$(ini_get ^TestPeriod)
-if [ "$EA_NAME" ]; then
+if [ "$TEST_EXPERT" ]; then
   # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
@@ -547,11 +548,16 @@ if [ "$EA_NAME" ]; then
 fi
 
 # Prepare before test run.
-if [ "$EA_NAME" ]; then
+if [ "$TEST_EXPERT" ]; then
   [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
 clean_files
+
+if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
+  echo "ERROR: You need to specify TestExpert (-e), Expert or Script." >&2;
+  exit 1
+fi
 
 # Run the test in the platform.
 live_logs &
