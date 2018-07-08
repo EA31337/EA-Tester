@@ -80,6 +80,7 @@ Usage: $0 (args)
     Run test in optimization mode.
   -O (dir)
     Output directory to save the test results.
+    Default: /opt/results for Docker container.
   -t
     Convert test report file into brief text format.
   -T (timeframe)
@@ -182,13 +183,6 @@ parse_results() {
         echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
         convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
         ;;
-      O)
-        BT_DEST="${BT_DEST:-$CWD}"
-        echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
-        [ -d "$BT_DEST" ] || mkdir $VFLAG "$BT_DEST"
-        cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
-        find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
-        ;;
       o)
         echo "Sorting test results..."
         if [ "${MT_VER%%.*}" -ne 5 ]; then
@@ -214,6 +208,12 @@ parse_results() {
         ;;
       esac
   done
+  # Copy the test results if destination directory has been specified.
+  if [ -n "$BT_DEST" ]; then
+    echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
+    cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
+    find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
+  fi
 }
 
 # Show usage on no arguments.
@@ -652,7 +652,7 @@ if [ "$OPTIMIZATION" ]; then
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
 if [ -n "$BT_DEST" ]; then
-  echo "Checking destination ($BT_DEST)..." >&2
+  echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
 fi
 if [ "$VISUAL_MODE" ]; then
