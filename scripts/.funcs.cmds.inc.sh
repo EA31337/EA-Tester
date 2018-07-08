@@ -46,7 +46,7 @@ chdir() {
 # Usage: check_logs [filter] [args]
 check_logs() {
   local filter=$1
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
 # Display logs in real-time.
@@ -58,7 +58,7 @@ live_logs() {
   sleep $interval
   [ "$VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
   while sleep $interval; do
-    if [ -n "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+    if [ -n "$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)" ]; then
       break;
     fi
   done
@@ -105,7 +105,7 @@ clean_bt() {
   # Remove previous backtest files for the current symbol.
   exec 1>&2
   echo "Cleaning backtest data for ${BT_SYMBOL}..." >&2
-  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' $VPRINT -delete
+  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' -type f $VPRINT -delete
   ini_del "bt_data" "$CUSTOM_INI"
 }
 
@@ -115,7 +115,7 @@ filever() {
   type awk >/dev/null
   wine filever &>/dev/null || install_support_tools >&2
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
@@ -181,7 +181,7 @@ EOF
 # Display recent logs.
 # Usage: show_logs
 show_logs() {
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n20 "{}" +
 }
 
 # Copy script file given the file path.
@@ -219,7 +219,7 @@ file_copy() {
 # Usage: srv_copy [file]
 srv_copy() {
   local server="$(ini_get Server)"
-  srv_file=$(find "$ROOT" -name "$server.srv" -print -quit)
+  srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
@@ -240,7 +240,7 @@ compile_ea() {
   local logfile=${2:-$name}
   type iconv >/dev/null
   cd "$TERMINAL_DIR"
-  local rel_path=$(find $MQL_DIR/Experts -name "$name*")
+  local rel_path=$(find $MQL_DIR/Experts -name "$name*" -type f)
   [ ! -s "$rel_path" ] && { echo "Error: Cannot find ${rel_path:-$1}!" >&2; return; }
   wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
   compiled_no=$?
@@ -326,7 +326,7 @@ file_copy() {
 # srv_copy
 srv_copy() {
   local server="$(ini_get Server)"
-  srv_file=$(find "$ROOT" -name "$server.srv" -print -quit)
+  srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
