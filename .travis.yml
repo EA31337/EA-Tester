@@ -10,7 +10,7 @@ env:
     DOCKER_REPO=ea31337/$DOCKER_IMAGE
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
-    DOCKER_RUN="docker run -v $CWD/scripts:/opt/scripts:ro -v $HOME/.cache:/home/ubuntu/.cache:rw $DOCKER_REPO"
+    DOCKER_RUN="docker run -v $CWD/scripts:/opt/scripts:ro -v $HOME/.cache:/home/ubuntu/.cache:rw -e FINAL_CODE='find /opt/results -ls' $DOCKER_REPO"
     DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo ${TRAVIS_BRANCH////-})
     WINETRICKS_DOWNLOADER_RETRIES=20
   - secure: "waZbxfpNTIp/etY6lwR8GB+aSWDIw73tu6HxFdwVYdDJ/25SlY+gkJMCPqlpkjA1Aenv1I3TDDd/3dQIMYUeNbgIKOx6AtWkddnfTykqYYFJ4j6MlWPxZKaxDLjehLvjj0ZqkfXcswgXDaIoNnunKbLKiVohprLhO9Yg6I/j1LfzmPPGmFez2Mg2K0jFmri1i8prxpL4cctH0cR9NEZ+Lw13nDjY4b7AMoY6mzt6TFe9/yEt1OzYVGAh36hWgI1AL8h86cyDlUYHMRrzZjMKUGZFyOkkz3BRA6wvyOtjRhNlh2SIY+Y+HiwQaLONeQGpZ9YjNCUb+f5GIxXyEry9RV1oaMNIUnXNSQstUvgzy3QO2muD468KhfvPafpPj0gDHmfGEH+2IMcrz/WYNobsdN9JOjvPWutnxgYAzd27jwDIQ4D2WewZ3COgrRXxCAgwsOQKvlzDaFAOvPObOnCmIVsbOpONE3nSRGnrQpxJl0aaspoHLnVyKAUeCTAMhtSZirhWO+Iob9mhicB+9xEMRpxFnRD/FBUcSY/SyVlZjXxK9zIqn9t5KBK0iVZ10l/O5nV6sM7YfpAz8d4MqJDAGT05tKn/o2uDJtVvnl6szCIP5iQwsMUsQqQCuNPbmfm1V/q2ipjxLwiwOx2NRbSjFx3/5NnyXiIqehmvlfnfUjQ="
@@ -25,11 +25,11 @@ env:
   - CMD="make docker-load && $DOCKER_RUN install_mt 4x"
   - CMD="make docker-load && $DOCKER_RUN install_mt 5"
   - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -xdev -type f -size +10M -ls"
-  - CMD="$DOCKER_RUN 'for file in TestFXTHeader TestHSTHeader; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -e $file; done'"
-  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestTimeframes -T $tf; done'"
-  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestBands -T $tf; done'"
-  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestEnvelopes -T $tf; done'"
-  - CMD="$DOCKER_RUN 'for tf in M1 M5 M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestModellingQuality -T $tf; done'"
+  - CMD="$DOCKER_RUN 'for file in TestFXTHeader TestHSTHeader; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -e \$file; done'"
+  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestTimeframes -T \$tf; done'"
+  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestBands -T \$tf; done'"
+  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestEnvelopes -T \$tf; done'"
+  - CMD="$DOCKER_RUN 'for tf in M1 M5 M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestModellingQuality -T \$tf; done'"
   - CMD="$DOCKER_RUN run_backtest -v -t -F -j -M4.0.0.1010 -d 2000 -p EURUSD -y 2017 -m 1 -S 20 -b DS -D4 -e TestLotstep -T M1"
 
 # - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2017 -S 20 -b DS -D5 -e TestLotstep -T M5" # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1
@@ -57,6 +57,7 @@ script:
 - set -e
 - ruby -wc Vagrantfile
 - bash -n scripts/.*.sh scripts/*.sh
+- set -x
 - eval $CMD
 after_script:
 after_success:

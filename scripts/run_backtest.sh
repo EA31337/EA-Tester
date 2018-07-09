@@ -496,11 +496,6 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-    a)
-      # Reserved.
-      echo "Option -$arg not supported." >&2
-      ;;
-
     A) # Action to evaluate (e.g. "file_get URL")
       CODE+=("${OPTARG}")
       ;;
@@ -579,8 +574,9 @@ while getopts $ARGS arg; do
     b | B | C | e | f | G | I | j | m | M | p | v | x | y) ;;
 
     *)
+      echo "Args: $@" >&2
       usage
-      exit 0
+      exit 1
       ;;
 
   esac
