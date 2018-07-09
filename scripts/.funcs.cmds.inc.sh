@@ -332,7 +332,16 @@ srv_copy() {
   fi
 }
 
-# Convert html to txt format.
+# Read value from result HTML file.
+# read_result_value [key] [Report.htm]
+# E.g. read_result_value "Profit factor" Report.htm
+read_result_value() {
+  local key="$1"
+  local file="${2:-$TEST_REPORT_HTM}"
+  pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+}
+
+# Convert HTML to text format.
 # Usage: convert_html2txt [file_src] [file_dst]
 convert_html2txt() {
   # Define pattern for moving first 3 parameters into last column.
@@ -347,12 +356,61 @@ convert_html2txt() {
   if [ $? -ne 0 ]; then exit 1; fi # Fail on error.
 }
 
-# Convert html to txt format (full version).
+# Convert HTML to text format (full version).
 # Usage: convert_html2txt_full [file_src] [file_dst]
 convert_html2txt_full() {
   local file_in=$1
   local file_out=$2
   grep -v mso-number "$file_in" | html2text -nobs -width 105 -o "$file_out"
+}
+
+# Convert HTML to JSON format
+# Usage: convert_html2json [file_src] [file_dst]
+# E.g. convert_html2json Report.htm Report.json
+convert_html2json() {
+  type pup >/dev/null
+  local file_in="${1:-$TEST_REPORT_HTM}"
+  local file_out=${2:-${file_in%.*}.json}
+  local keys=()
+  keys+=("Symbol")
+  keys+=("Period")
+  keys+=("Modelling quality")
+  keys+=("Parameters")
+  keys+=("Bars in test")
+  keys+=("Ticks modelled")
+  keys+=("Modelling quality")
+  keys+=("Mismatched charts errors")
+  keys+=("Initial deposit")
+  keys+=("Spread")
+  keys+=("Total net profit")
+  keys+=("Gross profit")
+  keys+=("Gross loss")
+  keys+=("Profit factor")
+  keys+=("Expected payoff")
+  keys+=("Absolute drawdown")
+  keys+=("Maximal drawdown")
+  keys+=("Relative drawdown")
+  keys+=("Total trades")
+  keys+=("Short positions")
+  keys+=("Long positions")
+  keys+=("Profit trades")
+  keys+=("Loss trades")
+  keys+=("profit trade")
+  keys+=("loss trade")
+  keys+=("consecutive wins (profit in money)")
+  keys+=("consecutive losses (loss in money)")
+  keys+=("consecutive profit")
+  keys+=("consecutive loss")
+  keys+=("consecutive wins")
+  keys+=("consecutive losses")
+  {
+    printf "{\n"
+    for key in "${keys[@]}"; do
+      value=$(read_result_value "$key" "$file_in")
+      printf '"%s": "%s"\n' "$key" "$value"
+    done | paste -sd,
+    printf "}"
+  } > "$file_out"
 }
 
 # Compile given script name.
