@@ -93,6 +93,13 @@ case "$(uname -s)" in
     # Erase downloaded archive files.
     apt-get clean
 
+    # Install Go.
+    bash <(curl -s https://raw.githubusercontent.com/udhos/update-golang/master/update-golang.sh)
+    install -v -m755 /usr/local/go/bin/go* /usr/local/bin/
+
+    # Install pup.
+    go get github.com/ericchiang/pup
+
     # Setup swap file if none (exclude Docker image).
     if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
       if [ -f /var/cache/swap/swapfile ]; then
