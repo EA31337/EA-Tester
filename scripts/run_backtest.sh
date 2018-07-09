@@ -4,7 +4,7 @@
 
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="A:b:B:c:Cd:D:e:E:f:FGi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
+ARGS="?A:b:B:c:Cd:D:e:E:f:FGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd od perl >/dev/null
@@ -53,6 +53,8 @@ Usage: $0 (args)
     Invoke file with custom rules.
   -I (options)
     Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
+  -j
+    Convert test report file into JSON format.
   -l (double)
     Specify a lot step (e.g. 0.01).
   -L (limit)
@@ -97,8 +99,10 @@ Usage: $0 (args)
   -y (year)
     Year to test (e.g. 2017, 2011-2015).
     Default: 2017
+  -?
+    Display help.
 
-Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -s 20 -b DS
+Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
 _EOF
 }
 
@@ -178,6 +182,10 @@ parse_results() {
           enhance_gif "$report_gif" -t "$gif_text"
         fi
         ;;
+      j) # Convert test report file into JSON format.
+        echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into JSON file..." >&2
+        convert_html2json "$TEST_REPORT_HTM"
+        ;;
       t) # Convert test report file into brief text format.
         TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
@@ -223,7 +231,7 @@ parse_results() {
 while getopts $ARGS arg; do
   case ${arg} in
 
-    h | \?) # Display help.
+    \?) # Display help.
       usage
       exit 0
       ;;
@@ -568,7 +576,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
+    b | B | C | e | f | G | I | j | m | M | p | v | x | y) ;;
 
     *)
       usage
