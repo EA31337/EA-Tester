@@ -27,14 +27,10 @@ env:
   - CMD="make docker-load && docker run -it --entrypoint /lib64/ld-linux-x86-64.so.2 -u root $DOCKER_REPO /usr/bin/find / -xdev -type f -size +10M -ls"
   - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -S 10 -b DS -D5 -e TestFXTHeader"
   - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -S 10 -b DS -D5 -e TestHSTHeader"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -S 10 -b DS -D5 -e TestTimeframes -T M15"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -S 10 -b DS -D5 -e TestTimeframes -T M30"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -S 10 -b DS -D5 -e TestBands -T M15"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -S 10 -b DS -D5 -e TestBands -T M30"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -S 10 -b DS -D5 -e TestEnvelopes -T M15"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -S 10 -b DS -D5 -e TestEnvelopes -T M30"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2016 -m 1 -S 10 -b DS -D5 -e TestModellingQuality -T M1"
-  - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 1000 -p EURUSD -y 2017 -m 1 -S 10 -b DS -D5 -e TestModellingQuality -T M30"
+  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestTimeframes -T $tf; done'"
+  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestBands -T $tf; done'"
+  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestEnvelopes -T $tf; done'"
+  - CMD="$DOCKER_RUN 'for tf in M1 M5 M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestModellingQuality -T $tf; done'"
   - CMD="$DOCKER_RUN run_backtest -v -t -M4.0.0.1010 -d 2000 -p EURUSD -y 2016 -m 1 -S 20 -b DS -D4 -e TestLotstep -T M1"
 
 # - TEST_ARGS="-v -t -M4.0.0.1010 -d 2000 -p EURUSD -m 1 -y 2017 -S 20 -b DS -D5 -e TestLotstep -T M5" # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1
