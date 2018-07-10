@@ -17,13 +17,15 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
 
-# Setup default user.
+# Setup the default user.
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 
 # Provision container image,
 ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
+ENV PROVISION_SSH 1
+ENV PROVISION_SUDO 1
 RUN provision.sh
 
 # Backtest input.
@@ -46,6 +48,9 @@ RUN eval.sh clean_files
 
 # Share the results.
 VOLUME /opt/results
+
+# Expose SSH when installed.
+EXPOSE 22
 
 # Configure a container as an executable.
 ENTRYPOINT ["eval.sh"]

@@ -90,10 +90,23 @@ case "$(uname -s)" in
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
     #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
 
+    # Setup SSH if requested.
+    if [ -n "$PROVISION_SSH" ]; then
+      apt-get install -y openssh-server
+      [ ! -d /var/run/sshd ] && mkdir -v /var/run/sshd
+      sed -i'.bak' 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+    fi
+
+    # Setup sudo if requested.
+    if [ -n "$PROVISION_SUDO" ]; then
+      apt-get install sudo
+      sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
+    fi
+
     # Erase downloaded archive files.
     apt-get clean
 
-    # Install pup.
+    # Install pup parser.
     install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
 
     # Setup swap file if none (exclude Docker image).
