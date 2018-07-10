@@ -367,8 +367,9 @@ if [ -n "$BT_YEARS" ]; then
   BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.31"
 fi
 
-# Locate TestExpert if specified.
+# Locate the main file to execute.
 if [ -n "$TEST_EXPERT" ]; then
+  # Locate TestExpert if specified.
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
@@ -381,36 +382,32 @@ if [ -n "$TEST_EXPERT" ]; then
     ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
   fi
   cd - &>/dev/null
-fi
-
-# Locate Expert if specified.
-if [ -n "$EXPERT" ]; then
+elif [ -n "$EXPERT" ]; then
+  # Locate Expert if specified.
   cd "$EXPERTS_DIR"
-  EXPERT_PATH=$(ea_find "$EXPERT")
-  echo "Locating Expert file ("$EXPERT" => "$EXPERT_PATH")..." >&2
-  [ -f "$EXPERT_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EXPERT_PATH::1}" == '.' ]; then
+  EA_PATH=$(ea_find "$EXPERT")
+  echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
+  [ -f "$EA_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
+  if [ "${EA_PATH::1}" == '.' ]; then
     # Use path relative to Experts dir when possible,
-    ini_set "^Expert" "${EXPERT_PATH%.*}" "$TESTER_INI"
+    ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
   else
     # otherwise use the absolute one.
-    ini_set "^Expert" "$(basename "${EXPERT_PATH%.*}")" "$TESTER_INI"
+    ini_set "^Expert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
   fi
   cd - &>/dev/null
-fi
-
-# Locate Script if specified.
-if [ -n "$SCRIPT" ]; then
+elif [ -n "$SCRIPT" ]; then
+  # Locate Script if specified.
   cd "$SCRIPTS_DIR"
-  SCRIPT_PATH=$(ea_find "$EXPERT")
-  echo "Locating Script file ("$SCRIPT" => "$SCRIPT_PATH")..." >&2
-  [ -f "$SCRIPT_PATH" ] || { echo "Error: Script file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${SCRIPT_PATH::1}" == '.' ]; then
+  SCR_PATH=$(script_find "$SCRIPT")
+  echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
+  [ -f "$SCR_PATH" ] || { echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2; exit 1; }
+  if [ "${SCR_PATH::1}" == '.' ]; then
     # Use path relative to Scripts dir when possible,
-    ini_set "^Script" "${SCRIPT_PATH%.*}" "$TESTER_INI"
+    ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
   else
     # otherwise use the absolute one.
-    ini_set "^Script" "$(basename "${SCRIPT_PATH%.*}")" "$TESTER_INI"
+    ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
   fi
   cd - &>/dev/null
 fi
@@ -452,24 +449,26 @@ fi
 # Configure EA.
 TEST_EXPERT="$(ini_get ^TestExpert)"
 EXPERT="$(ini_get ^Expert)"
+EA_FILE="${TEST_EXPERT:-$EXPERT}"
 SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-SETFILE="${TEST_EXPERT:-$SCR_NAME}.set"
+SETFILE="${EA_FILE:-$SCRIPT}.set"
 
-if [ "$TEST_EXPERT" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
-  EA_INI="$TESTER_DIR/$TEST_EXPERT.ini"
+# Copy the template INI file.
+if [ -n "$EA_FILE" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
+  EA_INI="$TESTER_DIR/$EA_FILE.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
-fi
-
-# Copy EA to platform dir only if path is absolute.
-if [ -n "$EA_PATH" ] && [ "${EA_PATH::1}" == '/' ]; then
-  ea_copy "$EA_PATH"
-fi
-
-if [ "$SCR_NAME" ]; then
-  SCR_INI="$SCRIPTS_DIR/$SCR_NAME.ini"
+elif [ -n "$SCRIPT" ] && [ ${SCR_PATH##*.} == 'ex4' ]; then
+  SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
   cp $VFLAG "$TPL_SCR" "$SCR_INI"
-  SCR_PATH=$(ea_find "$SCR_NAME")
+fi
+
+# Copy the main file to execute.
+if [ -n "$EA_PATH" ] && [ "${EA_PATH::1}" == '/' ]; then
+  # Copy EA to platform dir only if path is absolute.
+  ea_copy "$EA_PATH"
+elif [ -n "$SCR_PATH" ] && [ "${SCR_PATH::1}" == '/' ]; then
+  # Copy script to platform dir only if path is absolute.
   script_copy "$SCR_PATH"
 fi
 
@@ -571,7 +570,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | B | C | e | f | G | I | j | m | M | p | v | x | y) ;;
+    b | B | C | e | E | f | G | I | j | m | M | p | s | v | x | y) ;;
 
     *)
       echo "Args: $@" >&2
@@ -615,7 +614,10 @@ if [ -n "$EA_OPTS" ]; then
 fi
 if [ -n "$SET_OPTS" ]; then
   echo "Setting EA options ($SET_OPTS)..." >&2
-  [ -f "$TESTER_DIR/$SETFILE" ] || { echo "ERROR: Please specify .set file first (-f)." >&2; exit 1; }
+  if [ ! -f "$TESTER_DIR/$SETFILE" ]; then
+    echo "ERROR: Please specify .set file first (-f)." >&2
+    exit 1
+  fi
   IFS=','; set_options=($SET_OPTS); restore_ifs
   for set_pair in "${set_options[@]}"; do
     IFS='='; set_option=($set_pair); restore_ifs
