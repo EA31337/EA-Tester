@@ -687,7 +687,7 @@ fi
 clean_files
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
-  echo "ERROR: You need to specify TestExpert (-e), Expert or Script." >&2;
+  echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
   exit 1
 fi
 
@@ -695,7 +695,9 @@ fi
 live_logs &
 live_stats &
 echo "Testing..." >&2
-(time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
+{
+  time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
+} 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@

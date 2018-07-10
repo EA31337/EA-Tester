@@ -1,5 +1,5 @@
 SHELL      := /usr/bin/env bash
-ARGS			 := $(filter-out $@,$(MAKECMDGOALS))
+ARGS       := $(filter-out $@,$(MAKECMDGOALS))
 IMAGE_ORG  := ea31337
 IMAGE_NAME := ea-tester
 DOCKER_TAG := latest
