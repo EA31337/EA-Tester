@@ -263,15 +263,40 @@ ini_copy() {
   cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
 }
 
-# Find EA file and return path.
-# Usage: ea_find [filename/pattern]
+# Find the EA file.
+# Usage: ea_find [filename/url/pattern]
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="$1"
+  cd "$EXPERTS_DIR"
+  if [[ "$file" =~ :// ]]; then
+    # When URL is specified, download the file.
+    wget $VFLAG -cP "$EXPERTS_DIR" $file
+    file=${file##*/}
+  fi
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
-  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$file" -o -path "*/$file.mq?" -o -path "*/$file.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$file*.mq?" -o -path "*$file*.ex?" -o -ipath "*$file*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
+  cd - &>/dev/null
+}
+
+# Find the script file.
+# Usage: script_find [filename/url/pattern]
+# Returns path relative to platform, or absolute otherwise.
+script_find() {
+  local file="$1"
+  cd "$SCRIPTS_DIR"
+  if [[ "$file" =~ :// ]]; then
+    # When URL is specified, download the file.
+    wget $VFLAG -cP "$SCRIPTS_DIR" $file
+    file=${file##*/}
+  fi
+  [ -f "$file" ] && { echo "$file"; return; }
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$file" -o -path "*/$file.mq?" -o -path "*/$file.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$file*.mq?" -o -path "*$file*.ex?" -o -ipath "*$file*" ')' -print -quit)
+  [ "$exact" ] && echo $exact || echo $match
+  cd - &>/dev/null
 }
 
 # Copy EA file to the platform experts dir.

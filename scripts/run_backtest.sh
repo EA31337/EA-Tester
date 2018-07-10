@@ -39,9 +39,9 @@ Usage: $0 (args)
     Default: 10000
   -D (digits)
     Specify market digits (e.g. 5 or 4).
-  -e (filename)
+  -e (filename/url/pattern)
     EA name to test (TestExpert).
-  -E (filename)
+  -E (filename/url/pattern)
     EA name to run (Expert).
   -f (filename)
     The .set file to run the test.
@@ -74,7 +74,7 @@ Usage: $0 (args)
     Default: tester/Report
   -R
     Set files to read-only.
-  -s (file)
+  -s (file/url/pattern)
     Script to run (Script).
   -S (spread)
     Spread to test in points.
