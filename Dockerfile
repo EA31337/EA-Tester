@@ -34,7 +34,7 @@ ARG MT_VER=4.0.0.1010
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN run_backtest.sh -v -t -M $MT_VER -m 1 -D5 -e TestTimeframes -P M30
+RUN run_backtest.sh -v -t -M $MT_VER -m 1 -D5 -e TestTimeframes -T M30
 
 # Clean up.
 USER root

@@ -46,7 +46,7 @@ chdir() {
 # Usage: check_logs [filter] [args]
 check_logs() {
   local filter=$1
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
 # Display logs in real-time.
@@ -58,7 +58,7 @@ live_logs() {
   sleep $interval
   [ "$VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
   while sleep $interval; do
-    if [ -n "$(find "$TESTER_DIR" -type f -name "*.log" -print -quit)" ]; then
+    if [ -n "$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)" ]; then
       break;
     fi
   done
@@ -105,7 +105,7 @@ clean_bt() {
   # Remove previous backtest files for the current symbol.
   exec 1>&2
   echo "Cleaning backtest data for ${BT_SYMBOL}..." >&2
-  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' $VPRINT -delete
+  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' -type f $VPRINT -delete
   ini_del "bt_data" "$CUSTOM_INI"
 }
 
@@ -115,7 +115,7 @@ filever() {
   type awk >/dev/null
   wine filever &>/dev/null || install_support_tools >&2
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -type f -name "$file" -execdir wine filever /v "$file" ';' -quit \
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir wine filever /v "$file" ';' -quit \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
@@ -181,7 +181,7 @@ EOF
 # Display recent logs.
 # Usage: show_logs
 show_logs() {
-  find "$TERMINAL_DIR" -name "*.log" $VPRINT -exec tail -n20 "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n20 "{}" +
 }
 
 # Copy script file given the file path.
@@ -219,7 +219,7 @@ file_copy() {
 # Usage: srv_copy [file]
 srv_copy() {
   local server="$(ini_get Server)"
-  srv_file=$(find "$ROOT" -name "$server.srv" -print -quit)
+  srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
@@ -234,17 +234,19 @@ file_get() {
 }
 
 # Compile given EA name.
-# Usage: compile_ea
+# Usage: compile_ea [pattern] [log_file]
 compile_ea() {
-  local name=${1:-$EA_NAME}
+  local name=${1:-$TEST_EXPERT}
+  local logfile=${2:-$name}
+  type iconv >/dev/null
   cd "$TERMINAL_DIR"
-  local rel_path=$(find $MQL_DIR/Experts -name "$name*")
+  local rel_path=$(find $MQL_DIR/Experts -name "$name*" -type f)
   [ ! -s "$rel_path" ] && { echo "Error: Cannot find ${rel_path:-$1}!" >&2; return; }
-  wine metaeditor.exe ${@:2} /log /compile:"$rel_path"
+  wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
   compiled_no=$?
   echo "Info: Number of files compiled: $compiled_no" >&2
-  if [ -f "$TERMINAL_DIR"/MQL4.log ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$TERMINAL_DIR"/MQL?.log)
+  if [ -f "$logfile" ]; then
+    results=$(iconv -f utf-16 -t utf-8 "$logfile")
     grep -A10 "${name%.*}" <<<$results
     grep -q "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
   fi
@@ -267,8 +269,8 @@ ini_copy() {
 ea_find() {
   local file="$1"
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
-  local match=$(find -L . "$ROOT" ~ -maxdepth 4 '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$1" -o -path "*/$1.mq?" -o -path "*/$1.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$1*.mq?" -o -path "*$1*.ex?" -o -ipath "*$1*" ')' -print -quit)
   [ "$exact" ] && echo $exact || echo $match
 }
 
@@ -283,7 +285,6 @@ ea_copy() {
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
   # Copy local include files.
-  set -x
   includes=$(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   for file in $includes; do
     ea_copy "$file"
@@ -325,13 +326,22 @@ file_copy() {
 # srv_copy
 srv_copy() {
   local server="$(ini_get Server)"
-  srv_file=$(find "$ROOT" -name "$server.srv" -print -quit)
+  srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
 }
 
-# Convert html to txt format.
+# Read value from result HTML file.
+# read_result_value [key] [Report.htm]
+# E.g. read_result_value "Profit factor" Report.htm
+read_result_value() {
+  local key="$1"
+  local file="${2:-$TEST_REPORT_HTM}"
+  pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+}
+
+# Convert HTML to text format.
 # Usage: convert_html2txt [file_src] [file_dst]
 convert_html2txt() {
   # Define pattern for moving first 3 parameters into last column.
@@ -346,12 +356,61 @@ convert_html2txt() {
   if [ $? -ne 0 ]; then exit 1; fi # Fail on error.
 }
 
-# Convert html to txt format (full version).
+# Convert HTML to text format (full version).
 # Usage: convert_html2txt_full [file_src] [file_dst]
 convert_html2txt_full() {
   local file_in=$1
   local file_out=$2
   grep -v mso-number "$file_in" | html2text -nobs -width 105 -o "$file_out"
+}
+
+# Convert HTML to JSON format
+# Usage: convert_html2json [file_src] [file_dst]
+# E.g. convert_html2json Report.htm Report.json
+convert_html2json() {
+  type pup >/dev/null
+  local file_in="${1:-$TEST_REPORT_HTM}"
+  local file_out=${2:-${file_in%.*}.json}
+  local keys=()
+  keys+=("Symbol")
+  keys+=("Period")
+  keys+=("Modelling quality")
+  keys+=("Parameters")
+  keys+=("Bars in test")
+  keys+=("Ticks modelled")
+  keys+=("Modelling quality")
+  keys+=("Mismatched charts errors")
+  keys+=("Initial deposit")
+  keys+=("Spread")
+  keys+=("Total net profit")
+  keys+=("Gross profit")
+  keys+=("Gross loss")
+  keys+=("Profit factor")
+  keys+=("Expected payoff")
+  keys+=("Absolute drawdown")
+  keys+=("Maximal drawdown")
+  keys+=("Relative drawdown")
+  keys+=("Total trades")
+  keys+=("Short positions")
+  keys+=("Long positions")
+  keys+=("Profit trades")
+  keys+=("Loss trades")
+  keys+=("profit trade")
+  keys+=("loss trade")
+  keys+=("consecutive wins (profit in money)")
+  keys+=("consecutive losses (loss in money)")
+  keys+=("consecutive profit")
+  keys+=("consecutive loss")
+  keys+=("consecutive wins")
+  keys+=("consecutive losses")
+  {
+    printf "{\n"
+    for key in "${keys[@]}"; do
+      value=$(read_result_value "$key" "$file_in")
+      printf '"%s": "%s"\n' "$key" "$value"
+    done | paste -sd,
+    printf "}"
+  } > "$file_out"
 }
 
 # Compile given script name.

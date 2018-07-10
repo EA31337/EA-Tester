@@ -20,7 +20,7 @@ TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
 is_vm && set -x
-TERMINAL_EXE="$(find "$ROOT" "$OUT" "$HOME" -name terminal.exe -print -quit)"
+TERMINAL_EXE="$(find "$ROOT" "$OUT" "$HOME" -not -path "*/WebInstall/*" -name terminal.exe -print -quit)"
 TERMINAL_DIR="${TERMINAL_DIR:-$([ -f "$TERMINAL_EXE" ] && dirname "$TERMINAL_EXE" || true)}"
 MTEDITOR_EXE="$([ -d "$TERMINAL_DIR" ] && find "$TERMINAL_DIR" -name metaeditor.exe -print -quit || true)"
 is_vm && set +x

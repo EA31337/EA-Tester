@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
+
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="A:b:B:c:Cd:D:e:E:f:Ghi:I:l:m:M:p:P:r:Rs:S:oO:tTvVxX:y:"
+ARGS="?A:b:B:c:Cd:D:e:E:f:FGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
 ## Check dependencies.
 type git pgrep xargs ex xxd od perl >/dev/null
@@ -18,10 +19,91 @@ set_display
 
 # Show script usage and exit.
 usage() {
-  echo "Usage:"
-  echo "$0 (args)" >&2
-  grep " .)\ #" "$0" >&2
-  echo "Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -s 20 -b DS"
+  cat <<_EOF
+Usage: $0 (args)
+
+  -A (command)
+    Action to evaluate (e.g. "file_get URL").
+  -b (option)
+    Source of backtest data to test.
+    Default: DS
+  -B (filename)
+    Specify early booting script to execute.
+  -c (currency)
+    Base currency for test.
+    Default: USD
+  -C
+    Clear previous backtest data files.
+  -d (amount)
+    Deposit amount to test (e.g. 2000).
+    Default: 10000
+  -D (digits)
+    Specify market digits (e.g. 5 or 4).
+  -e (filename)
+    EA name to test (TestExpert).
+  -E (filename)
+    EA name to run (Expert).
+  -f (filename)
+    The .set file to run the test.
+  -F
+    Convert test report file into full detailed text format.
+  -G
+    Enhance gif report files.
+  -i (file)
+    Invoke file with custom rules.
+  -I (options)
+    Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
+  -j
+    Convert test report file into JSON format.
+  -l (double)
+    Specify a lot step (e.g. 0.01).
+  -L (limit)
+    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown=20.00).
+  -m (month)
+    Month to test (e.g. 1).
+    Default: 1-12
+  -M (version)
+    Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
+    Default: 4.0.0.1010
+  -p (pair)
+    Symbol pair to test (e.g. EURUSD).
+  -P (param)
+    Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+  -r (string)
+    The name of the test report file (TestReport).
+    Default: tester/Report
+  -R
+    Set files to read-only.
+  -s (file)
+    Script to run (Script).
+  -S (spread)
+    Spread to test in points.
+  -o
+    Run test in optimization mode.
+  -O (dir)
+    Output directory to save the test results.
+    Default: /opt/results for Docker container.
+  -t
+    Convert test report file into brief text format.
+  -T (timeframe)
+    Timeframe (TestPeriod) to test (e.g. M15, M30).
+    Default: M30
+  -v
+    Verbose mode.
+  -V
+    Run test in visual mode (TestVisualEnable).
+  -x
+    Run the script in trace/debug mode.
+  -X (file)
+    Invoke file on exit after the successful test.
+  -y (year)
+    Year to test (e.g. 2017, 2011-2015).
+    Default: 2017
+  -?
+    Display help.
+
+Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
+_EOF
 }
 
 # Invoke on test success.
@@ -43,6 +125,7 @@ on_success() {
   ! check_logs "Error: .\+" || exit 1
   ! check_logs "Configuration issue .\+" || exit 1
   ! check_logs "Assert fail on .\+" || exit 1
+  ! check_logs "Testing pass stopped .\+" || exit 1
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
@@ -85,6 +168,11 @@ parse_results() {
   save_time
   while getopts $ARGS arg; do
     case $arg in
+      F) # Convert test report file into full detailed text format.
+        TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
+        echo "Converting full HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+        convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
+        ;;
       G) # Enhance gif report files.
         report_gif="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.gif"
         echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
@@ -94,22 +182,14 @@ parse_results() {
           enhance_gif "$report_gif" -t "$gif_text"
         fi
         ;;
+      j) # Convert test report file into JSON format.
+        echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into JSON file..." >&2
+        convert_html2json "$TEST_REPORT_HTM"
+        ;;
       t) # Convert test report file into brief text format.
         TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
         convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-        ;;
-      T) # Convert test report file into full detailed text format.
-        TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
-        echo "Converting full HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
-        convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-        ;;
-      O)
-        BT_DEST="${BT_DEST:-$CWD}"
-        echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
-        [ -d "$BT_DEST" ] || mkdir $VFLAG "$BT_DEST"
-        cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
-        find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
         ;;
       o)
         echo "Sorting test results..."
@@ -136,6 +216,12 @@ parse_results() {
         ;;
       esac
   done
+  # Copy the test results if destination directory has been specified.
+  if [ -n "$BT_DEST" ]; then
+    echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
+    cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
+    find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
+  fi
 }
 
 # Show usage on no arguments.
@@ -145,12 +231,12 @@ parse_results() {
 while getopts $ARGS arg; do
   case ${arg} in
 
-    h | \?) # Display help.
+    \?) # Display help.
       usage
       exit 0
       ;;
 
-    M) # Specify version of MetaTrader.
+    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
       MT_VER=${OPTARG:-4.0.0.1010}
       type unzip >/dev/null
       install_mt $MT_VER
@@ -204,7 +290,7 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-    b) # Backtest data to test.
+    b) # Source of backtest data to test.
       BT_SRC=${OPTARG}
       ;;
 
@@ -218,8 +304,12 @@ while getopts $ARGS arg; do
       clean_bt
       ;;
 
-    e) # EA name.
-      EA_NAME=${OPTARG}
+    e) # EA name (TestExpert).
+      TEST_EXPERT=${OPTARG}
+      ;;
+
+    E) # EA name (Expert).
+      EXPERT=${OPTARG}
       ;;
 
     f) # The .set file to run the test.
@@ -230,12 +320,16 @@ while getopts $ARGS arg; do
       TEST_OPTS=${OPTARG}
       ;;
 
-    m) # Which months to test (default: 1-12)
+    m) # Which months to test (default: 1-12).
       BT_MONTHS=${OPTARG}
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
       BT_SYMBOL=${OPTARG}
+      ;;
+
+    s) # Script to run.
+      SCRIPT=${OPTARG}
       ;;
 
     y) # Year to test (e.g. 2017, 2011-2015).
@@ -273,17 +367,50 @@ if [ -n "$BT_YEARS" ]; then
   BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.31"
 fi
 
-if [ -n "$EA_NAME" ]; then
+# Locate TestExpert if specified.
+if [ -n "$TEST_EXPERT" ]; then
   cd "$EXPERTS_DIR"
-  EA_PATH=$(ea_find "$EA_NAME")
-  echo "Locating EA file ("$EA_NAME" => "$EA_PATH")..." >&2
-  [ -f "$EA_PATH" ] || { echo "Error: EA file ($EA_NAME) not found in '$ROOT'!" >&2; exit 1; }
+  EA_PATH=$(ea_find "$TEST_EXPERT")
+  echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
+  [ -f "$EA_PATH" ] || { echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2; exit 1; }
   if [ "${EA_PATH::1}" == '.' ]; then
     # Use path relative to Experts dir when possible,
     ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
   else
     # otherwise use the absolute one.
     ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  fi
+  cd - &>/dev/null
+fi
+
+# Locate Expert if specified.
+if [ -n "$EXPERT" ]; then
+  cd "$EXPERTS_DIR"
+  EXPERT_PATH=$(ea_find "$EXPERT")
+  echo "Locating Expert file ("$EXPERT" => "$EXPERT_PATH")..." >&2
+  [ -f "$EXPERT_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
+  if [ "${EXPERT_PATH::1}" == '.' ]; then
+    # Use path relative to Experts dir when possible,
+    ini_set "^Expert" "${EXPERT_PATH%.*}" "$TESTER_INI"
+  else
+    # otherwise use the absolute one.
+    ini_set "^Expert" "$(basename "${EXPERT_PATH%.*}")" "$TESTER_INI"
+  fi
+  cd - &>/dev/null
+fi
+
+# Locate Script if specified.
+if [ -n "$SCRIPT" ]; then
+  cd "$SCRIPTS_DIR"
+  SCRIPT_PATH=$(ea_find "$EXPERT")
+  echo "Locating Script file ("$SCRIPT" => "$SCRIPT_PATH")..." >&2
+  [ -f "$SCRIPT_PATH" ] || { echo "Error: Script file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
+  if [ "${SCRIPT_PATH::1}" == '.' ]; then
+    # Use path relative to Scripts dir when possible,
+    ini_set "^Script" "${SCRIPT_PATH%.*}" "$TESTER_INI"
+  else
+    # otherwise use the absolute one.
+    ini_set "^Script" "$(basename "${SCRIPT_PATH%.*}")" "$TESTER_INI"
   fi
   cd - &>/dev/null
 fi
@@ -323,13 +450,14 @@ if [ -n "$TEST_OPTS" ]; then
 fi
 
 # Configure EA.
-EA_NAME="$(ini_get TestExpert)"
-SCR_NAME="$(ini_get Script)"
+TEST_EXPERT="$(ini_get ^TestExpert)"
+EXPERT="$(ini_get ^Expert)"
+SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-SETFILE="${EA_NAME:-$SCR_NAME}.set"
+SETFILE="${TEST_EXPERT:-$SCR_NAME}.set"
 
-if [ "$EA_NAME" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
-  EA_INI="$TESTER_DIR/$EA_NAME.ini"
+if [ "$TEST_EXPERT" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
+  EA_INI="$TESTER_DIR/$TEST_EXPERT.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
 fi
 
@@ -372,20 +500,21 @@ while getopts $ARGS arg; do
       CODE+=("${OPTARG}")
       ;;
 
+    b) ;; # Already parsed.
+    B) ;; # Already parsed.
+
     c) # Base currency for test (e.g. USD).
       BT_CURRENCY=${OPTARG}
       ;;
+
+    C) ;; # Already parsed.
 
     d) # Deposit amount to test (e.g. 2000).
       BT_DEPOSIT=${OPTARG}
       ;;
 
-    D) # Change market digits.
+    D) # Specify market digits.
       BT_DIGITS=${OPTARG}
-      ;;
-
-    E) # EA backtest settings (e.g. genetic=0, maxdrawdown=20.00).
-      EA_OPTS=${OPTARG}
       ;;
 
     i) # Invoke file with custom rules.
@@ -396,6 +525,10 @@ while getopts $ARGS arg; do
       BT_LOTSTEP=${OPTARG}
       ;;
 
+    L) # Common/limit test parameters (e.g. genetic=0, maxdrawdown=20.00).
+      EA_OPTS=${OPTARG}
+      ;;
+
     o) # Run optimization test.
       OPTIMIZATION=true
       ;;
@@ -404,8 +537,8 @@ while getopts $ARGS arg; do
       BT_DEST=${OPTARG}
       ;;
 
-    P) # Period to test.
-      BT_PERIOD=${OPTARG}
+    P) # Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+      SET_OPTS=${OPTARG}
       ;;
 
     r) # The name of the test report file.
@@ -416,16 +549,16 @@ while getopts $ARGS arg; do
       set_read_perms
       ;;
 
-    s) # Spread to test.
+    S) # Spread to test.
       BT_SPREAD=${OPTARG}
-      ;;
-
-    S) # Set EA option in SET file (e.g. VerboseInfo=1,TakeProfit=0).
-      SET_OPTS=${OPTARG}
       ;;
 
     t)
       type html2text >/dev/null
+      ;;
+
+    T) # Timeframe to test.
+      BT_PERIOD=${OPTARG}
       ;;
 
     X)
@@ -438,11 +571,12 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | B | C | e | f | G | h | I | m | M | p | v | x | y) ;;
+    b | B | C | e | f | G | I | j | m | M | p | v | x | y) ;;
 
     *)
+      echo "Args: $@" >&2
       usage
-      exit 0
+      exit 1
       ;;
 
   esac
@@ -522,7 +656,7 @@ if [ "$OPTIMIZATION" ]; then
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
 if [ -n "$BT_DEST" ]; then
-  echo "Checking destination ($BT_DEST)..." >&2
+  echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
 fi
 if [ "$VISUAL_MODE" ]; then
@@ -531,7 +665,7 @@ if [ "$VISUAL_MODE" ]; then
 fi
 
 BT_PERIOD=$(ini_get ^TestPeriod)
-if [ "$EA_NAME" ]; then
+if [ "$TEST_EXPERT" ]; then
   # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
@@ -546,17 +680,24 @@ if [ "$EA_NAME" ]; then
 fi
 
 # Prepare before test run.
-if [ "$EA_NAME" ]; then
+if [ "$TEST_EXPERT" ]; then
   [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
 clean_files
 
+if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
+  echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
+  exit 1
+fi
+
 # Run the test in the platform.
 live_logs &
 live_stats &
 echo "Testing..." >&2
-(time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
+{
+  time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
+} 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@

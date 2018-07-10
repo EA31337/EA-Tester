@@ -93,6 +93,9 @@ case "$(uname -s)" in
     # Erase downloaded archive files.
     apt-get clean
 
+    # Install pup.
+    install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
+
     # Setup swap file if none (exclude Docker image).
     if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
       if [ -f /var/cache/swap/swapfile ]; then
