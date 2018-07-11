@@ -472,27 +472,6 @@ elif [ -n "$SCR_PATH" ] && [ "${SCR_PATH::1}" == '/' ]; then
   script_copy "$SCR_PATH"
 fi
 
-if [ -n "$SETORG" ]; then
-  echo "Configuring SET parameters ($SETFILE)..." >&2
-  if [ -f "$SETORG" ]; then
-    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
-  fi
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
-    if [ -n "$TEST_EXPERT"]; then
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
-    elif [ -n "$EXPERT"]; then
-      ini_set "^ExpertParameters" "$SETFILE" "$TESTER_INI"
-    elif [ -n "$SCRIPT"]; then
-      ini_set "^ScriptParameters" "$SETFILE" "$TESTER_INI"
-    fi
-    echo "Copying parameters from SET into INI file..." >&2
-    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
-  else
-    echo "ERROR: Set file not found ($SETORG)!" >&2
-    exit 1
-  fi
-fi
-
 srv_copy
 check_files
 
@@ -620,61 +599,103 @@ if [ -n "$EA_OPTS" ]; then
 fi
 if [ -n "$SET_OPTS" ]; then
   echo "Setting EA options ($SET_OPTS)..." >&2
-  if [ ! -f "$TESTER_DIR/$SETFILE" ]; then
-    echo "ERROR: Please specify .set file first (-f)." >&2
-    exit 1
+  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+    # Append settings into the SET file.
+    IFS=','; set_options=($SET_OPTS); restore_ifs
+    for set_pair in "${set_options[@]}"; do
+      IFS='='; set_option=($set_pair); restore_ifs
+      input_set "${set_option[0]}" "${set_option[1]}"
+      ini_set_ea "${set_option[0]}" "${set_option[1]}"
+    done
+  else
+    # Create a new SET file if does not exist.
+    tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$SETFILE"
   fi
-  IFS=','; set_options=($SET_OPTS); restore_ifs
-  for set_pair in "${set_options[@]}"; do
-    IFS='='; set_option=($set_pair); restore_ifs
-    input_set "${set_option[0]}" "${set_option[1]}"
-    ini_set_ea "${set_option[0]}" "${set_option[1]}"
-  done
-  if [ "$VERBOSE" -gt 0 ]; then
+  if [ "$VERBOSE" ]; then
     # Print final version of the SET file.
-    echo "Final SET: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
+    echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
   fi
 fi
+
+# Adds SET file into Terminal INI Configuration file.
+if [ -n "$SETORG" -o -n "$SET_OPTS" ]; then
+  echo "Configuring SET parameters ($SETFILE)..." >&2
+  if [ -f "$SETORG" ]; then
+    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+  fi
+  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+    if [ -n "$TEST_EXPERT" ]; then
+      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    elif [ -n "$EXPERT" ]; then
+      ini_set "^ExpertParameters" "$SETFILE" "$TESTER_INI"
+    elif [ -n "$SCRIPT" ]; then
+      ini_set "^ScriptParameters" "$SETFILE" "$TESTER_INI"
+    fi
+    echo "Copying parameters from SET into INI file..." >&2
+    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+  else
+    echo "ERROR: Set file not found ($SETORG)!" >&2
+    exit 1
+  fi
+fi
+
+# Configure base currency if present.
 if [ -n "$BT_CURRENCY" ]; then
   echo "Configuring base currency ($BT_CURRENCY)..." >&2
   ini_set "^currency" "$BT_CURRENCY" "$EA_INI"
 fi
+
+# Configure deposit if present.
 if [ -n "$BT_DEPOSIT" ]; then
   echo "Configuring deposit ($BT_DEPOSIT)..." >&2
   ini_set "^deposit" "$BT_DEPOSIT" "$EA_INI"
 fi
+
+# Sets currency/volume digits if present.
 if [ -n "$BT_DIGITS" ]; then
   echo "Configuring digits ($BT_DIGITS)..." >&2
   set_digits $BT_DIGITS
 fi
+
+# Sets a lot step if present.
 if [ -n "$BT_LOTSTEP" ]; then
   echo "Configuring lot step ($BT_LOTSTEP)..." >&2
   set_lotstep $BT_LOTSTEP
 fi
+
+# Sets a test report if present.
 if [ -n "$TEST_REPORT" ]; then
   echo "Configuring test report ($TEST_REPORT)..." >&2
   ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
 fi
+
+# Sets a spread if present.
 if [ -n "$BT_SPREAD" ]; then
   echo "Configuring spread ($BT_SPREAD)..." >&2
   set_spread $BT_SPREAD
 fi
+
+# Sets the optimization mode if present.
 if [ "$OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
-if [ -n "$BT_DEST" ]; then
-  echo "Checking destination directory ($BT_DEST)..." >&2
-  [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
-fi
+
+# Sets the visual mode if present.
 if [ "$VISUAL_MODE" ]; then
   echo "Enabling visual mode..." >&2
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
+# Checks the destination folder.
+if [ -n "$BT_DEST" ]; then
+  echo "Checking destination directory ($BT_DEST)..." >&2
+  [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
+fi
+
+# Download backtest data if required.
 BT_PERIOD=$(ini_get ^TestPeriod)
 if [ "$TEST_EXPERT" ]; then
-  # Download backtest data if needed.
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
