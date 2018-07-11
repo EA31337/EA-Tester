@@ -88,7 +88,12 @@ case "$(uname -s)" in
     # @see: https://wiki.winehq.org/Ubuntu
     apt-get install -qy winehq-staging                                            # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
-    #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
+
+    # Install required gems.
+    apt-get install -qy ruby
+    gem install gist
+    # Apply a patch (https://github.com/defunkt/gist/pull/232).
+    patch -d "$(gem env gemdir)"/gems/gist-* -p1 < <(curl -s https://github.com/defunkt/gist/commit/5843e9827f529cba020d08ac764d70c8db8fbd71.patch)
 
     # Setup SSH if requested.
     if [ -n "$PROVISION_SSH" ]; then
