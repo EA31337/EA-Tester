@@ -478,7 +478,13 @@ if [ -n "$SETORG" ]; then
     cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
   fi
   if [ -f "$TESTER_DIR/$SETFILE" ]; then
-    ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    if [ -n "$TEST_EXPERT"]; then
+      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+    elif [ -n "$EXPERT"]; then
+      ini_set "^ExpertParameters" "$SETFILE" "$TESTER_INI"
+    elif [ -n "$SCRIPT"]; then
+      ini_set "^ScriptParameters" "$SETFILE" "$TESTER_INI"
+    fi
     echo "Copying parameters from SET into INI file..." >&2
     ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
   else
