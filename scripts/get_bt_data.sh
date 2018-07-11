@@ -74,7 +74,7 @@ case $period in
     fxt_files=( ${symbol}43200_0.fxt )
   ;;
   *)
-    fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
+    fxt_files=( ${symbol}1_0.fxt )
 esac
 for tf in 1 2 3 4 5 6 10 12 15 20 30 60 120 180 240 360 480 720 1440 10080 43200; do
   hst_files+=( ${symbol}${tf}.hst )
