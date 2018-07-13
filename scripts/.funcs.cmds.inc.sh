@@ -366,6 +366,16 @@ read_result_value() {
   pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
 }
 
+# Read multiple values from result HTML file.
+# read_result_value [key1] [key2] [...]
+# E.g. read_result_values "Symbol" "Profit factor"
+read_result_values() {
+  local file="${TEST_REPORT_HTM:-Report.htm}"
+  for key in "$@"; do
+    pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+  done
+}
+
 # Convert HTML to text format.
 # Usage: convert_html2txt [file_src] [file_dst]
 convert_html2txt() {
