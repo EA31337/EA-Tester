@@ -21,9 +21,6 @@ initialize() {
   # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
   trap onerror 1 2 3 15 ERR
 
-  # Expand aliases in shell.
-  shopt -s expand_aliases
-
   # Activate trace on demand.
   [ "$TRACE" ] && set -x
   # Exit immediately if a command exits with a non-zero status.
@@ -227,6 +224,27 @@ set_symbol_double() {
   return $TRUE
 }
 
+# Returns substring.
+# Usage: substr start end <input
+# e.g. substr 2 2 <<<$"12345"
+substr() {
+  tail -c+${1:-0} | head -c-${2:-0}
+}
+
+# Convert binary to hex string.
+# Usage: bin2hex <input
+# E.g. bin2hex <<<$"abc"
+bin2hex() {
+  perl -ne 'print unpack "H*", $_'
+}
+
+# Convert hex string to binary.
+# Usage: hex2bin <input
+# E.g. hex2bin <<<$"616263"
+hex2bin() {
+  perl -ne 'print pack "H*", $_'
+}
+
 # Restore IFS.
 restore_ifs() {
   IFS=$' \t\n'
@@ -271,5 +289,3 @@ onerror() {
   show_trace
   exit $exit_status
 }
-
-initialize

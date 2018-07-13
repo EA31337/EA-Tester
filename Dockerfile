@@ -26,6 +26,7 @@ ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
 ENV PROVISION_SSH 1
 ENV PROVISION_SUDO 1
+ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
 # Backtest input.
