@@ -376,6 +376,25 @@ read_result_values() {
   done
 }
 
+# Prints result summary in one line.
+# E.g. result_summary [Report.htm]
+result_summary() {
+  local file="${TEST_REPORT_HTM:-Report.htm}"
+  TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
+  [ "$OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
+  symbol=$(read_result_value "Symbol")
+  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs)
+  pf=$(read_result_value "Profit factor")
+  ep=$(read_result_value "Expected payoff")
+  dd=$(read_result_value "Relative drawdown")
+  deposit=$(read_result_value "Initial deposit")
+  profit=$(read_result_value "Total net profit")
+  echo $period
+  printf "%s results for %s on %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f; %s" \
+    $ttype "${EA_FILE:-EA}" "${symbol%%[[:space:]]*}" \
+    "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$period"
+}
+
 # Convert HTML to text format.
 # Usage: convert_html2txt [file_src] [file_dst]
 convert_html2txt() {
@@ -483,10 +502,7 @@ post_gist() {
   [ -n "$TRACE" ] && set -x
   cd "$dir"
   local files=$(find . -type f -maxdepth 1 -name "*$pattern*" -and -not -name "*.htm" -and -not -name "*.gif")
-  local desc=$(printf "%s %s" \
-      $(read_result_value 'Initial deposit') \
-      $(read_result_value 'Profit trades') \
-    )
+  local desc=$(result_summary)
   gist -d "$desc" $files
   cd - &>/dev/null
 }

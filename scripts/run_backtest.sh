@@ -237,6 +237,7 @@ parse_results() {
     cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
+  result_summary
 }
 
 # Show usage on no arguments.
