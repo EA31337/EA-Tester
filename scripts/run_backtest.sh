@@ -176,17 +176,13 @@ parse_results() {
   test -f "$TEST_REPORT_HTM" || exit 1
   echo "Checking the total time elapsed..." >&2
   save_time
+  # Parse arguments on results.
   while getopts $ARGS arg; do
     case $arg in
       F) # Convert test report file into full detailed text format.
         TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
         echo "Converting full HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
         convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-        ;;
-      g) # Post results to Gist.
-        [ -n "$TRACE" ] && set +x
-        post_gist "$TEST_REPORT_DIR" "$TEST_REPORT_BASE"
-        [ -n "$TRACE" ] && set -x
         ;;
       G) # Enhance gif report files.
         report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
@@ -234,9 +230,23 @@ parse_results() {
   # Copy the test results if destination directory has been specified.
   if [ -n "$BT_DEST" ]; then
     echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
-    cp $VFLAG "$TESTER_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
+    cp $VFLAG "$TEST_REPORT_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
+  # Parse arguments on results after everything else.
+  OPTIND=1
+  while getopts $ARGS arg; do
+    case $arg in
+      g) # Post results to Gist.
+        [ -n "$TRACE" ] && set +x
+        post_gist "${BT_DEST:-$TEST_REPORT_DIR}" "$TEST_REPORT_BASE"
+        [ -n "$TRACE" ] && set -x
+        ;;
+      *)
+        ignores="$arg=$OPTARG"
+        ;;
+      esac
+  done
   result_summary
 }
 

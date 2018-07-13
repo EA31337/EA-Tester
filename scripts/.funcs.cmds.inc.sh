@@ -389,10 +389,9 @@ result_summary() {
   dd=$(read_result_value "Relative drawdown")
   deposit=$(read_result_value "Initial deposit")
   profit=$(read_result_value "Total net profit")
-  echo $period
-  printf "%s results for %s on %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f; %s" \
-    $ttype "${EA_FILE:-EA}" "${symbol%%[[:space:]]*}" \
-    "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$period"
+  printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f; %s %s" \
+    $ttype "${EA_FILE:-EA}" \
+    "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "${symbol%%[[:space:]]*}" "$period"
 }
 
 # Convert HTML to text format.
@@ -489,21 +488,26 @@ sort_opt_results() {
 post_gist() {
   local dir="${1:-$TEST_REPORT_DIR}"; set +x
   local pattern=${2:-.}; set +x
+  [ -d "$dir" ] || return
   # Do stuff.
-  eval $(decode<<<$(rev<<<$"4tCI0V2c"))
-  eval export '$(rev<<<$(decode\
+  $(printf 4tCI0V2c|rev|decode) && eval export '$(rev\
+    <<<$(decode\
     <<<$"TkVLT1Q=")_$(decode\
     <<<$"SFRVQQ==")_$(decode\
     <<<$"QlVIVElH"))'='$(substr 3\
-    <<<$(rev<<<$(bin2hex\
-    <<<$(decode<<<$(rev\
+    <<<$(rev\
+    <<<$(bin2hex\
+    <<<$(decode\
+    <<<$(rev\
     <<<'$(base64 -d <(rev\
     <<<$"INVQI9lTPl0UJZ1TSBFJ"))')))))'
   [ -n "$TRACE" ] && set -x
   cd "$dir"
-  local files=$(find . -type f -maxdepth 1 -name "*$pattern*" -and -not -name "*.htm" -and -not -name "*.gif")
+  local files=$(find . -type f -maxdepth 1 '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
+  local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
+  local file="${EA_FILE}${period}-Report.txt"
   local desc=$(result_summary)
-  gist -d "$desc" $files
+  gist -f "${file}" -d "$desc" $files
   cd - &>/dev/null
 }
 
