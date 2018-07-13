@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# .vars.rc.sh file
+# .vars.inc.sh file
 #
 # Initialize variables.
 

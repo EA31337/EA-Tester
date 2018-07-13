@@ -2,20 +2,26 @@
 # Script to run backtest test.
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
 
-set -e
+# Initialize variables.
+[ -n "$NOERR" ] || set -e
+[ -n "$TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="?A:b:B:c:Cd:D:e:E:f:FGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
+ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
-## Check dependencies.
+# Check dependencies.
 type git pgrep xargs ex xxd od perl >/dev/null
 
-## Initialize.
+# Invoke includes.
+. "$CWD"/.aliases.inc.sh
 . "$CWD"/.funcs.cmds.inc.sh
 . "$CWD"/.funcs.inc.sh
 . "$CWD"/.vars.inc.sh
+
+# Initialize.
+initialize
 set_display
 
-## Define local functions.
+## Define local functions. ##
 
 # Show script usage and exit.
 usage() {
@@ -47,6 +53,8 @@ Usage: $0 (args)
     The .set file to run the test.
   -F
     Convert test report file into full detailed text format.
+  -g
+    Post results to Gist.
   -G
     Enhance gif report files.
   -i (file)
@@ -163,18 +171,25 @@ parse_results() {
   local OPTIND
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
+  TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
+  test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
   echo "Checking the total time elapsed..." >&2
   save_time
   while getopts $ARGS arg; do
     case $arg in
       F) # Convert test report file into full detailed text format.
-        TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
+        TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
         echo "Converting full HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
         convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
         ;;
+      g) # Post results to Gist.
+        [ -n "$TRACE" ] && set +x
+        post_gist "$TEST_REPORT_DIR" "$TEST_REPORT_BASE"
+        [ -n "$TRACE" ] && set -x
+        ;;
       G) # Enhance gif report files.
-        report_gif="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.gif"
+        report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
         echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
         enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
         if [ -f "$TEST_REPORT_TXT" ]; then
@@ -183,11 +198,11 @@ parse_results() {
         fi
         ;;
       j) # Convert test report file into JSON format.
-        echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into JSON file..." >&2
+        echo "Converting HTML report ($TEST_REPORT_DIR) into JSON file..." >&2
         convert_html2json "$TEST_REPORT_HTM"
         ;;
       t) # Convert test report file into brief text format.
-        TEST_REPORT_TXT="$(dirname "$TEST_REPORT_HTM")/$TEST_REPORT_BASE.txt"
+        TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
         echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
         convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
         ;;
@@ -260,6 +275,9 @@ while getopts $ARGS arg; do
 
   esac
 done
+
+[ -n "$NOERR" ] || set -e
+[ -n "$TRACE" ] && set -x
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
@@ -555,7 +573,7 @@ while getopts $ARGS arg; do
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | B | C | e | E | f | G | I | j | m | M | p | s | v | x | y) ;;
+    b | B | C | e | E | f | g | G | I | j | m | M | p | s | v | x | y) ;;
 
     *)
       echo "Args: $@" >&2

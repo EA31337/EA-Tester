@@ -228,6 +228,7 @@ set_symbol_double() {
 # Usage: substr start end <input
 # e.g. substr 2 2 <<<$"12345"
 substr() {
+  set +x
   tail -c+${1:-0} | head -c-${2:-0}
 }
 
