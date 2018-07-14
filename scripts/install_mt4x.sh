@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script to install MT platform using xdotool.
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P || pwd -P)"
 DTMP=$(mktemp -d)
 EXEFILE=mt4setup.exe
 SP4URL="http://web.archive.org/web/20160129053851/http://download.microsoft.com/download/E/6/A/E6A04295-D2A8-40D0-A0C5-241BFECD095E/W2KSP4_EN.EXE"
