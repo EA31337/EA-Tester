@@ -363,7 +363,26 @@ srv_copy() {
 read_result_value() {
   local key="$1"
   local file="${2:-$TEST_REPORT_HTM}"
-  pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+  [ -f "$file" ]
+  case "$key" in
+    "Title")
+      pup -f "$file" 'body > div > div:nth-child(1) text{}'
+      ;;
+    "EA Name")
+      pup -f "$file" 'body > div > div:nth-child(2) text{}'
+      ;;
+    "Build")
+      pup -f "$file" 'body > div > div:nth-child(3) text{}' | grep -o "[0-9][^)]\+"
+      ;;
+    "Model")
+      pup -f "$file" 'td:contains("'$key'") + td text{}' | head -n1 | grep -o "^[^(]\+"
+      ;;
+    "Image")
+      basename "$(pup -f "$file" 'body > div > img attr{src}')"
+      ;;
+    *)
+      pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+  esac
 }
 
 # Read multiple values from result HTML file.
@@ -371,8 +390,9 @@ read_result_value() {
 # E.g. read_result_values "Symbol" "Profit factor"
 read_result_values() {
   local file="${TEST_REPORT_HTM:-Report.htm}"
+  [ -f "$file" ]
   for key in "$@"; do
-    pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+    read_result_value "$key" "$file"
   done
 }
 
@@ -425,6 +445,9 @@ convert_html2json() {
   local file_in="${1:-$TEST_REPORT_HTM}"
   local file_out=${2:-${file_in%.*}.json}
   local keys=()
+  keys+=("Title")
+  keys+=("EA Name")
+  keys+=("Build")
   keys+=("Symbol")
   keys+=("Period")
   keys+=("Modelling quality")
