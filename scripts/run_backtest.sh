@@ -52,9 +52,10 @@ Usage: $0 (args)
   -f (filename)
     The .set file to run the test.
   -F
-    Convert test report file into full detailed text format.
+    Convert test report file to full detailed text format.
   -g
     Post results to Gist.
+    Activates: -j and -t
   -G
     Enhance gif report files.
   -i (file)
@@ -168,7 +169,6 @@ on_finish() {
 
 # Parse report files.
 parse_results() {
-  local OPTIND
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
@@ -176,78 +176,74 @@ parse_results() {
   test -f "$TEST_REPORT_HTM" || exit 1
   echo "Checking the total time elapsed..." >&2
   save_time
-  # Parse arguments on results.
-  while getopts $ARGS arg; do
-    case $arg in
-      F) # Convert test report file into full detailed text format.
-        TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
-        echo "Converting full HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
-        convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-        ;;
-      G) # Enhance gif report files.
-        report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
-        echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
-        enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
-        if [ -f "$TEST_REPORT_TXT" ]; then
-          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
-          enhance_gif "$report_gif" -t "$gif_text"
-        fi
-        ;;
-      j) # Convert test report file into JSON format.
-        echo "Converting HTML report ($TEST_REPORT_DIR) into JSON file..." >&2
-        convert_html2json "$TEST_REPORT_HTM"
-        ;;
-      t) # Convert test report file into brief text format.
-        TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
-        echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
-        convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-        ;;
-      o)
-        echo "Sorting test results..."
-        if [ "${MT_VER%%.*}" -ne 5 ]; then
-          # Note: To display sorted results, -o needs to be specified before -v.
-          sort_opt_results "$TEST_REPORT_HTM"
-        fi
-        echo "Saving optimization results..."
-        if [ -z "$input_values" ]; then
-          for input in ${param_list[@]}; do
-            value=$(ini_get "$input" "$TEST_REPORT_HTM")
-            echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
-            ini_set "^$input" "$value" "$SETORG"
-          done
-        fi
-        ;;
-      v)
-        echo "Printing test report ($(basename "$TEST_REPORT_HTM"))..." >&2
-        grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
-        find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
-        ;;
-      *)
-        ignores="$arg=$OPTARG"
-        ;;
-      esac
-  done
-  # Copy the test results if destination directory has been specified.
-  if [ -n "$BT_DEST" ]; then
+
+  if [ "$OPT_FORMAT_JSON" ]; then
+    # Convert test report file into JSON format.
+    echo "Converting HTML report ($TEST_REPORT_DIR) into JSON file..." >&2
+    convert_html2json "$TEST_REPORT_HTM"
+  fi
+
+  if [ "$OPT_FORMAT_FULL" ]; then
+    # Convert test report file to full detailed text format.
+    TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
+    echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+    convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
+  elif [ "$OPT_FORMAT_BRIEF" ]; then
+    # Convert test report file into brief text format.
+    TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
+    echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+    convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
+  fi
+
+  if [ "$OPT_GIF_ENHANCE" ]; then
+    # Enhance gif report files.
+    report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
+    echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
+    enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
+    if [ -f "$TEST_REPORT_TXT" ]; then
+      local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
+      enhance_gif "$report_gif" -t "$gif_text"
+    fi
+  fi
+
+  if [ "$OPT_OPTIMIZATION" ]; then
+    # Parse and save the optimization test results.
+    echo "Sorting optimization test results..." >&2
+    if [ "${MT_VER%%.*}" -ne 5 ]; then
+      sort_opt_results "$TEST_REPORT_HTM"
+    fi
+    echo "Saving optimization results..."
+    if [ -z "$input_values" ]; then
+      for input in ${param_list[@]}; do
+        value=$(ini_get "$input" "$TEST_REPORT_HTM")
+        echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
+        ini_set "^$input" "$value" "$SETORG"
+      done
+    fi
+  fi
+
+  if [ "$OPT_VERBOSE" ]; then
+    # Print test results in plain text.
+    echo "Printing test report ($(basename "$TEST_REPORT_HTM"))..." >&2
+    grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
+    find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
+  fi
+
+  if [ -d "$BT_DEST" ]; then
+    # Copy the test results if destination directory has been specified.
     echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
     cp $VFLAG "$TEST_REPORT_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
-  # Parse arguments on results after everything else.
-  OPTIND=1
-  while getopts $ARGS arg; do
-    case $arg in
-      g) # Post results to Gist.
-        [ -n "$TRACE" ] && set +x
-        post_gist "${BT_DEST:-$TEST_REPORT_DIR}" "$TEST_REPORT_BASE"
-        [ -n "$TRACE" ] && set -x
-        ;;
-      *)
-        ignores="$arg=$OPTARG"
-        ;;
-      esac
-  done
+
+  if [ "$OPT_GIST" ]; then
+    # Post results to Gist if set.
+    [ -n "$TRACE" ] && set +x
+    post_gist "${BT_DEST:-$TEST_REPORT_DIR}" "$TEST_REPORT_BASE"
+    [ -n "$TRACE" ] && set -x
+  fi
   result_summary
+
 }
 
 # Show usage on no arguments.
@@ -271,7 +267,7 @@ while getopts $ARGS arg; do
       ;;
 
     v) # Verbose mode.
-      VERBOSE=1
+      OPT_VERBOSE=true
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
@@ -294,7 +290,7 @@ done
 echo "Checking platform..." >&2
 [ -f "$TERMINAL_EXE" ] \
   || {
-    [ -n "$VERBOSE" ] && grep ^TERMINAL <(set) | xargs
+    [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
     echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
     exit 1;
   }
@@ -530,8 +526,30 @@ while getopts $ARGS arg; do
       BT_DIGITS=${OPTARG}
       ;;
 
+    F) # Convert test report file to full detailed text format.
+      type html2text sed >/dev/null
+      OPT_FORMAT_FULL=1
+      ;;
+
+    g) # Post results to Gist.
+      type gist pup >/dev/null
+      OPT_GIST=true
+      OPT_FORMAT_BRIEF=true
+      OPT_FORMAT_JSON=true
+      ;;
+
+    G) # Enhances graph.
+      type convert >/dev/null
+      OPT_GIF_ENHANCE=1
+      ;;
+
     i) # Invoke file with custom rules.
       INCLUDE+=("${OPTARG}")
+      ;;
+
+    j) # Convert test report file to JSON format.
+      type pup paste >/dev/null
+      OPT_FORMAT_JSON=1
       ;;
 
     l) # Lot step.
@@ -543,7 +561,7 @@ while getopts $ARGS arg; do
       ;;
 
     o) # Run optimization test.
-      OPTIMIZATION=true
+      OPT_OPTIMIZATION=true
       ;;
 
     O) # Output directory to save the test results.
@@ -566,8 +584,9 @@ while getopts $ARGS arg; do
       BT_SPREAD=${OPTARG}
       ;;
 
-    t)
+    t) # Convert test report file into brief text format.
       type html2text >/dev/null
+      OPT_FORMAT_BRIEF=true
       ;;
 
     T) # Timeframe to test.
@@ -579,12 +598,16 @@ while getopts $ARGS arg; do
       [ -f "$OPTARG" ] || { echo "ERROR: Script specified by -X parameter does no exist." >&2; exit 1; }
       ;;
 
+    v) # Enables verbose mode.
+      OPT_VERBOSE=true
+      ;;
+
     V) # Enables visual mode.
-      VISUAL_MODE=1
+      VISUAL_MODE=true
       ;;
 
     # Placeholders for parameters used somewhere else.
-    b | B | C | e | E | f | g | G | I | j | m | M | p | s | v | x | y) ;;
+    ( b | B | C | e | E | f | I | m | M | p | s | x | y ) ;;
 
     *)
       echo "Args: $@" >&2
@@ -640,7 +663,7 @@ if [ -n "$SET_OPTS" ]; then
     # Create a new SET file if does not exist.
     tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$SETFILE"
   fi
-  if [ "$VERBOSE" ]; then
+  if [ "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
     echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
   fi
@@ -705,7 +728,7 @@ if [ -n "$BT_SPREAD" ]; then
 fi
 
 # Sets the optimization mode if present.
-if [ "$OPTIMIZATION" ]; then
+if [ "$OPT_OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
@@ -730,7 +753,7 @@ if [ "$TEST_EXPERT" ]; then
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
-    env SERVER=$SERVER VERBOSE=$VERBOSE TRACE=$TRACE \
+    env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE TRACE=$TRACE \
       $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD}
   fi
   # Assign variables.
@@ -766,5 +789,5 @@ if [ -n "$FINAL_CODE" ]; then
   eval "$FINAL_CODE"
 fi
 
-[ -n "$VERBOSE" ] && times >&2 && echo "$0 done" >&2
+[ "$OPT_VERBOSE" ] && times >&2 && echo "$0 done" >&2
 exit $exit_status

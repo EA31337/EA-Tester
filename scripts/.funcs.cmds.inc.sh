@@ -3,7 +3,7 @@
 #
 
 ## Initialize.
-[ "$VERBOSE" ] && echo "Loading $0... " >&2
+[ "$OPT_VERBOSE" ] && echo "Loading $0... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 
 #
@@ -56,7 +56,7 @@ live_logs() {
   local filter=${1:-modify}
   local interval=${2:-20}
   sleep $interval
-  [ "$VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
+  [ "$OPT_VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
   while sleep $interval; do
     if [ -n "$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)" ]; then
       break;
@@ -401,7 +401,7 @@ read_result_values() {
 result_summary() {
   local file="${TEST_REPORT_HTM:-Report.htm}"
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
-  [ "$OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
+  [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   symbol=$(read_result_value "Symbol")
   period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs)
   pf=$(read_result_value "Profit factor")

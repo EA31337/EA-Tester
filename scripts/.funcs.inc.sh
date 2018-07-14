@@ -5,7 +5,7 @@
 #
 
 ## Initialize.
-[ "$VERBOSE" ] && echo "Loading $0... " >&2
+[ "$OPT_VERBOSE" ] && echo "Loading $0... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "$0")" && pwd -P)}"
 
 #
@@ -87,7 +87,7 @@ get_time() {
 # Save time and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
-  [ "$VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
+  [ "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
   [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
@@ -277,7 +277,7 @@ kill_wine() {
 onexit() {
   local exit_status=${1:-$?}
   kill_jobs
-  [ "$VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
+  [ "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
 
