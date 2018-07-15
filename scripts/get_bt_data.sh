@@ -82,6 +82,7 @@ done
 
 set_write_perms
 clean_bt
+check_dirs
 echo "Getting data..." >&2
 case $bt_src in
 

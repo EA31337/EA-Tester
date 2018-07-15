@@ -61,9 +61,18 @@ check_files() {
   if [ "$SERVER" != "default" ]; then
     local symbols_raw_default="$HISTORY_DIR/default/symbols.raw"
     local symbols_raw="$HISTORY_DIR/$SERVER/symbols.raw"
-    [ -d "$HISTORY_DIR/$SERVER" ] || mkdir $VFLAG "$HISTORY_DIR/$SERVER"
     [ -s "$symbols_raw" ] || cp $VFLAG "$symbols_raw_default" "$symbols_raw"
   fi
+}
+
+# Check platform required directories.
+check_dirs() {
+  local args="-p $VFLAG"
+  [ -d "$EXPERTS_DIR" ] || mkdir $args "$EXPERTS_DIR"
+  [ -d "$HISTORY_DIR/$SERVER" ] || mkdir $args "$HISTORY_DIR/$SERVER"
+  [ -d "$LOG_DIR" ] || mkdir $args "$LOG_DIR"
+  [ -d "$SCRIPTS_DIR" ] || mkdir $args "$SCRIPTS_DIR"
+  [ -d "$TICKDATA_DIR" ] || mkdir $args "$TICKDATA_DIR"
 }
 
 # Validate platform dirs.
