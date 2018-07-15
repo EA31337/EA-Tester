@@ -121,10 +121,10 @@ filever() {
 }
 
 # Install platform.
-# Usage: install_mt [ver/4.0.0.1010]
+# Usage: install_mt [ver/4/5/4.0.0.1010]
 install_mt() {
-  type wget >/dev/null
-  local mt_ver=$1
+  type wget unzip >/dev/null
+  local mt_ver=${1:-$MT_VER}
   set_display
   case $mt_ver in
     4)

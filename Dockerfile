@@ -31,13 +31,14 @@ RUN provision.sh
 
 # Backtest input.
 ENV BT_DEST /opt/results
-ARG MT_VER=4.0.0.1010
+ENV MT_VER=4.0.0.1010
 
 # Run test.
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN run_backtest.sh -v -t -M $MT_VER -m 1 -D5 -e TestTimeframes -T M30
+RUN eval.sh install_mt
+RUN run_backtest.sh -v -t -m 1 -D5 -e TestTimeframes -T M30
 
 # Clean up.
 USER root
