@@ -395,6 +395,7 @@ fi
 # Locate the main file to execute.
 if [ -n "$TEST_EXPERT" ]; then
   # Locate TestExpert if specified.
+  [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
@@ -409,6 +410,7 @@ if [ -n "$TEST_EXPERT" ]; then
   cd - &>/dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
+  [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EXPERT")
   echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
@@ -423,6 +425,7 @@ elif [ -n "$EXPERT" ]; then
   cd - &>/dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   cd "$SCRIPTS_DIR"
   SCR_PATH=$(script_find "$SCRIPT")
   echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
@@ -771,6 +774,9 @@ if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
   exit 1
 fi
+
+# Pre-run checks.
+[ -d "$LOG_DIR" ] || mkdir -p $VFLAG "$LOG_DIR"
 
 # Run the test in the platform.
 live_logs &

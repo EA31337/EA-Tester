@@ -257,6 +257,7 @@ compile_ea() {
 # Usage: ini_copy
 ini_copy() {
   # Copy the configuration file, so platform can find it.
+  [ -d "$TESTER_DIR" ] || mkdir -p $VFLAG "$TESTER_DIR"
   exec 1>&2
   echo "Copying ini files..." >&2
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
@@ -268,6 +269,7 @@ ini_copy() {
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="$1"
+  [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$EXPERTS_DIR"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
@@ -286,6 +288,7 @@ ea_find() {
 # Returns path relative to platform, or absolute otherwise.
 script_find() {
   local file="$1"
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   cd "$SCRIPTS_DIR"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
@@ -307,6 +310,7 @@ ea_copy() {
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   [ ! -s "$file" ] && { echo "Error: Cannot find $1!" >&2; return; }
+  [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
   # Copy local include files.
@@ -321,6 +325,7 @@ ea_copy() {
 script_copy() {
   local file="$1"
   local dest="$SCRIPTS_DIR/$(basename "$file")"
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
@@ -332,6 +337,7 @@ script_copy() {
 lib_copy() {
   local file="$1"
   local dest="$LIB_DIR/$(basename "$file")"
+  [ -d "$LIB_DIR" ] || mkdir -p $VFLAG "$LIB_DIR"
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$LIB_DIR"/
