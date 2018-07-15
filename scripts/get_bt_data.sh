@@ -14,7 +14,7 @@ xargs=$(which gxargs || which xargs)
 
 # Check user input.
 [ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]"; exit 1; }
-[ "$OPT_VERBOSE" ] && VFLAG="-v"
+[ "$OPT_VERBOSE" ] && vflag="-v"
 [ "$TRACE" ] && set -x
 read symbol year bt_src period <<<$@
 bt_key="$symbol-$year-$bt_src"
@@ -38,11 +38,11 @@ csv2data() {
   find "$dest_dir" -name '*.csv' -print0 | sort -z | $xargs -r0 cat > "$tmpfile"
   "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
   "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
-  rm -v "$tmpfile"
+  rm $vflag "$tmpfile"
 }
 
 test ! -d "$dl_dir/scripts" && git clone "$scripts" "$dl_dir/scripts" # Download scripts.
-mkdir -p $VFLAG "$dest_dir" || true
+mkdir -p $vflag "$dest_dir" || true
 
 # Select tick data files based on the required timeframe.
 case $period in
@@ -94,11 +94,11 @@ case $bt_src in
     echo "Extracting..." >&2
     gunzip -kh >& /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
     find "$dest_dir" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
-      gunzip $VFLAG $keep "$file"
+      gunzip $vflag $keep "$file"
     done
     echo "Moving..." >&2
-    find "$dest_dir" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
-    find "$dest_dir" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
+    find "$dest_dir" -type f -name "*.fxt" -exec mv $vflag "{}" "$TICKDATA_DIR" ';'
+    find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
     convert=0
   ;;
 
@@ -112,12 +112,12 @@ case $bt_src in
     gunzip -kh >& /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
     find "$dest_dir" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
       dstfile=${file%.gz}
-      gunzip $VFLAG $keep "$file"
-      mv $VFLAG "${dstfile}" "${dstfile/MQ-$symbol/$symbol}"
+      gunzip $vflag $keep "$file"
+      mv $vflag "${dstfile}" "${dstfile/MQ-$symbol/$symbol}"
     done
     echo "Moving..." >&2
-    find "$dest_dir" -type f -name "*.fxt" -exec mv $VFLAG "{}" "$TICKDATA_DIR" ';'
-    find "$dest_dir" -type f -name "*.hst" -exec mv $VFLAG "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
+    find "$dest_dir" -type f -name "*.fxt" -exec mv $vflag "{}" "$TICKDATA_DIR" ';'
+    find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
     convert=0
   ;;
 
