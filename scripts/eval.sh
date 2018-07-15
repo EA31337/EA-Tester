@@ -3,7 +3,17 @@
 # Usage: eval.sh code to invoke
 # For help, run: eval.sh help
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+cd "$CWD" || exit 1
+
 # Initialize settings.
-. $CWD/.vars.inc.sh
-. $CWD/.funcs.cmds.inc.sh
-eval "$@"
+. .vars.inc.sh
+. .aliases.inc.sh
+. .funcs.inc.sh
+. .funcs.cmds.inc.sh
+
+initialize
+if [[ "$*" =~ ";" ]]; then
+  eval "$@"
+elif [ -n "$*" ]; then
+  "$@"
+fi

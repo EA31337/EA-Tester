@@ -5,7 +5,7 @@
 #
 
 ## Initialize.
-[ "$VERBOSE" ] && echo "Loading $0... " >&2
+[ "$OPT_VERBOSE" ] && echo "Loading $0... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "$0")" && pwd -P)}"
 
 #
@@ -20,9 +20,6 @@ initialize() {
   trap onexit EXIT
   # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
   trap onerror 1 2 3 15 ERR
-
-  # Expand aliases in shell.
-  shopt -s expand_aliases
 
   # Activate trace on demand.
   [ "$TRACE" ] && set -x
@@ -90,7 +87,7 @@ get_time() {
 # Save time and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
-  [ "$VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
+  [ "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
   [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
@@ -227,6 +224,28 @@ set_symbol_double() {
   return $TRUE
 }
 
+# Returns substring.
+# Usage: substr start end <input
+# e.g. substr 2 2 <<<$"12345"
+substr() {
+  set +x
+  tail -c+${1:-0} | head -c-${2:-0}
+}
+
+# Convert binary to hex string.
+# Usage: bin2hex <input
+# E.g. bin2hex <<<$"abc"
+bin2hex() {
+  perl -ne 'print unpack "H*", $_'
+}
+
+# Convert hex string to binary.
+# Usage: hex2bin <input
+# E.g. hex2bin <<<$"616263"
+hex2bin() {
+  perl -ne 'print pack "H*", $_'
+}
+
 # Restore IFS.
 restore_ifs() {
   IFS=$' \t\n'
@@ -258,7 +277,7 @@ kill_wine() {
 onexit() {
   local exit_status=${1:-$?}
   kill_jobs
-  [ "$VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
+  [ "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
 
@@ -271,5 +290,3 @@ onerror() {
   show_trace
   exit $exit_status
 }
-
-initialize

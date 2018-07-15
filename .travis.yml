@@ -3,6 +3,10 @@ sudo: required
 group: deprecated-2017Q4
 services:
   - docker
+addons:
+  apt:
+    packages:
+    - shellcheck
 env:
   global:
   - |
@@ -58,6 +62,7 @@ script:
 - set -e
 - ruby -wc Vagrantfile
 - bash -n scripts/.*.sh scripts/*.sh
+- shellcheck scripts/.aliases.inc.sh
 - echo $CMD
 - eval $CMD
 after_script:

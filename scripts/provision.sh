@@ -5,8 +5,8 @@
 #
 
 # Initialize script.
-[ "$TRACE" ] && set -x
-[ "$NOERR" ] || set -e
+[ -n "$TRACE" ] && set -x
+[ -n "$NOERR" ] || set -e
 if [ ! -d /vagrant ] && [ ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
@@ -88,12 +88,30 @@ case "$(uname -s)" in
     # @see: https://wiki.winehq.org/Ubuntu
     apt-get install -qy winehq-staging                                            # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
-    #apt-get install -qy libgnutls-dev                                            # GNU TLS library for secure connections.
+
+    # Install required gems.
+    apt-get install -qy ruby
+    gem install gist
+    # Apply a patch (https://github.com/defunkt/gist/pull/232).
+    patch -d "$(gem env gemdir)"/gems/gist-* -p1 < <(curl -s https://github.com/defunkt/gist/commit/5843e9827f529cba020d08ac764d70c8db8fbd71.patch)
+
+    # Setup SSH if requested.
+    if [ -n "$PROVISION_SSH" ]; then
+      apt-get install -y openssh-server
+      [ ! -d /var/run/sshd ] && mkdir -v /var/run/sshd
+      sed -i'.bak' 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+    fi
+
+    # Setup sudo if requested.
+    if [ -n "$PROVISION_SUDO" ]; then
+      apt-get install sudo
+      sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
+    fi
 
     # Erase downloaded archive files.
     apt-get clean
 
-    # Install pup.
+    # Install pup parser.
     install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
 
     # Setup swap file if none (exclude Docker image).

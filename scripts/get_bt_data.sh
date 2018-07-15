@@ -14,7 +14,7 @@ xargs=$(which gxargs || which xargs)
 
 # Check user input.
 [ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]"; exit 1; }
-[ "$VERBOSE" ] && VFLAG="-v"
+[ "$OPT_VERBOSE" ] && VFLAG="-v"
 [ "$TRACE" ] && set -x
 read symbol year bt_src period <<<$@
 bt_key="$symbol-$year-$bt_src"
@@ -74,7 +74,7 @@ case $period in
     fxt_files=( ${symbol}43200_0.fxt )
   ;;
   *)
-    fxt_files=( ${symbol}1_0.fxt ${symbol}5_0.fxt ${symbol}15_0.fxt ${symbol}30_0.fxt ${symbol}60_0.fxt ${symbol}240_0.fxt ${symbol}1440_0.fxt ${symbol}10080_0.fxt ${symbol}43200_0.fxt )
+    fxt_files=( ${symbol}1_0.fxt )
 esac
 for tf in 1 2 3 4 5 6 10 12 15 20 30 60 120 180 240 360 480 720 1440 10080 43200; do
   hst_files+=( ${symbol}${tf}.hst )

@@ -17,13 +17,16 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
 
-# Setup default user.
+# Setup the default user.
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 
 # Provision container image,
 ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
+ENV PROVISION_SSH 1
+ENV PROVISION_SUDO 1
+ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
 # Backtest input.
@@ -34,18 +37,19 @@ ARG MT_VER=4.0.0.1010
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN run_backtest.sh -v -t -M $MT_VER -m 1 -D5 -e TestTimeframes -T M30
+RUN eval.sh install_mt 4
 
 # Clean up.
 USER root
 RUN find /var/lib/apt/lists -type f -delete
 RUN find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
 USER ubuntu
-RUN eval.sh clean_bt
-RUN eval.sh clean_files
 
 # Share the results.
 VOLUME /opt/results
+
+# Expose SSH when installed.
+EXPOSE 22
 
 # Configure a container as an executable.
 ENTRYPOINT ["eval.sh"]
