@@ -85,7 +85,7 @@ clean_ea() {
   find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete
 }
 
-# Clean files.
+# Clean files (e.g. previous report and log files).
 # Usage: clean_files
 clean_files() {
   # Remove previous log, dat, txt and htm files.
@@ -94,7 +94,8 @@ clean_files() {
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   [ -d "$TESTER_DIR"/files ] && find "$TESTER_DIR"/files -type f $VPRINT -delete
   # Remove log files.
-  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
+  [ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f $VPRINT -delete
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
   # Remove selected symbol and group files, so they can be regenerated.
   find "$HISTORY_DIR" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
 }
