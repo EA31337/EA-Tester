@@ -758,6 +758,11 @@ if [ "$TEST_EXPERT" ]; then
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE TRACE=$TRACE \
       $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD}
+    if [ "$OPT_VERBOSE" ]; then
+      cd "$TERMINAL_DIR"
+      find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
+      cd - &>/dev/null
+    fi
   fi
   # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -765,7 +770,7 @@ fi
 
 # Prepare before test run.
 if [ "$TEST_EXPERT" ]; then
-  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
+  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
 clean_files
