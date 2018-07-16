@@ -21,6 +21,12 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 
+# Build-time variables.
+ARG BT_DEST
+ARG MT_VER
+ARG PROVISION_SSH 1
+ARG PROVISION_SUDO 1
+
 # Provision container image,
 ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
@@ -29,7 +35,7 @@ ENV PROVISION_SUDO 1
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
-# Backtest input.
+# Default backtest inputs.
 ENV BT_DEST /opt/results
 ENV MT_VER=4.0.0.1010
 
