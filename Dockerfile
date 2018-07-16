@@ -38,7 +38,6 @@ USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
 RUN eval.sh install_mt
-RUN run_backtest.sh -v -t -m 1 -D5 -e TestTimeframes -T M30
 
 # Clean up.
 USER root
