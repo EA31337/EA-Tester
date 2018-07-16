@@ -68,23 +68,17 @@ check_files() {
 # Check platform required directories.
 check_dirs() {
   local args="-p $VFLAG"
-  [ -d "$EXPERTS_DIR" ] || mkdir $args "$EXPERTS_DIR"
-  [ -d "$HISTORY_DIR/$SERVER" ] || mkdir $args "$HISTORY_DIR/$SERVER"
-  [ -d "$LOG_DIR" ] || mkdir $args "$LOG_DIR"
-  [ -d "$SCRIPTS_DIR" ] || mkdir $args "$SCRIPTS_DIR"
-  [ -d "$TICKDATA_DIR" ] || mkdir $args "$TICKDATA_DIR"
-}
-
-# Validate platform dirs.
-validate_dirs() {
   for dir in \
-    "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" \
-    "$EXPERTS_DIR" "$SCRIPTS_DIR" \
-    "$FILES_DIR" "$LIB_DIR" \
-    "$LOG_DIR" "$TICKDATA_DIR"
+    "$TERMINAL_DIR/$MQL_DIR" \
+    "$EXPERTS_DIR" \
+    "$FILES_DIR" \
+    "$HISTORY_DIR/$SERVER" \
+    "$LOG_DIR" \
+    "$SCRIPTS_DIR" \
+    "$TESTER_DIR" \
+    "$TICKDATA_DIR"
   do
-    [ -d "$dir" ] || mkdir $VFLAG "$dir"
-   #[ -d "$dir" ] || { quick_run; return; }
+    [ -d "$dir" ] || mkdir $args "$dir"
   done
 }
 

@@ -263,7 +263,7 @@ while getopts $ARGS arg; do
       type unzip >/dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
-      validate_dirs
+      check_dirs
       ;;
 
     v) # Verbose mode.
@@ -288,12 +288,14 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-[ -f "$TERMINAL_EXE" ] \
-  || {
-    [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
-    echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
-    exit 1;
-  }
+if [ -f "$TERMINAL_EXE" ]; then
+  # Check required directories.
+  check_dirs
+else
+  [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
+  echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
+  exit 1;
+fi
 
 # Re-load variables.
 . "$CWD"/.vars.inc.sh
@@ -306,9 +308,6 @@ MT_VER=$(filever terminal.exe)
 MTE_VER=$(filever metaeditor.exe)
 echo "Installed Terminal: $MT_VER" >&2
 echo "Installed MetaEditor: $MTE_VER" >&2
-
-# Check required directories.
-check_dirs
 
 # Copy ini files.
 ini_copy
@@ -745,6 +744,11 @@ fi
 if [ -n "$BT_DEST" ]; then
   echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
+  [ ! -w "$BT_DEST" ] || {
+    echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
+    stat "$BT_DEST" >&2
+    exit 1
+  }
 fi
 
 # Download backtest data if required.
