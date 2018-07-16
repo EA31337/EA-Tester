@@ -719,10 +719,9 @@ if [ -n "$BT_LOTSTEP" ]; then
 fi
 
 # Sets a test report if present.
-if [ -n "$TEST_REPORT" ]; then
-  echo "Configuring test report ($TEST_REPORT)..." >&2
-  ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
-fi
+TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE}-Report}
+echo "Configuring test report ($TEST_REPORT)..." >&2
+ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
 
 # Sets a spread if present.
 if [ -n "$BT_SPREAD" ]; then

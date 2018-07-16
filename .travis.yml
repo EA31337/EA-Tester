@@ -11,10 +11,13 @@ env:
   global:
   - |
     DOCKER_IMAGE=ea-tester
-    DOCKER_REPO=ea31337/$DOCKER_IMAGE
+    DOCKER_TAG=${DOCKER_TAG:-latest}
+    DOCKER_REPO=ea31337/$DOCKER_IMAGE:$DOCKER_TAG
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
-    DOCKER_RUN="docker run -v $CWD/scripts:/opt/scripts:ro -v $HOME/.cache:/home/ubuntu/.cache:rw -e FINAL_CODE='find /opt/results -ls' $DOCKER_REPO"
+    BOOT_CODE="${BOOT_CODE:-pwd}"
+    FINAL_CODE="${FINAL_CODE:-find /opt/results -ls}"
+    DOCKER_RUN="docker run -v $CWD/scripts:/opt/scripts:ro -v $HOME/.cache:/home/ubuntu/.cache:rw -e BOOT_CODE=\"$BOOT_CODE\" -e FINAL_CODE=\"$FINAL_CODE\" $DOCKER_REPO"
     DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo ${TRAVIS_BRANCH////-})
     WINETRICKS_DOWNLOADER_RETRIES=20
   - secure: "waZbxfpNTIp/etY6lwR8GB+aSWDIw73tu6HxFdwVYdDJ/25SlY+gkJMCPqlpkjA1Aenv1I3TDDd/3dQIMYUeNbgIKOx6AtWkddnfTykqYYFJ4j6MlWPxZKaxDLjehLvjj0ZqkfXcswgXDaIoNnunKbLKiVohprLhO9Yg6I/j1LfzmPPGmFez2Mg2K0jFmri1i8prxpL4cctH0cR9NEZ+Lw13nDjY4b7AMoY6mzt6TFe9/yEt1OzYVGAh36hWgI1AL8h86cyDlUYHMRrzZjMKUGZFyOkkz3BRA6wvyOtjRhNlh2SIY+Y+HiwQaLONeQGpZ9YjNCUb+f5GIxXyEry9RV1oaMNIUnXNSQstUvgzy3QO2muD468KhfvPafpPj0gDHmfGEH+2IMcrz/WYNobsdN9JOjvPWutnxgYAzd27jwDIQ4D2WewZ3COgrRXxCAgwsOQKvlzDaFAOvPObOnCmIVsbOpONE3nSRGnrQpxJl0aaspoHLnVyKAUeCTAMhtSZirhWO+Iob9mhicB+9xEMRpxFnRD/FBUcSY/SyVlZjXxK9zIqn9t5KBK0iVZ10l/O5nV6sM7YfpAz8d4MqJDAGT05tKn/o2uDJtVvnl6szCIP5iQwsMUsQqQCuNPbmfm1V/q2ipjxLwiwOx2NRbSjFx3/5NnyXiIqehmvlfnfUjQ="
