@@ -53,9 +53,6 @@ USER ubuntu
 RUN eval.sh clean_bt
 RUN eval.sh clean_files
 
-# Share the results.
-VOLUME /opt/results
-
 # Expose SSH when installed.
 EXPOSE 22
 
