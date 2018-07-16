@@ -280,7 +280,7 @@ ea_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$file" -o -path "*/$file.mq?" -o -path "*/$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$file*.mq?" -o -path "*$file*.ex?" -o -ipath "*$file*" ')' -print -quit)
-  [ "$exact" ] && echo $exact || echo $match
+  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -299,7 +299,7 @@ script_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$file" -o -path "*/$file.mq?" -o -path "*/$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$file*.mq?" -o -path "*$file*.ex?" -o -ipath "*$file*" ')' -print -quit)
-  [ "$exact" ] && echo $exact || echo $match
+  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
