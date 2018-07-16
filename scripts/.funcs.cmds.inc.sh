@@ -410,7 +410,7 @@ result_summary() {
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
   [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   symbol=$(read_result_value "Symbol")
-  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs)
+  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
   pf=$(read_result_value "Profit factor")
   ep=$(read_result_value "Expected payoff")
   dd=$(read_result_value "Relative drawdown")
@@ -535,9 +535,8 @@ post_gist() {
   cd "$dir"
   local files=$(find . -type f -maxdepth 1 '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
   local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
-  local file="${EA_FILE}${period}-Report.txt"
   local desc=$(result_summary)
-  gist -f "${file}" -d "$desc" $files
+  gist -d "$desc" $files
   cd - &>/dev/null
 }
 
