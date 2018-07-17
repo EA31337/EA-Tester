@@ -762,10 +762,10 @@ value_get_all() {
 # Set spread in ini and FXT files.
 # Usage: set_spread [points/10]
 set_spread() {
-  local spread=$1
+  local spread=${1:-BT_SPREAD}
   [ -n "$spread" ]
-  ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
-  ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
+  ini_set "^Spread" "$spread" "$TERMINAL_INI"
+  ini_set "^TestSpread" "$spread" "$TESTER_INI"
   # Change spread in all FXT files at offset 0xFC.
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")
