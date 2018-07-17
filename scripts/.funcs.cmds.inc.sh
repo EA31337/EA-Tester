@@ -54,16 +54,30 @@ check_logs() {
 live_logs() {
   set +x
   local filter=${1:-modify}
-  local interval=${2:-20}
+  local interval=${2:-10}
   sleep $interval
-  [ "$OPT_VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
+  # Prints Terminal log when available (e.g. logs/20180717.log).
+  {
+    while sleep $interval; do
+      log_file="$(find "$LOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done && tail -f "$log_file"
+  } &
+  # Prints MQL4 logs when available (e.g. MQL4/Logs/20180717.log).
+  {
+    while sleep $interval; do
+      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done && tail -f "$log_file"
+  } &
+  # Prints tester logs.
   while sleep $interval; do
-    if [ -n "$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)" ]; then
-      break;
-    fi
-  done
-  echo "Showing live logs..." >&2
-  tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+    log_file="$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)"
+    [ -f "$log_file" ] && break
+  done && {
+    echo "Showing live logs..." >&2
+    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+  }
 }
 
 # Display performance stats in real-time.

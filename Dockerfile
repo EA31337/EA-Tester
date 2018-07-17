@@ -24,8 +24,8 @@ WORKDIR /home/ubuntu
 # Build-time variables.
 ARG BT_DEST
 ARG MT_VER
-ARG PROVISION_SSH 1
-ARG PROVISION_SUDO 1
+ARG PROVISION_SSH
+ARG PROVISION_SUDO
 
 # Provision container image,
 ADD scripts /opt/scripts
@@ -44,6 +44,7 @@ USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
 RUN eval.sh install_mt
+RUN run_backtest.sh -s PrintPaths -v
 
 # Clean up.
 USER root

@@ -153,8 +153,11 @@ on_success() {
 on_failure() {
   echo "FAIL?!" >&2
   # Sometimes MT4 fails on success, therefore double checking.
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$(basename "$(ini_get TestReport)").htm")
-  test -f "$TEST_REPORT_HTM" && on_success $@
+  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+  if [ -n "$TEST_REPORT_BASE" ]; then
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$TEST_REPORT_BASE.htm")
+    test -f "$TEST_REPORT_HTM" && on_success $@
+  fi
 
   echo "Printing logs..." >&2
   show_logs
@@ -170,10 +173,16 @@ on_finish() {
 # Parse report files.
 parse_results() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+
+  # Ignore if no results (e.g. when running the script).
+  [ -z "$TEST_REPORT_BASE" ] && return
+
+  # Locate the report file.
   TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
+
   echo "Checking the total time elapsed..." >&2
   save_time
 
@@ -243,7 +252,6 @@ parse_results() {
     [ -n "$TRACE" ] && set -x
   fi
   result_summary
-
 }
 
 # Show usage on no arguments.
@@ -718,9 +726,11 @@ if [ -n "$BT_LOTSTEP" ]; then
 fi
 
 # Sets a test report if present.
-TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE}-Report}
-echo "Configuring test report ($TEST_REPORT)..." >&2
-ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
+if [ -n "$EA_FILE" ]; then
+  TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE:-$(date +%Y%m%d)}-Report}
+  echo "Configuring test report ($TEST_REPORT)..." >&2
+  ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
+fi
 
 # Sets a spread if present.
 if [ -n "$BT_SPREAD" ]; then
@@ -740,8 +750,8 @@ if [ "$VISUAL_MODE" ]; then
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
-# Checks the destination folder.
-if [ -n "$BT_DEST" ]; then
+# Checks the destination folder (if run EA, not a script).
+if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
   [ ! -w "$BT_DEST" ] || {
@@ -783,10 +793,14 @@ if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   exit 1
 fi
 
+# Show live logs and stats when in verbose mode.
+if [ "$OPT_VERBOSE" ]; then
+  live_logs &
+  live_stats &
+fi
+
 # Run the test in the platform.
-live_logs &
-live_stats &
-echo "Testing..." >&2
+echo "Starting..." >&2
 {
   time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
 } 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
