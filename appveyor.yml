@@ -1,5 +1,7 @@
 environment:
   FILELOG: metaeditor.log
+init:
+- ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 install:
 - appveyor DownloadFile https://github.com/EA31337/MetaEditor/raw/master/metaeditor.exe
 before_test:
