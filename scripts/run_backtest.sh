@@ -762,7 +762,7 @@ fi
 if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
-  [ ! -w "$BT_DEST" ] || {
+  [ -w "$BT_DEST" ] || {
     echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
     stat "$BT_DEST" >&2
     exit 1
