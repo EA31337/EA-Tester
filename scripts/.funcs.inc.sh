@@ -259,6 +259,23 @@ show_trace() {
   while caller $((n++)); do :; done; >&2
 }
 
+# Kill platform on certain log match.
+# Usage: kill_on_match [pattern] [file] [args]
+kill_on_match() {
+  local pattern=$1
+  local file=${2:-$(date +%Y%m%d)*.log}
+  local interval=10
+  set +x
+  # Prints MQL4 logs when available (e.g. MQL4/Logs/yyyymmdd.log).
+  while sleep $interval; do
+    log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+    [ -f "$log_file" ] && break
+  done
+  while sleep $interval; do
+    grep -w "$pattern" "$log_file" && { kill_wine && break; }
+  done
+}
+
 # Kill any remaining background jobs.
 # Usage: kill_jobs
 kill_jobs() {

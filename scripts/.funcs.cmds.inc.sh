@@ -46,16 +46,15 @@ chdir() {
 # Usage: check_logs [filter] [args]
 check_logs() {
   local filter=$1
-  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
 # Display logs in real-time.
 # Usage: live_logs [invert-match] [interval]
 live_logs() {
-  set +x
   local filter=${1:-modify}
   local interval=${2:-10}
-  sleep $interval
+  set +x
   # Prints Terminal log when available (e.g. logs/20180717.log).
   {
     while sleep $interval; do

@@ -119,6 +119,7 @@ _EOF
 on_success() {
   echo "Checking logs..." >&2
   show_logs
+  # @fixme
   ! check_logs "Initialization failed" || exit 1
 # ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
@@ -157,6 +158,13 @@ on_failure() {
   if [ -n "$TEST_REPORT_BASE" ]; then
     TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$TEST_REPORT_BASE.htm")
     test -f "$TEST_REPORT_HTM" && on_success $@
+    return
+  fi
+  if [ -z "$EA_NAME" -a -n "$SCRIPT" ]; then
+    # Report success when script was run and platform killed.
+    log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+    grep -w -C1 "uninit reason 0" "$log_file" && on_success $@
+    return
   fi
 
   echo "Printing logs..." >&2
@@ -175,7 +183,7 @@ parse_results() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
 
   # Ignore if no results (e.g. when running the script).
-  [ -z "$TEST_REPORT_BASE" ] && return
+  [ -z "$TEST_REPORT_BASE" -o -z "$EA_NAME" ] && return
 
   # Locate the report file.
   TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
@@ -791,6 +799,11 @@ clean_files
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
   exit 1
+fi
+
+# Kill on condition when running script.
+if [ -n "$SCRIPT" ]; then
+  kill_on_match "uninit reason 0" &
 fi
 
 # Show live logs and stats when in verbose mode.

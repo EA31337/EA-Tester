@@ -18,7 +18,7 @@ env:
     BOOT_CODE="${BOOT_CODE:-pwd}"
     FINAL_CODE="${FINAL_CODE:-find /opt/results -ls}"
     DOCKER_ENV="-e BOOT_CODE=\"$BOOT_CODE\" -e FINAL_CODE=\"$FINAL_CODE\""
-    DOCKER_VOL="-v $CWD/scripts:/opt/scripts:ro -v $CWD/tests:/opt/tests:ro -v $HOME/.cache:/home/ubuntu/.cache:rw"
+    DOCKER_VOL="-v $CWD/scripts:/opt/scripts:ro -v $CWD/tests:/opt/tests:ro -v $CWD/conf:/opt/conf:ro -v $HOME/.cache:/home/ubuntu/.cache:rw"
     DOCKER_RUN="docker run $DOCKER_ENV $DOCKER_VOL $DOCKER_REPO"
     DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo ${TRAVIS_BRANCH////-})
     WINETRICKS_DOWNLOADER_RETRIES=20
