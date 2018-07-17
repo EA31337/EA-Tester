@@ -26,6 +26,7 @@ env:
   - secure: "oCTQnzDJX44mVNMpSutYkBWyi5hCoIRAvsDBWi/VAMBY7lFDiwbKQocCdorNlN/GBT8EISmyOlLGt78hjAIPckarbmPou5zIteIRuqaQ2xK1ShbseFAjpZaftOjljqE6ZoD5L6K5Ld0NQwiJqhBIQsv2cFwJY2706vl7Vgf/Kjn/B8/2OhPxgz8w+BpzBD+0z2JnBEpEON9wU8XeWXUzPKKYFHDHH/o839TgUjqPAaN4gU0XUrH1pygk3kdkHvC1lekoyevUePFaU6icwEPU6T7HGfw7ar+1OemzPzSQ5b/IG8U4NslUQQwjP8T4UfO964RuiJRnHVY0Y2FZZ/7XQHE5TBvh44XGuNAwhklQ4MBnz9rRpId4HMQKRaLKBGpjYeUqz/fCYDEoocRfQt3qqiPRoC/Z9yGnFy56B6iCx33MD5wzZDY3l0IBbwBK6iMrLcv5l2IYMyAIZUYmviwj18szkHr0ieyOAn+FGnnLy2ydDdYMHkwu1PVeI/nvXn78lyCHGs1aBssKiP1KK50przryb7Ti60xc2P9IAP8+NumZ8z6Onfl64XxwWIM4YicR+JZgDCZKN+ajGwIXqIzLsxj6eop0hll3XQvaYilOfDFj6UkDidZTWyhaYGdsW0JaD84r1OGpO9MwZQkSObuqWjgq4kf2qgtoA2WJMdQPDJg="
   matrix:
   - CMD="scripts/eval.sh help; scripts/run_backtest.sh -?"
+  - CMD="shellcheck -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230 scripts/*.sh scripts/.*.sh"
   - CMD="$DOCKER_RUN 'help; run_backtest;'"
   - CMD="$DOCKER_RUN 'for file in \$(ls /opt/tests/scripts); do run_backtest -s \$file; done'"
   - CMD="$DOCKER_RUN 'for file in TestFXTHeader; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -e \$file; done'"
@@ -67,7 +68,6 @@ before_script:
 script:
 - set -e
 - ruby -wc Vagrantfile
-- bash -n scripts/.*.sh scripts/*.sh
 - shellcheck scripts/.aliases.inc.sh
 - echo $CMD
 - eval $CMD
