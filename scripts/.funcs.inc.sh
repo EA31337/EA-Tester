@@ -82,12 +82,12 @@ check_dirs() {
   done
 }
 
-# Get time from terminal log in h.
+# Get time from the terminal log in minutes.
 get_time() {
   echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
 }
 
-# Save time and store in rule file if exists.
+# Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
   [ "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2

@@ -465,6 +465,7 @@ convert_html2json() {
   local file_in="${1:-$TEST_REPORT_HTM}"
   local file_out=${2:-${file_in%.*}.json}
   local keys=()
+  [ -f "$file_in" ] || exit 1
   keys+=("Title")
   keys+=("EA Name")
   keys+=("Build")
@@ -501,6 +502,7 @@ convert_html2json() {
   keys+=("consecutive losses")
   {
     printf "{\n"
+    printf '"%s": "%s",' Time $(get_time)
     for key in "${keys[@]}"; do
       value=$(read_result_value "$key" "$file_in")
       printf '"%s": "%s"\n' "$key" "$value"
