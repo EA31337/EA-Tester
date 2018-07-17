@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Script to install MT5 platform using winetricks.
-set -e
-CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P || pwd -P)"
+[ "$NOERR" ] || set -e
+[ "$TRACE" ] && set -x
+CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null; pwd -P)"
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
-[ "$TRACE" ] && set -x
 
 echo "Checking display..." >&2
 if [ ! "$DISPLAY" ]; then
   echo "Configuring display..." >&2
-  . "$CWD"/.funcs.cmds.inc.sh
+  . .funcs.cmds.inc.sh
   set_display
 fi
 
