@@ -27,6 +27,7 @@ env:
   matrix:
   - CMD="scripts/eval.sh help; scripts/run_backtest.sh -?"
   - CMD="$DOCKER_RUN 'help; run_backtest;'"
+  - CMD="$DOCKER_RUN 'for file in \$(ls /opt/tests/scripts); do run_backtest -s \$file; done'"
   - CMD="$DOCKER_RUN 'for file in TestFXTHeader TestHSTHeader; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -e \$file; done'"
   # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1.
   - CMD="$DOCKER_RUN 'for digits in 4; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -S20 -D \$digits -e TestLotstep; done'"
