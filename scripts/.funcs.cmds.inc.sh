@@ -46,24 +46,37 @@ chdir() {
 # Usage: check_logs [filter] [args]
 check_logs() {
   local filter=$1
-  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
 # Display logs in real-time.
 # Usage: live_logs [invert-match] [interval]
 live_logs() {
-  set +x
   local filter=${1:-modify}
-  local interval=${2:-20}
-  sleep $interval
-  [ "$OPT_VERBOSE" ] && find "$TERMINAL_DIR" -type f -name "$(date +%Y)*.log" -print -exec tail {} ';'
+  local interval=${2:-10}
+  set +x
+  # Prints Terminal log when available (e.g. logs/20180717.log).
+  {
+    while sleep $interval; do
+      log_file="$(find "$LOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done && tail -f "$log_file"
+  } &
+  # Prints MQL4 logs when available (e.g. MQL4/Logs/20180717.log).
+  {
+    while sleep $interval; do
+      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done && tail -f "$log_file"
+  } &
+  # Prints tester logs.
   while sleep $interval; do
-    if [ -n "$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)" ]; then
-      break;
-    fi
-  done
-  echo "Showing live logs..." >&2
-  tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+    log_file="$(find "$TESTER_DIR" -name "*.log" -type f -print -quit)"
+    [ -f "$log_file" ] && break
+  done && {
+    echo "Showing live logs..." >&2
+    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+  }
 }
 
 # Display performance stats in real-time.
@@ -85,7 +98,7 @@ clean_ea() {
   find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete
 }
 
-# Clean files.
+# Clean files (e.g. previous report and log files).
 # Usage: clean_files
 clean_files() {
   # Remove previous log, dat, txt and htm files.
@@ -94,7 +107,8 @@ clean_files() {
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   [ -d "$TESTER_DIR"/files ] && find "$TESTER_DIR"/files -type f $VPRINT -delete
   # Remove log files.
-  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
+  [ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f $VPRINT -delete
+  find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
   # Remove selected symbol and group files, so they can be regenerated.
   find "$HISTORY_DIR" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
 }
@@ -120,10 +134,10 @@ filever() {
 }
 
 # Install platform.
-# Usage: install_mt [ver/4.0.0.1010]
+# Usage: install_mt [ver/4/5/4.0.0.1010]
 install_mt() {
-  type wget >/dev/null
-  local mt_ver=$1
+  type wget unzip >/dev/null
+  local mt_ver=${1:-$MT_VER}
   set_display
   case $mt_ver in
     4)
@@ -257,6 +271,7 @@ compile_ea() {
 # Usage: ini_copy
 ini_copy() {
   # Copy the configuration file, so platform can find it.
+  [ -d "$TESTER_DIR" ] || mkdir -p $VFLAG "$TESTER_DIR"
   exec 1>&2
   echo "Copying ini files..." >&2
   cp $VFLAG "$TPL_TEST" "$TESTER_INI"
@@ -268,6 +283,7 @@ ini_copy() {
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="$1"
+  [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$EXPERTS_DIR"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
@@ -277,7 +293,7 @@ ea_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$file" -o -path "*/$file.mq?" -o -path "*/$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$file*.mq?" -o -path "*$file*.ex?" -o -ipath "*$file*" ')' -print -quit)
-  [ "$exact" ] && echo $exact || echo $match
+  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -286,6 +302,7 @@ ea_find() {
 # Returns path relative to platform, or absolute otherwise.
 script_find() {
   local file="$1"
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   cd "$SCRIPTS_DIR"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
@@ -295,7 +312,7 @@ script_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*/$file" -o -path "*/$file.mq?" -o -path "*/$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -path "*$file*.mq?" -o -path "*$file*.ex?" -o -ipath "*$file*" ')' -print -quit)
-  [ "$exact" ] && echo $exact || echo $match
+  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -307,6 +324,7 @@ ea_copy() {
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   [ ! -s "$file" ] && { echo "Error: Cannot find $1!" >&2; return; }
+  [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   exec 1>&2
   cp $VFLAG "$file" "$EXPERTS_DIR"/
   # Copy local include files.
@@ -321,6 +339,7 @@ ea_copy() {
 script_copy() {
   local file="$1"
   local dest="$SCRIPTS_DIR/$(basename "$file")"
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
@@ -332,6 +351,7 @@ script_copy() {
 lib_copy() {
   local file="$1"
   local dest="$LIB_DIR/$(basename "$file")"
+  [ -d "$LIB_DIR" ] || mkdir -p $VFLAG "$LIB_DIR"
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
   cp $VFLAG "$file" "$LIB_DIR"/
@@ -403,7 +423,7 @@ result_summary() {
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
   [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   symbol=$(read_result_value "Symbol")
-  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs)
+  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
   pf=$(read_result_value "Profit factor")
   ep=$(read_result_value "Expected payoff")
   dd=$(read_result_value "Relative drawdown")
@@ -445,6 +465,7 @@ convert_html2json() {
   local file_in="${1:-$TEST_REPORT_HTM}"
   local file_out=${2:-${file_in%.*}.json}
   local keys=()
+  [ -f "$file_in" ] || exit 1
   keys+=("Title")
   keys+=("EA Name")
   keys+=("Build")
@@ -481,6 +502,7 @@ convert_html2json() {
   keys+=("consecutive losses")
   {
     printf "{\n"
+    printf '"%s": "%s",' Time $(get_time)
     for key in "${keys[@]}"; do
       value=$(read_result_value "$key" "$file_in")
       printf '"%s": "%s"\n' "$key" "$value"
@@ -528,9 +550,8 @@ post_gist() {
   cd "$dir"
   local files=$(find . -type f -maxdepth 1 '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
   local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
-  local file="${EA_FILE}${period}-Report.txt"
   local desc=$(result_summary)
-  gist -f "${file}" -d "$desc" $files
+  gist -d "$desc" $files
   cd - &>/dev/null
 }
 
@@ -741,10 +762,10 @@ value_get_all() {
 # Set spread in ini and FXT files.
 # Usage: set_spread [points/10]
 set_spread() {
-  local spread=$1
+  local spread=${1:-BT_SPREAD}
   [ -n "$spread" ]
-  ini_set "^Spread" "$SPREAD" "$TERMINAL_INI"
-  ini_set "^TestSpread" "$SPREAD" "$TESTER_INI"
+  ini_set "^Spread" "$spread" "$TERMINAL_INI"
+  ini_set "^TestSpread" "$spread" "$TESTER_INI"
   # Change spread in all FXT files at offset 0xFC.
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")

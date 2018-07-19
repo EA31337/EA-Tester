@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                               TestSymbolsSel.mq4 |
-//|                            Copyright 2016, 31337 Investments Ltd |
+//|                       Copyright 2016-2018, 31337 Investments Ltd |
 //|                                       https://github.com/EA31337 |
 //+------------------------------------------------------------------+
 
@@ -9,25 +9,27 @@
 //+------------------------------------------------------------------+
 
 /*
-    This file is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ *  This file is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+#define MAX_SYMBOL_LENGTH 12
 struct SYMBOL_SELECTED {                           // -- offset ---- size --- description -------------------------------------------------
    char   symbol[MAX_SYMBOL_LENGTH+1];             //         0        12     Symbol (szchar)
    UINT   digits;                                  //        12         4     Digits
 
-   UINT   index;         // oder ID ?????          //        16         4     symbol id as in "symbols.raw"
+   UINT   index;         // order ID ?????         //        16         4     symbol id as in "symbols.raw"
    DWORD  unknown_1;                               //        20         4     always 0x0001
 
    UINT   group;                                   //        24         4     symbol group id as in "symgroups.raw"
@@ -53,6 +55,7 @@ struct SYMBOL_SELECTED {                           // -- offset ---- size --- de
    double ask_2;                                   //       120         8     ask (repeated)
 };                                                 // -------------------------------------------------------------------------------------
                                                    //               = 128
+*/
 
 int OnInit() {
     // @todo Find symbols.sel file.
@@ -64,4 +67,5 @@ int OnInit() {
         ExpertRemove();
     }
     */
+  return (INIT_FAILED);
 }

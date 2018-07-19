@@ -3,8 +3,8 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
 
 # Initialize variables.
-[ -n "$NOERR" ] || set -e
-[ -n "$TRACE" ] && set -x
+[ "$NOERR" ] || set -e
+[ "$TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
@@ -119,6 +119,7 @@ _EOF
 on_success() {
   echo "Checking logs..." >&2
   show_logs
+  # @fixme
   ! check_logs "Initialization failed" || exit 1
 # ! check_logs "ExpertRemove" || exit 1
   ! check_logs "TestGenerator: .\+ not found" || exit 1
@@ -153,8 +154,18 @@ on_success() {
 on_failure() {
   echo "FAIL?!" >&2
   # Sometimes MT4 fails on success, therefore double checking.
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$(basename "$(ini_get TestReport)").htm")
-  test -f "$TEST_REPORT_HTM" && on_success $@
+  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+  if [ -n "$TEST_REPORT_BASE" ]; then
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$TEST_REPORT_BASE.htm")
+    test -f "$TEST_REPORT_HTM" && on_success $@
+    return
+  fi
+  if [ -z "$EA_NAME" -a -n "$SCRIPT" ]; then
+    # Report success when script was run and platform killed.
+    log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+    grep -w -C1 "uninit reason 0" "$log_file" && on_success $@
+    return
+  fi
 
   echo "Printing logs..." >&2
   show_logs
@@ -170,10 +181,16 @@ on_finish() {
 # Parse report files.
 parse_results() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+
+  # Ignore if no results (e.g. when running the script).
+  [ -z "$TEST_REPORT_BASE" -o -z "$EA_NAME" ] && return
+
+  # Locate the report file.
   TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
+
   echo "Checking the total time elapsed..." >&2
   save_time
 
@@ -230,7 +247,7 @@ parse_results() {
   fi
 
   if [ -d "$BT_DEST" ]; then
-    # Copy the test results if destination directory has been specified.
+    # Copy the test results if the destination directory has been specified.
     echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
     cp $VFLAG "$TEST_REPORT_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
@@ -243,7 +260,6 @@ parse_results() {
     [ -n "$TRACE" ] && set -x
   fi
   result_summary
-
 }
 
 # Show usage on no arguments.
@@ -263,7 +279,7 @@ while getopts $ARGS arg; do
       type unzip >/dev/null
       install_mt $MT_VER
       . "$CWD"/.vars.inc.sh # Reload variables.
-      validate_dirs
+      check_dirs
       ;;
 
     v) # Verbose mode.
@@ -288,12 +304,14 @@ done
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
-[ -f "$TERMINAL_EXE" ] \
-  || {
-    [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
-    echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
-    exit 1;
-  }
+if [ -f "$TERMINAL_EXE" ]; then
+  # Check required directories.
+  check_dirs
+else
+  [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
+  echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
+  exit 1;
+fi
 
 # Re-load variables.
 . "$CWD"/.vars.inc.sh
@@ -716,7 +734,8 @@ if [ -n "$BT_LOTSTEP" ]; then
 fi
 
 # Sets a test report if present.
-if [ -n "$TEST_REPORT" ]; then
+if [ -n "$EA_FILE" ]; then
+  TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE:-$(date +%Y%m%d)}-Report}
   echo "Configuring test report ($TEST_REPORT)..." >&2
   ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
 fi
@@ -739,10 +758,15 @@ if [ "$VISUAL_MODE" ]; then
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
-# Checks the destination folder.
-if [ -n "$BT_DEST" ]; then
+# Checks the destination folder (if run EA, not a script).
+if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
+  [ -w "$BT_DEST" ] || {
+    echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
+    stat "$BT_DEST" >&2
+    exit 1
+  }
 fi
 
 # Download backtest data if required.
@@ -755,6 +779,11 @@ if [ "$TEST_EXPERT" ]; then
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE TRACE=$TRACE \
       $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD}
+    if [ "$OPT_VERBOSE" ]; then
+      cd "$TERMINAL_DIR"
+      find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
+      cd - &>/dev/null
+    fi
   fi
   # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
@@ -762,7 +791,7 @@ fi
 
 # Prepare before test run.
 if [ "$TEST_EXPERT" ]; then
-  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1)" ] \
+  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
 clean_files
@@ -772,10 +801,19 @@ if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   exit 1
 fi
 
+# Kill on condition when running script.
+if [ -n "$SCRIPT" ]; then
+  kill_on_match "uninit reason 0" &
+fi
+
+# Show live logs and stats when in verbose mode.
+if [ "$OPT_VERBOSE" ]; then
+  live_logs &
+  live_stats &
+fi
+
 # Run the test in the platform.
-live_logs &
-live_stats &
-echo "Testing..." >&2
+echo "Starting..." >&2
 {
   time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
 } 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?

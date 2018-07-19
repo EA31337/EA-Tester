@@ -61,30 +61,33 @@ check_files() {
   if [ "$SERVER" != "default" ]; then
     local symbols_raw_default="$HISTORY_DIR/default/symbols.raw"
     local symbols_raw="$HISTORY_DIR/$SERVER/symbols.raw"
-    [ -d "$HISTORY_DIR/$SERVER" ] || mkdir $VFLAG "$HISTORY_DIR/$SERVER"
     [ -s "$symbols_raw" ] || cp $VFLAG "$symbols_raw_default" "$symbols_raw"
   fi
 }
 
-# Validate platform dirs.
-validate_dirs() {
+# Check platform required directories.
+check_dirs() {
+  local args="-p $VFLAG"
   for dir in \
-    "$TESTER_DIR" "$TERMINAL_DIR/$MQL_DIR" \
-    "$EXPERTS_DIR" "$SCRIPTS_DIR" \
-    "$FILES_DIR" "$LIB_DIR" \
-    "$LOG_DIR" "$TICKDATA_DIR"
+    "$TERMINAL_DIR/$MQL_DIR" \
+    "$EXPERTS_DIR" \
+    "$FILES_DIR" \
+    "$HISTORY_DIR/$SERVER" \
+    "$LOG_DIR" \
+    "$SCRIPTS_DIR" \
+    "$TESTER_DIR" \
+    "$TICKDATA_DIR"
   do
-    [ -d "$dir" ] || mkdir $VFLAG "$dir"
-   #[ -d "$dir" ] || { quick_run; return; }
+    [ -d "$dir" ] || mkdir $args "$dir"
   done
 }
 
-# Get time from terminal log in h.
+# Get time from the terminal log in minutes.
 get_time() {
   echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
 }
 
-# Save time and store in rule file if exists.
+# Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
   [ "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
@@ -254,6 +257,23 @@ restore_ifs() {
 # Show simple stack trace.
 show_trace() {
   while caller $((n++)); do :; done; >&2
+}
+
+# Kill platform on certain log match.
+# Usage: kill_on_match [pattern] [file] [args]
+kill_on_match() {
+  local pattern=$1
+  local file=${2:-$(date +%Y%m%d)*.log}
+  local interval=10
+  set +x
+  # Prints MQL4 logs when available (e.g. MQL4/Logs/yyyymmdd.log).
+  while sleep $interval; do
+    log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+    [ -f "$log_file" ] && break
+  done
+  while sleep $interval; do
+    grep -w "$pattern" "$log_file" && { kill_wine && break; }
+  done
 }
 
 # Kill any remaining background jobs.

@@ -21,6 +21,12 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
 RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 
+# Build-time variables.
+ARG BT_DEST
+ARG MT_VER
+ARG PROVISION_SSH
+ARG PROVISION_SUDO
+
 # Provision container image,
 ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
@@ -29,24 +35,24 @@ ENV PROVISION_SUDO 1
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
-# Backtest input.
+# Default backtest inputs.
 ENV BT_DEST /opt/results
-ARG MT_VER=4.0.0.1010
+ENV MT_VER=4.0.0.1010
 
 # Run test.
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN eval.sh install_mt 4
+RUN eval.sh install_mt
+RUN run_backtest.sh -s PrintPaths -v
 
 # Clean up.
 USER root
 RUN find /var/lib/apt/lists -type f -delete
 RUN find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
 USER ubuntu
-
-# Share the results.
-VOLUME /opt/results
+RUN eval.sh clean_bt
+RUN eval.sh clean_files
 
 # Expose SSH when installed.
 EXPOSE 22
