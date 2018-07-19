@@ -16,7 +16,7 @@ env:
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
     BOOT_CODE="${BOOT_CODE:-pwd}"
-    FINAL_CODE="${FINAL_CODE:-find /opt/results -ls}"
+    FINAL_CODE="${FINAL_CODE:-find /opt -ls}"
     DOCKER_ENV="-e BOOT_CODE=\"$BOOT_CODE\" -e FINAL_CODE=\"$FINAL_CODE\""
     DOCKER_VOL="-v $CWD/scripts:/opt/scripts:ro -v $CWD/tests:/opt/tests:ro -v $CWD/conf:/opt/conf:ro -v $HOME/.cache:/home/ubuntu/.cache:rw"
     DOCKER_RUN="docker run $DOCKER_ENV $DOCKER_VOL $DOCKER_REPO"
