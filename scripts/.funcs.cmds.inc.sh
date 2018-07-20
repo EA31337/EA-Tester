@@ -251,18 +251,24 @@ file_get() {
 # Usage: compile_ea [pattern] [log_file]
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
-  local logfile=${2:-$name}
+  local logfile=${2:-${name%.*}.log}
   type iconv >/dev/null
-  cd "$TERMINAL_DIR"
-  local rel_path=$(find $MQL_DIR/Experts -name "$name*" -type f)
-  [ ! -s "$rel_path" ] && { echo "Error: Cannot find ${rel_path:-$1}!" >&2; return; }
-  wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
+  local ea_path=$(ea_find "$name")
+  local ea_dir=$(dirname "$ea_path")
+  [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
+  cd "$ea_dir"
+  local exact=$(find -L . -maxdepth 4 -type f -name "$name.mq?" -print -quit)
+  local match=$(find -L . -maxdepth 4 -type f -name "*$name*.mq?" -print -quit)
+  local rel_path=$(echo ${exact#./} || echo ${match#./})
+  [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; return; }
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /s /compile:"$rel_path" /log:$logfile
   compiled_no=$?
   echo "Info: Number of files compiled: $compiled_no" >&2
+  [ ! -f "$logfile" ] && logfile="${logfile%.*}.log"
   if [ -f "$logfile" ]; then
     results=$(iconv -f utf-16 -t utf-8 "$logfile")
     grep -A10 "${name%.*}" <<<$results
-    grep -q "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
+    grep -qw "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
   fi
   cd - &> /dev/null
 }
@@ -282,7 +288,7 @@ ini_copy() {
 # Usage: ea_find [filename/url/pattern]
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
-  local file="$1"
+  local file="${1:-$EA_FILE}"
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$EXPERTS_DIR"
   if [[ "$file" =~ :// ]]; then
