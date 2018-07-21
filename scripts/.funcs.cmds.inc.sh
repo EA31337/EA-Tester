@@ -162,6 +162,23 @@ install_mt() {
   esac
 }
 
+# Replaces MetaEditor with the specific version.
+# Usage: install_mteditor [ver/5.0.0.1804]
+install_mteditor() {
+  local ver=${1:-5.0.0.1804}
+  file_get "https://github.com/EA31337/MetaEditor/raw/${ver}/metaeditor.exe" "$DOWNLOAD_DIR" && \
+    mv -v "$DOWNLOAD_DIR"/metaeditor.exe "$TERMINAL_DIR"/ || \
+    { echo "Error: Cannot download MetaEditor ${ver}!" >&2; exit 1; }
+}
+
+# Show version of installed platform binaries.
+print_ver() {
+  MT_VER=$(filever terminal.exe)
+  MTE_VER=$(filever metaeditor.exe)
+  echo "Installed Terminal: $MT_VER"
+  echo "Installed MetaEditor: $MTE_VER"
+}
+
 # Configure virtual display and wine.
 # Usage: set_display
 set_display() {

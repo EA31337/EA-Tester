@@ -320,10 +320,7 @@ fi
 cd "$TERMINAL_DIR"
 
 # Check the version of installed platform.
-MT_VER=$(filever terminal.exe)
-MTE_VER=$(filever metaeditor.exe)
-echo "Installed Terminal: $MT_VER" >&2
-echo "Installed MetaEditor: $MTE_VER" >&2
+print_ver
 
 # Copy ini files.
 ini_copy
