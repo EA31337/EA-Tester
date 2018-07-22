@@ -265,7 +265,7 @@ file_get() {
   wget -cP "$dest" $url
 }
 
-# Compile given EA name.
+# Compile the given EA name.
 # Usage: compile_ea [pattern] [log_file]
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
@@ -294,6 +294,14 @@ compile_ea() {
     grep -qw "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
   fi
   cd - &> /dev/null
+}
+
+# Compile and test the given EA.
+# Usage: compile_and_test [pattern] [args...]
+compile_and_test() {
+  local name=${1:-$TEST_EXPERT}
+  compile_ea $name
+  $CWD/run_backtest.sh -e "$@"
 }
 
 # Copy ini settings from templates.
