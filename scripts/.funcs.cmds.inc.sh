@@ -169,6 +169,7 @@ install_mteditor() {
   file_get "https://github.com/EA31337/MetaEditor/raw/${ver}/metaeditor.exe" "$DOWNLOAD_DIR" && \
     mv -v "$DOWNLOAD_DIR"/metaeditor.exe "$TERMINAL_DIR"/ || \
     { echo "Error: Cannot download MetaEditor ${ver}!" >&2; exit 1; }
+  print_ver
 }
 
 # Show version of installed platform binaries.
@@ -278,8 +279,13 @@ compile_ea() {
   local match=$(find -L . -maxdepth 4 -type f -name "*$name*.mq?" -print -quit)
   local rel_path=$(echo ${exact#./} || echo ${match#./})
   [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; return; }
+  # Read value of errexit, and disable it.
+  shopt -qo errexit; local errexit=$?; set +e
+  # Run compiler.
   WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /s /compile:"$rel_path" /log:$logfile
   compiled_no=$?
+  # Reset errexit to the previous value.
+  [[ $errexit -eq 0 ]] && set -e
   echo "Info: Number of files compiled: $compiled_no" >&2
   [ ! -f "$logfile" ] && logfile="${logfile%.*}.log"
   if [ -f "$logfile" ]; then
