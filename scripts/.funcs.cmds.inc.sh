@@ -273,12 +273,13 @@ compile_ea() {
   type iconv >/dev/null
   local ea_path=$(ea_find "$name")
   local ea_dir=$(dirname "$ea_path")
+  # If path is absolute, enter that dir, otherwise go to Experts dir.
+  [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
   [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
-  cd "$ea_dir"
-  local exact=$(find -L . -maxdepth 4 -type f -name "$name.mq?" -print -quit)
-  local match=$(find -L . -maxdepth 4 -type f -name "*$name*.mq?" -print -quit)
+  local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
+  local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
   local rel_path=$(echo ${exact#./} || echo ${match#./})
-  [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; return; }
+  [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
   # Read value of errexit, and disable it.
   shopt -qo errexit; local errexit=$?; set +e
   # Run compiler.
