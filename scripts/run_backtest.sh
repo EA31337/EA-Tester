@@ -496,13 +496,12 @@ SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
 SETFILE="${EA_FILE:-$SCRIPT}.set"
 
-# Copy the template INI file.
 if [ -n "$EA_FILE" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
+  # Copy the template INI file.
   EA_INI="$TESTER_DIR/$EA_FILE.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
 elif [ -n "$SCRIPT" ] && [ ${SCR_PATH##*.} == 'ex4' ]; then
   SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
-  cp $VFLAG "$TPL_SCR" "$SCR_INI"
 fi
 
 # Copy the main file to execute.
