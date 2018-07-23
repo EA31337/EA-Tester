@@ -148,6 +148,8 @@ on_success() {
         ;;
       esac
   done
+  # Set exit status to 0.
+  exit_status=0
 }
 
 # Invoke on test failure.
