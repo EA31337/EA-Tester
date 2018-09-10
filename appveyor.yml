@@ -4,7 +4,7 @@ init:
 - ps: iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 install:
 - appveyor DownloadFile https://github.com/EA31337/MetaEditor/raw/master/metaeditor.exe
-- scoop install shellcheck
+- ps: scoop install shellcheck
 before_test:
 - git submodule update --init
 test_script:

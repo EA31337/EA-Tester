@@ -15,5 +15,5 @@ initialize
 if [[ "$*" =~ ";" ]]; then
   eval "$@"
 elif [ -n "$*" ]; then
-  "$@"
+  $@
 fi

@@ -148,6 +148,8 @@ on_success() {
         ;;
       esac
   done
+  # Set exit status to 0.
+  exit_status=0
 }
 
 # Invoke on test failure.
@@ -320,10 +322,7 @@ fi
 cd "$TERMINAL_DIR"
 
 # Check the version of installed platform.
-MT_VER=$(filever terminal.exe)
-MTE_VER=$(filever metaeditor.exe)
-echo "Installed Terminal: $MT_VER" >&2
-echo "Installed MetaEditor: $MTE_VER" >&2
+print_ver
 
 # Copy ini files.
 ini_copy
@@ -497,13 +496,12 @@ SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
 SETFILE="${EA_FILE:-$SCRIPT}.set"
 
-# Copy the template INI file.
 if [ -n "$EA_FILE" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
+  # Copy the template INI file.
   EA_INI="$TESTER_DIR/$EA_FILE.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
 elif [ -n "$SCRIPT" ] && [ ${SCR_PATH##*.} == 'ex4' ]; then
   SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
-  cp $VFLAG "$TPL_SCR" "$SCR_INI"
 fi
 
 # Copy the main file to execute.
