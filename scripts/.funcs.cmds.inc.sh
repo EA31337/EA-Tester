@@ -317,20 +317,21 @@ ini_copy() {
 }
 
 # Find the EA file.
-# Usage: ea_find [filename/url/pattern]
+# Usage: ea_find [filename/url/pattern] [optional/dir]
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="${1:-$EA_FILE}"
+  local dir="${2:-$EXPERTS_DIR}"
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
-  cd "$EXPERTS_DIR"
+  cd "$dir"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
     wget $VFLAG -cP "$EXPERTS_DIR" $file
     file=${file##*/}
   fi
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -name "*/$file" -o -name "*/$file.mq?" -o -name "*/$file.ex?" ')' -print -quit)
-  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*$file*.mq?" -o -iname "*$file*.ex?" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
   [ "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
@@ -348,51 +349,63 @@ script_find() {
     file=${file##*/}
   fi
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*/$file" -o -iname "*/$file.mq?" -o -iname "*/$file.ex?" ')' -print -quit)
-  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*$file*.mq?" -o -iname "*$file*.ex?" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
+  local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
   [ "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
 # Copy EA file to the platform experts dir.
-# Usage: ea_copy [file]
+# Usage: ea_copy [file] [optional/dir-dst]
 ea_copy() {
   local file=$1
-  local dest="$EXPERTS_DIR/$(basename "$file")"
+  local dir_dst=${2:-$EXPERTS_DIR}
   [ ! -s "$file" ] && file=$(ea_find "$file")
-  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
-  [ ! -s "$file" ] && { echo "Error: Cannot find $1!" >&2; return; }
+  [ -s "$dir_dst/$file" ] && return
+  [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
+  [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   exec 1>&2
-  cp $VFLAG "$file" "$EXPERTS_DIR"/
-  # Copy local include files.
-  includes=$(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
-  for file in $includes; do
-    ea_copy "$file"
-  done
+  includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
+  if [ ${#includes[@]} -eq 0 ]; then
+    cp $VFLAG "$file" "$dir_dst"/
+  else
+    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/
+  fi
 }
 
 # Copy script file to the platform scripts dir.
-# Usage: script_copy [file]
+# Usage: script_copy [file] [optional/dir-dst]
 script_copy() {
-  local file="$1"
-  local dest="$SCRIPTS_DIR/$(basename "$file")"
-  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
+  local file=$1
+  local dir_dst=${2:-$SCRIPTS_DIR}
   [ ! -s "$file" ] && file=$(ea_find "$file")
-  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
+  [ -s "$dir_dst/$file" ] && return
+  [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
+  [ "$(dirname "$file")" == "$dir_dst" ] && return
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
+  [ "$(dirname "$file")" == "$(dirname "$dir_dst")" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$SCRIPTS_DIR"/
+  includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
+  if [ ${#includes[@]} -eq 0 ]; then
+    cp $VFLAG "$file" "$dir_dst"/
+  else
+    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/
+  fi
 }
 
 # Copy library file (e.g. dll) to the platform lib dir.
-# Usage: lib_copy [file]
+# Usage: lib_copy [file] [optional/dir-dst]
 lib_copy() {
-  local file="$1"
-  local dest="$LIB_DIR/$(basename "$file")"
+  local file=$1
+  local dir_dst=${2:-$LIB_DIR}
+  [ ! -s "$file" ] && file=$(ea_find "$file")
+  [ -s "$dir_dst/$file" ] && return
+  [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
+  [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$LIB_DIR" ] || mkdir -p $VFLAG "$LIB_DIR"
-  [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
   exec 1>&2
-  cp $VFLAG "$file" "$LIB_DIR"/
+  cp $VFLAG "$file" "$dir_dst"/
 }
 
 # Copy a file to the platform files dir.
