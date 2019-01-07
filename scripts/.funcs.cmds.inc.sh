@@ -283,7 +283,7 @@ compile_ea() {
   # Read value of errexit, and disable it.
   shopt -qo errexit; local errexit=$?; set +e
   # Run compiler.
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /s /compile:"$rel_path" /log:$logfile
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
