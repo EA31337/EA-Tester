@@ -416,7 +416,7 @@ if [ -n "$TEST_EXPERT" ]; then
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EA_PATH::1}" == '.' ]; then
+  if [ "${EA_PATH::1}" != '/' ]; then
     # Use path relative to Experts dir when possible,
     ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
   else
@@ -430,7 +430,7 @@ elif [ -n "$EXPERT" ]; then
   EA_PATH=$(ea_find "$EXPERT")
   echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EA_PATH::1}" == '.' ]; then
+  if [ "${EA_PATH::1}" != '/' ]; then
     # Use path relative to Experts dir when possible,
     ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
   else
@@ -444,7 +444,7 @@ elif [ -n "$SCRIPT" ]; then
   SCR_PATH=$(script_find "$SCRIPT")
   echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
   [ -f "$SCR_PATH" ] || { echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${SCR_PATH::1}" == '.' ]; then
+  if [ "${SCR_PATH::1}" != '/' ]; then
     # Use path relative to Scripts dir when possible,
     ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
   else
