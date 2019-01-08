@@ -446,7 +446,7 @@ elif [ -n "$SCRIPT" ]; then
   [ -f "$SCR_PATH" ] || { echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2; exit 1; }
   if [ "${SCR_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
-    ea_copy "$SCR_PATH"
+    script_copy "$SCR_PATH"
     SCR_PATH=$(script_find "$SCRIPT")
   fi
   # Use relative path to Experts dir.

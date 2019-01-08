@@ -383,14 +383,14 @@ script_copy() {
   [ -s "$dir_dst/$file" ] && return
   [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
   [ "$(dirname "$file")" == "$dir_dst" ] && return
-  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   [ "$(dirname "$file")" == "$(dirname "$dir_dst")" ] && return
+  [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   exec 1>&2
   includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
   if [ ${#includes[@]} -eq 0 ]; then
     cp $VFLAG "$file" "$dir_dst"/
   else
-    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/
+    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
   fi
 }
 
