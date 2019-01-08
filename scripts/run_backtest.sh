@@ -416,13 +416,13 @@ if [ -n "$TEST_EXPERT" ]; then
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EA_PATH::1}" != '/' ]; then
-    # Use path relative to Experts dir when possible,
-    ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
-  else
-    # otherwise use the absolute one.
-    ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  if [ "${EA_PATH::1}" == '/' ]; then
+    # Copy EA to Experts dir when path is absolute.
+    ea_copy "$EA_PATH"
+    EA_PATH=$(ea_find "$TEST_EXPERT")
   fi
+  # Use relative path to Experts dir.
+  ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
   cd - &>/dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
@@ -430,13 +430,13 @@ elif [ -n "$EXPERT" ]; then
   EA_PATH=$(ea_find "$EXPERT")
   echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EA_PATH::1}" != '/' ]; then
-    # Use path relative to Experts dir when possible,
-    ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
-  else
-    # otherwise use the absolute one.
-    ini_set "^Expert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  if [ "${EA_PATH::1}" == '/' ]; then
+    # Copy EA to Experts dir when path is absolute.
+    ea_copy "$EA_PATH"
+    EA_PATH=$(ea_find "$EXPERT")
   fi
+  # Use relative path to Experts dir.
+  ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
   cd - &>/dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
@@ -444,13 +444,13 @@ elif [ -n "$SCRIPT" ]; then
   SCR_PATH=$(script_find "$SCRIPT")
   echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
   [ -f "$SCR_PATH" ] || { echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${SCR_PATH::1}" != '/' ]; then
-    # Use path relative to Scripts dir when possible,
-    ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
-  else
-    # otherwise use the absolute one.
-    ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
+  if [ "${SCR_PATH::1}" == '/' ]; then
+    # Copy EA to Experts dir when path is absolute.
+    ea_copy "$SCR_PATH"
+    SCR_PATH=$(script_find "$SCRIPT")
   fi
+  # Use relative path to Experts dir.
+  ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
   cd - &>/dev/null
 fi
 
@@ -502,15 +502,6 @@ if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'ex' ]]; then
   cp $VFLAG "$TPL_EA" "$EA_INI"
 elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'ex' ]]; then
   SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
-fi
-
-# Copy the main file to execute.
-if [ -n "$EA_PATH" ] && [ "${EA_PATH::1}" == '/' ]; then
-  # Copy EA to platform dir only if path is absolute.
-  ea_copy "$EA_PATH"
-elif [ -n "$SCR_PATH" ] && [ "${SCR_PATH::1}" == '/' ]; then
-  # Copy script to platform dir only if path is absolute.
-  script_copy "$SCR_PATH"
 fi
 
 srv_copy
