@@ -751,6 +751,10 @@ fi
 if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
+  [ -f /.dockerenv -a -w "$BT_DEST" ] || {
+    echo "Warning: No write access! Attempting fixing the destination directory permissions ($BT_DEST)..." >&2
+    timeout 1 sudo id && chmod $VFLAG a=rwx "$BT_DEST" || true
+  }
   [ -w "$BT_DEST" ] || {
     echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
     stat "$BT_DEST" >&2

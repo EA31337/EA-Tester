@@ -7,7 +7,7 @@
 # Initialize script.
 [ -n "$TRACE" ] && set -x
 [ -n "$NOERR" ] || set -e
-if [ ! -d /vagrant ] && [ ! -d /home/travis -a ! -f /.dockerenv ]; then
+if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
 elif [ -f ~/.provisioned ]; then
