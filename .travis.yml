@@ -64,6 +64,7 @@ before_install:
 install:
 - make docker-load
 before_script:
+- docker info
 - docker images
 script:
 - set -e
