@@ -18,7 +18,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Setup the default user.
-RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 
 # Build-time variables.
