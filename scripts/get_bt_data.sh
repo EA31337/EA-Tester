@@ -13,10 +13,10 @@ xargs=$(which gxargs || which xargs)
 . "$CWD"/.vars.inc.sh
 
 # Check user input.
-[ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]"; exit 1; }
+[ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period/M1] [mode/0]"; exit 1; }
 [ "$OPT_VERBOSE" ] && vflag="-v"
 [ "$TRACE" ] && set -x
-read symbol year bt_src period <<<$@
+read symbol year bt_src period mode <<<$@
 bt_key="$symbol-$year-$bt_src"
 convert=1
 
@@ -47,34 +47,34 @@ mkdir -p $vflag "$dest_dir" || true
 # Select tick data files based on the required timeframe.
 case $period in
   "M1")
-    fxt_files=( ${symbol}1_0.fxt )
+    fxt_files=( ${symbol}1_${mode:-0}.fxt )
   ;;
   "M5")
-    fxt_files=( ${symbol}5_0.fxt )
+    fxt_files=( ${symbol}5_${mode:-0}.fxt )
   ;;
   "M15")
-    fxt_files=( ${symbol}15_0.fxt )
+    fxt_files=( ${symbol}15_${mode:-0}.fxt )
   ;;
   "M30")
-    fxt_files=( ${symbol}30_0.fxt )
+    fxt_files=( ${symbol}30_${mode:-0}.fxt )
   ;;
   "H1")
-    fxt_files=( ${symbol}60_0.fxt )
+    fxt_files=( ${symbol}60_${mode:-0}.fxt )
   ;;
   "H4")
-    fxt_files=( ${symbol}240_0.fxt )
+    fxt_files=( ${symbol}240_${mode:-0}.fxt )
   ;;
   "D1")
-    fxt_files=( ${symbol}1440_0.fxt )
+    fxt_files=( ${symbol}1440_${mode:-0}.fxt )
   ;;
   "W1")
-    fxt_files=( ${symbol}10080_0.fxt )
+    fxt_files=( ${symbol}10080_${mode:-0}.fxt )
   ;;
   "MN")
-    fxt_files=( ${symbol}43200_0.fxt )
+    fxt_files=( ${symbol}43200_${mode:-0}.fxt )
   ;;
   *)
-    fxt_files=( ${symbol}1_0.fxt )
+    fxt_files=( ${symbol}1_${mode:-0}.fxt )
 esac
 for tf in 1 2 3 4 5 6 10 12 15 20 30 60 120 180 240 360 480 720 1440 10080 43200; do
   hst_files+=( ${symbol}${tf}.hst )
