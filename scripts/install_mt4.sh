@@ -2,7 +2,7 @@
 # Script to install MT4 platform using winetricks.
 set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P || pwd -P)"
-WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
+WURL=${WURL:-https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks}
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 [ "$TRACE" ] && set -x
 
