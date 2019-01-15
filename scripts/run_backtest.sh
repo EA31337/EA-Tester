@@ -30,86 +30,110 @@ Usage: $0 (args)
 
   -A (command)
     Action to evaluate (e.g. "file_get URL").
+    Variable (string): CODE
   -b (option)
-    Source of backtest data to test.
-    Default: DS
+    Source of backtest data to test. Default: DS
+    Variable (string): BT_SRC
   -B (filename)
     Specify early booting script to execute.
+    Variable (string): INCLUDE_BOOT
   -c (currency)
-    Base currency for test.
-    Default: USD
+    Base currency for test. Default: USD
+    Variable (string): BT_CURRENCY
   -C
     Clear previous backtest data files.
   -d (amount)
-    Deposit amount to test (e.g. 2000).
-    Default: 10000
+    Deposit amount to test. Default: 10000
+    Variable (int): BT_DEPOSIT
   -D (digits)
     Specify market digits (e.g. 5 or 4).
+    Variable (uint): BT_DIGITS
   -e (filename/url/pattern)
     EA name to test (TestExpert).
+    Variable (string): EXPERT
   -E (filename/url/pattern)
     EA name to run (Expert).
+    Variable (string): EXPERT
   -f (filename)
     The .set file to run the test.
+    Variable (string): SETORG
   -F
     Convert test report file to full detailed text format.
+    Variable (bool): OPT_FORMAT_FULL
   -g
-    Post results to Gist.
-    Activates: -j and -t
+    Post results to Gist. It enables: -j and -t
+    Variables (bool): OPT_GIST
   -G
     Enhance gif report files.
+    Variable (bool): OPT_GIF_ENHANCE
   -i (file)
     Invoke file with custom rules.
+    Variable (string): INCLUDE
   -I (options)
     Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
+    Variable (string): TEST_OPTS
   -j
     Convert test report file into JSON format.
+    Variable (bool): OPT_FORMAT_JSON
   -l (double)
     Specify a lot step (e.g. 0.01).
+    Variable (float): BT_LOTSTEP
   -L (limit)
     EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown=20.00).
+    Variable (string): EA_OPTS
   -m (month)
-    Month to test (e.g. 1).
-    Default: 1-12
+    Month to test. Default: 1-12.
+    Variable (uint/string): BT_MONTHS
   -M (version)
-    Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-    Default: 4.0.0.1010
+    Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
+  -o
+    Run test in optimization mode.
+    Variable (bool): OPT_OPTIMIZATION
+  -O (dir)
+    Output directory to save the test results. Default: /opt/results for Docker container.
+    Variable (string): BT_DEST
   -p (pair)
     Symbol pair to test (e.g. EURUSD).
   -P (param)
     Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+    Variable (string): SET_OPTS
   -r (string)
-    The name of the test report file (TestReport).
-    Default: tester/Report
+    The name of the test report file. Default: tester/Report
+    Variable (string): TEST_REPORT
   -R
     Set files to read-only.
   -s (file/url/pattern)
     Script to run (Script).
+    Variable (string): SCRIPT
   -S (spread)
     Spread to test in points.
-  -o
-    Run test in optimization mode.
-  -O (dir)
-    Output directory to save the test results.
-    Default: /opt/results for Docker container.
+    Variable (uint): BT_SPREAD
   -t
     Convert test report file into brief text format.
+    Variable (bool): OPT_FORMAT_BRIEF
   -T (timeframe)
-    Timeframe (TestPeriod) to test (e.g. M15, M30).
-    Default: M30
+    Timeframe (TestPeriod) to test. Default: M30
+    Variable (string): BT_PERIOD
   -v
     Verbose mode.
+    Variable (bool): OPT_VERBOSE
   -V
     Run test in visual mode (TestVisualEnable).
+    Variable (bool): VISUAL_MODE
   -x
     Run the script in trace/debug mode.
   -X (file)
     Invoke file on exit after the successful test.
   -y (year)
-    Year to test (e.g. 2017, 2011-2015).
-    Default: 2017
+    Year to test. Default: 2017
+    Variable (uint/string): BT_YEARS
   -?
     Display help.
+
+Other variables (without arguments assigned):
+- BT_TESTMODE (uint)
+  This controls type of backtest data being downloaded.
+  Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
 
 Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
 _EOF
@@ -416,13 +440,13 @@ if [ -n "$TEST_EXPERT" ]; then
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EA_PATH::1}" == '.' ]; then
-    # Use path relative to Experts dir when possible,
-    ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
-  else
-    # otherwise use the absolute one.
-    ini_set "^TestExpert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  if [ "${EA_PATH::1}" == '/' ]; then
+    # Copy EA to Experts dir when path is absolute.
+    ea_copy "$EA_PATH"
+    EA_PATH=$(ea_find "$TEST_EXPERT")
   fi
+  # Use relative path to Experts dir.
+  ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
   cd - &>/dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
@@ -430,13 +454,13 @@ elif [ -n "$EXPERT" ]; then
   EA_PATH=$(ea_find "$EXPERT")
   echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${EA_PATH::1}" == '.' ]; then
-    # Use path relative to Experts dir when possible,
-    ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
-  else
-    # otherwise use the absolute one.
-    ini_set "^Expert" "$(basename "${EA_PATH%.*}")" "$TESTER_INI"
+  if [ "${EA_PATH::1}" == '/' ]; then
+    # Copy EA to Experts dir when path is absolute.
+    ea_copy "$EA_PATH"
+    EA_PATH=$(ea_find "$EXPERT")
   fi
+  # Use relative path to Experts dir.
+  ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
   cd - &>/dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
@@ -444,13 +468,13 @@ elif [ -n "$SCRIPT" ]; then
   SCR_PATH=$(script_find "$SCRIPT")
   echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
   [ -f "$SCR_PATH" ] || { echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2; exit 1; }
-  if [ "${SCR_PATH::1}" == '.' ]; then
-    # Use path relative to Scripts dir when possible,
-    ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
-  else
-    # otherwise use the absolute one.
-    ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
+  if [ "${SCR_PATH::1}" == '/' ]; then
+    # Copy EA to Experts dir when path is absolute.
+    script_copy "$SCR_PATH"
+    SCR_PATH=$(script_find "$SCRIPT")
   fi
+  # Use relative path to Experts dir.
+  ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
   cd - &>/dev/null
 fi
 
@@ -496,21 +520,12 @@ SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
 SETFILE="${EA_FILE:-$SCRIPT}.set"
 
-if [ -n "$EA_FILE" ] && [ ${EA_PATH##*.} == 'ex4' ]; then
-  # Copy the template INI file.
+# Copy the template INI file for binary files.
+if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'ex' ]]; then
   EA_INI="$TESTER_DIR/$EA_FILE.ini"
   cp $VFLAG "$TPL_EA" "$EA_INI"
-elif [ -n "$SCRIPT" ] && [ ${SCR_PATH##*.} == 'ex4' ]; then
+elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'ex' ]]; then
   SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
-fi
-
-# Copy the main file to execute.
-if [ -n "$EA_PATH" ] && [ "${EA_PATH::1}" == '/' ]; then
-  # Copy EA to platform dir only if path is absolute.
-  ea_copy "$EA_PATH"
-elif [ -n "$SCR_PATH" ] && [ "${SCR_PATH::1}" == '/' ]; then
-  # Copy script to platform dir only if path is absolute.
-  script_copy "$SCR_PATH"
 fi
 
 srv_copy
@@ -760,6 +775,10 @@ fi
 if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   echo "Checking destination directory ($BT_DEST)..." >&2
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
+  [ -f /.dockerenv -a -w "$BT_DEST" ] || {
+    echo "Warning: No write access! Attempting fixing the destination directory permissions ($BT_DEST)..." >&2
+    timeout 1 sudo id && chmod $VFLAG a=rwx "$BT_DEST" || true
+  }
   [ -w "$BT_DEST" ] || {
     echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
     stat "$BT_DEST" >&2
@@ -776,7 +795,7 @@ if [ "$TEST_EXPERT" ]; then
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE TRACE=$TRACE \
-      $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD}
+      $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE:-0}
     if [ "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls

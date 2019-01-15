@@ -18,7 +18,7 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Setup the default user.
-RUN useradd -d /home/ubuntu -ms /bin/bash -g root -G sudo -p ubuntu ubuntu
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 -p ubuntu ubuntu
 WORKDIR /home/ubuntu
 
 # Build-time variables.
@@ -35,9 +35,14 @@ ENV PROVISION_SUDO 1
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
-# Default backtest inputs.
+# Setup results directory.
 ENV BT_DEST /opt/results
-ENV MT_VER=4.0.0.1010
+RUN mkdir -v -m a=rwx $BT_DEST
+RUN chown ubuntu:root $BT_DEST
+VOLUME $BT_DEST
+
+# Default backtest inputs.
+ENV MT_VER 4.0.0.1010
 
 # Run test.
 USER ubuntu

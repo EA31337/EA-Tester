@@ -7,7 +7,7 @@
 # Initialize script.
 [ -n "$TRACE" ] && set -x
 [ -n "$NOERR" ] || set -e
-if [ ! -d /vagrant ] && [ ! -d /home/travis -a ! -f /.dockerenv ]; then
+if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
 elif [ -f ~/.provisioned ]; then
@@ -69,7 +69,7 @@ case "$(uname -s)" in
     # APT dependencies (for the add-apt-repository).
     apt-get install -qy software-properties-common python-software-properties
     # Adds GPG release key.
-    curl -s http://dl.winehq.org/wine-builds/Release.key | apt-key add -
+    apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
@@ -86,7 +86,7 @@ case "$(uname -s)" in
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qy winehq-staging                                            # Install Wine.
+    apt-get install -qy winehq-stable --install-recommends                        # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Install required gems.
