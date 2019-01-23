@@ -2,7 +2,7 @@
 # Script to push change to the repo.
 # Usage: push_repo.sh repo_url branch message
 set -e
-[ "$TRACE" ] && { GIT_TRACE=1; set -x; }
+[ "$OPT_TRACE" ] && { GIT_TRACE=1; set -x; }
 GIT_EDITOR=true
 type git >/dev/null
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"

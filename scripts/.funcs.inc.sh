@@ -22,7 +22,7 @@ initialize() {
   trap onerror 1 2 3 15 ERR
 
   # Activate trace on demand.
-  [ "$TRACE" ] && set -x
+  [ "$OPT_TRACE" ] && set -x
   # Exit immediately if a command exits with a non-zero status.
   [ ! "$NOFAIL" ] && set -e
 

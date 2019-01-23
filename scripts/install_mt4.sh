@@ -4,7 +4,7 @@ set -e
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P || pwd -P)"
 WURL=${WURL:-https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks}
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
-[ "$TRACE" ] && set -x
+[ "$OPT_TRACE" ] && set -x
 
 echo "Checking display..." >&2
 if [ ! "$DISPLAY" ]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Script to install MT5 platform using winetricks.
 [ "$NOERR" ] || set -e
-[ "$TRACE" ] && set -x
+[ "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null; pwd -P)"
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="

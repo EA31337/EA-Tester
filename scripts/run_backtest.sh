@@ -4,7 +4,7 @@
 
 # Initialize variables.
 [ "$NOERR" ] || set -e
-[ "$TRACE" ] && set -x
+[ "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
@@ -271,9 +271,9 @@ parse_results() {
 
   if [ "$OPT_GIST" ]; then
     # Post results to Gist if set.
-    [ -n "$TRACE" ] && set +x
+    [ -n "$OPT_TRACE" ] && set +x
     post_gist "${BT_DEST:-$TEST_REPORT_DIR}" "$TEST_REPORT_BASE"
-    [ -n "$TRACE" ] && set -x
+    [ -n "$OPT_TRACE" ] && set -x
   fi
   result_summary
 }
@@ -300,7 +300,7 @@ while getopts $ARGS arg; do
       ;;
 
     x) # Run the script in debug mode.
-      TRACE=1
+      OPT_TRACE=1
       set -x
       ;;
 
@@ -318,7 +318,7 @@ initialize
 set_display
 
 [ -n "$NOERR" ] || set -e
-[ -n "$TRACE" ] && set -x
+[ -n "$OPT_TRACE" ] && set -x
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
@@ -794,7 +794,7 @@ if [ "$TEST_EXPERT" ]; then
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
-    env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE TRACE=$TRACE \
+    env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE \
       $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE}
     if [ "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"

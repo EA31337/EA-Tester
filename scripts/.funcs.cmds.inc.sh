@@ -597,7 +597,7 @@ post_gist() {
     <<<$(rev\
     <<<'$(base64 -d <(rev\
     <<<$"INVQI9lTPl0UJZ1TSBFJ"))')))))'
-  [ -n "$TRACE" ] && set -x
+  [ -n "$OPT_TRACE" ] && set -x
   cd "$dir"
   local files=$(find . -type f -maxdepth 1 '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
   local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')

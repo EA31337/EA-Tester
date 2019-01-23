@@ -12,7 +12,7 @@ xargs=$(which gxargs || which xargs)
 [ ! "$GITHUB_API_TOKEN" ] && [ -f ~/.secrets ] && source ~/.secrets
 [ "$GITHUB_API_TOKEN" ] || { echo "Error: Please define GITHUB_API_TOKEN variable." >&2; exit 1; }
 [ $# -lt 4 ] && { echo "Usage: $0 [owner] [repo] [tag] [name] [dest]"; exit 1; }
-[ "$TRACE" ] && set -x
+[ "$OPT_TRACE" ] && set -x
 read owner repo tag name dest <<<$@
 
 # Define variables.
