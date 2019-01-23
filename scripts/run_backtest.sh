@@ -176,7 +176,7 @@ on_failure() {
     test -f "$TEST_REPORT_HTM" && on_success $@
     return
   fi
-  if [ -z "$EA_NAME" -a -n "$SCRIPT" ]; then
+  if [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
     log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
     grep -w -C1 "uninit reason 0" "$log_file" && on_success $@
@@ -198,8 +198,8 @@ on_finish() {
 parse_results() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
 
-  # Ignore if no results (e.g. when running the script).
-  [ -z "$TEST_REPORT_BASE" -o -z "$EA_NAME" ] && return
+  # Ignore if no test results or test expert name is set (e.g. when running the script).
+  [ -z "$TEST_REPORT_BASE" -o -z "$TEST_EXPERT" ] && return
 
   # Locate the report file.
   TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
