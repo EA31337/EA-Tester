@@ -2,6 +2,7 @@
 # Script to push change to the repo.
 # Usage: push_repo.sh repo_url branch message
 set -e
+# shellcheck disable=SC2153 # OPT_TRACE may not be assigned.
 [ "$OPT_TRACE" ] && { GIT_TRACE=1; set -x; }
 GIT_EDITOR=true
 type git >/dev/null
