@@ -11,16 +11,6 @@ ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 # Check dependencies.
 type git pgrep xargs ex xxd od perl >/dev/null
 
-# Invoke includes.
-. "$CWD"/.aliases.inc.sh
-. "$CWD"/.funcs.cmds.inc.sh
-. "$CWD"/.funcs.inc.sh
-. "$CWD"/.vars.inc.sh
-
-# Initialize.
-initialize
-set_display
-
 ## Define local functions. ##
 
 # Show script usage and exit.
@@ -300,14 +290,6 @@ while getopts $ARGS arg; do
       exit 0
       ;;
 
-    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-      MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip >/dev/null
-      install_mt $MT_VER
-      . "$CWD"/.vars.inc.sh # Reload variables.
-      check_dirs
-      ;;
-
     v) # Verbose mode.
       OPT_VERBOSE=true
       VFLAG="-v"
@@ -324,6 +306,16 @@ while getopts $ARGS arg; do
 
   esac
 done
+
+# Invoke includes.
+. "$CWD"/.aliases.inc.sh
+. "$CWD"/.funcs.cmds.inc.sh
+. "$CWD"/.funcs.inc.sh
+. "$CWD"/.vars.inc.sh
+
+# Initialize.
+initialize
+set_display
 
 [ -n "$NOERR" ] || set -e
 [ -n "$TRACE" ] && set -x
@@ -388,6 +380,14 @@ while getopts $ARGS arg; do
 
     m) # Which months to test (default: 1-12).
       BT_MONTHS=${OPTARG}
+      ;;
+
+    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
+      MT_VER=${OPTARG:-4.0.0.1010}
+      type unzip >/dev/null
+      install_mt $MT_VER
+      . "$CWD"/.vars.inc.sh # Reload variables.
+      check_dirs
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
