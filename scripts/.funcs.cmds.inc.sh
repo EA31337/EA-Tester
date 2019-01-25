@@ -689,7 +689,7 @@ quick_run() {
 input_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local file="${3:-$TESTER_DIR/$SETFILE}"
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
@@ -706,7 +706,7 @@ input_set() {
 # Usage: input_get [key] [file]
 input_get() {
   local key="$1"
-  local file="${2:-$(echo $TESTER_DIR/$SETFILE)}"
+  local file="${2:-$TESTER_DIR/$SETFILE}"
   local vargs="-u NONE"
   [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$file" ]
@@ -719,7 +719,7 @@ input_get() {
 ini_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$(echo $TESTER_INI)}"
+  local file="${3:-$TESTER_INI}"
   local vargs="-u NONE"
   [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
@@ -740,7 +740,7 @@ ini_set() {
 # Usage: ini_del [key] [file]
 ini_del() {
   local key="$1"
-  local file="${2:-$(echo $TESTER_INI)}"
+  local file="${2:-$TESTER_INI}"
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
@@ -766,8 +766,8 @@ ini_set_ea() {
 # Set inputs in the EA INI file.
 # Usage: ini_set_inputs [set_file] [ini_file]
 ini_set_inputs() {
-  local sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
-  local dfile="${2:-$(echo $EA_INI)}"
+  local sfile="${1:-$TESTER_DIR/$SETFILE}"
+  local dfile="${2:-$EA_INI}"
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
@@ -780,7 +780,7 @@ ini_set_inputs() {
 # Usage: ini_get [key] [file]
 ini_get() {
   local key="$1"
-  local file="${2:-$(echo $TESTER_INI)}"
+  local file="${2:-$TESTER_INI}"
   local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
@@ -791,7 +791,7 @@ ini_get() {
 tag_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$(echo $INCLUDE)}"
+  local file="${3:-$INCLUDE}"
   local vargs="-u NONE"
   [ -f "$file" ]
   vargs+=$EXFLAG
