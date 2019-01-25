@@ -69,7 +69,7 @@ Usage: $0 (args)
     Specify a lot step (e.g. 0.01).
     Variable (float): BT_LOTSTEP
   -L (limit)
-    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown=20.00).
+    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown_enable=1,maxdrawdown=20.00).
     Variable (string): EA_OPTS
   -m (month)
     Month to test. Default: 1-12.
