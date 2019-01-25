@@ -748,7 +748,7 @@ fi
 
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
-  TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE:-$(date +%Y%m%d)}-Report}
+  TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE##*/}-Report}
   echo "Configuring test report ($TEST_REPORT)..." >&2
   ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
 fi
