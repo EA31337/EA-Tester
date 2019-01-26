@@ -22,6 +22,12 @@ run_backtest() {
   $CWD/run_backtest.sh "$@"
 }
 
+# Run Terminal.
+# Usage: run_terminal
+run_terminal() {
+  $CWD/run_terminal.sh "$@"
+}
+
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 clone_repo() {
@@ -183,7 +189,7 @@ print_ver() {
 # Configure virtual display and wine.
 # Usage: set_display
 set_display() {
-  export DISPLAY=:0.0 # Select screen 0.
+  export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
   export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe=" # Disable gecko and default browser in wine.
   export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
   sleep 1
