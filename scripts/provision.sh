@@ -95,7 +95,7 @@ case "$(uname -s)" in
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Configure Wine.
-    winecfg
+    su - $user -c winecfg
 
     # Install AHK.
     wget -P /tmp -nc https://www.autohotkey.com/download/ahk.zip && \
