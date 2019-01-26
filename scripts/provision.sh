@@ -34,6 +34,11 @@ trap onerror 1 2 3 15 ERR
 echo "OS: $(uname -a)"
 . /etc/*-release 2>/dev/null
 
+# Find a not privileged user.
+id travis  2>/dev/null && user="travis"
+id vagrant 2>/dev/null && user="vagrant"
+id ubuntu  2>/dev/null && user="ubuntu"
+
 # Detect proxy via curl.
 (</dev/tcp/localhost/3128) 2> /dev/null && export http_proxy="http://localhost:3128"
 GW=$(netstat -rn 2> /dev/null | grep "^0.0.0.0 " | cut -d " " -f10) && (</dev/tcp/$GW/3128) 2> /dev/null && export http_proxy="http://$GW:3128"
@@ -146,11 +151,6 @@ set +x
 
 # Set-up hostname.
 grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
-
-# Find not a privileged user.
-id travis  2>/dev/null && user="travis"
-id vagrant 2>/dev/null && user="vagrant"
-id ubuntu  2>/dev/null && user="ubuntu"
 
 # Set-up git.
 git config --system user.name $user
