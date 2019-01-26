@@ -114,6 +114,11 @@ case "$(uname -s)" in
     # Install pup parser.
     install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
 
+    # Install AHK.
+    wget -P /tmp -nc https://www.autohotkey.com/download/ahk.zip && \
+    unzip /tmp/ahk.zip -d /opt/ahk && \
+    rm -v /tmp/ahk.zip
+
     # Setup swap file if none (exclude Docker image).
     if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
       if [ -f /var/cache/swap/swapfile ]; then
