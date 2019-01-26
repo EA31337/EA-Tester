@@ -89,6 +89,9 @@ case "$(uname -s)" in
     apt-get install -qy winehq-stable --install-recommends                        # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
+    # Configure Wine.
+    winecfg
+
     # Install required gems.
     apt-get install -qy ruby
     gem install gist
