@@ -9,7 +9,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
 # Check dependencies.
-type git pgrep xargs ex xxd od perl >/dev/null
+type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
 
 ## Define local functions. ##
 

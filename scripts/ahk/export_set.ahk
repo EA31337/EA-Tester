@@ -1,20 +1,25 @@
 ; AutoHotkey
 ; Opens Terminal and exports EA's SET file.
 
-Run, "C:\Program Files (x86)\XM UK MT4\terminal.exe"
+;DebugMessage("hello, world!")
+;FileAppend, This is the text to append1.`n, CONOUT$
+;FileAppend, This is the text to append2.`n, *
+;MsgBox, Foo bar
+
+Run, "terminal.exe"
 WinWaitActive, ahk_exe terminal.exe
 if ErrorLevel {
     MsgBox, WinWait timed out.
-    return
+    ExitApp
 }
 Sleep, 500
 Send, {Esc}, {Esc} ; Close popups.
 Sleep, 500
 ControlGet, IsVisible, Visible, , Button1, ahk_exe terminal.exe
 if (!IsVisible) {
-	; View Strategy Tester, if not present.
-	Send, ^r
-	Sleep, 200
+  ; View Strategy Tester, if not present.
+  Send, ^r
+  Sleep, 200
 }
 
 ; Press _Expert properties_ button.
@@ -48,7 +53,7 @@ Sleep, 500
 Sleep, 2000
 ControlGet, Handle, Hwnd, , Button1, ahk_class #32770
 if (Handle) {
-	ControlClick, , ahk_id %Handle%
+  ControlClick, , ahk_id %Handle%
 }
 Sleep, 200
 

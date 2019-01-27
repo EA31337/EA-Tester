@@ -189,11 +189,12 @@ print_ver() {
 # Configure virtual display and wine.
 # Usage: set_display
 set_display() {
+  xdpyinfo &>/dev/null && return
   export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
-  export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe=" # Disable gecko and default browser in wine.
-  export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
+  export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=,winebrowser.exe=}" # Disable gecko and default browser in wine.
+  export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
+  pgrep -a Xvfb || Xvfb $DISPLAY -screen 0 1024x768x16 &
   sleep 1
-  pgrep Xvfb || Xvfb $DISPLAY -screen 0 1024x768x16 &
 }
 
 # Detect and configure proxy.
@@ -272,7 +273,7 @@ file_get() {
 }
 
 # Compile the given EA name.
-# Usage: compile_ea [pattern] [log_file]
+# Usage: compile_ea [EA/pattern] [log_file]
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
   local logfile=${2:-${name%.*}.log}
@@ -304,11 +305,25 @@ compile_ea() {
 }
 
 # Compile and test the given EA.
-# Usage: compile_and_test [pattern] [args...]
+# Usage: compile_and_test [EA/pattern] (args...)
 compile_and_test() {
   local name=${1:-$TEST_EXPERT}
   compile_ea $name
   $CWD/run_backtest.sh -e "$@"
+}
+
+# Experts SET file.
+# Usage: export_set [EA/pattern] (dst/file) (...args)
+export_set() {
+  local name=${1:-$TEST_EXPERT}
+  local dstfile=${2:-$1.set}
+  local temp=$(wine cmd /c echo %TEMP% | tr -d '\r')
+  set_display
+  ini_set "^Expert" "$name" "$TERMINAL_INI"
+  cp $VFLAG "$SCR"/ahk/export_set.ahk "$(winepath -u "$temp")/"
+  WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
+  timeout 120 \
+  wine AutoHotkeyU64 "%TEMP%/export_set.ahk" /ErrorStdOut ${@:2}
 }
 
 # Copy ini settings from templates.
