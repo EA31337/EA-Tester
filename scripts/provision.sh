@@ -11,7 +11,7 @@ if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
 elif [ -f ~/.provisioned ]; then
-  echo "Note: System already provisioned, skipping." >&2
+  echo "Info: System already provisioned, skipping." >&2
   exit 0
 fi
 
@@ -34,10 +34,14 @@ trap onerror 1 2 3 15 ERR
 echo "OS: $(uname -a)"
 . /etc/*-release 2>/dev/null
 
-# Find a not privileged user.
+# Find a non-privileged user.
 id travis  2>/dev/null && user="travis"
 id vagrant 2>/dev/null && user="vagrant"
 id ubuntu  2>/dev/null && user="ubuntu"
+if [ -z "$user" ]; then
+  echo "Error: Cannot detect non-provileged user. Use Docker instead." >&2
+  exit 1
+fi
 
 # Detect proxy via curl.
 (</dev/tcp/localhost/3128) 2> /dev/null && export http_proxy="http://localhost:3128"
@@ -98,7 +102,7 @@ case "$(uname -s)" in
     su - $user -c winecfg
 
     # Install AHK.
-    ahk_path=$(su - ubuntu -c 'winepath -u c:\\Apps\\AHK');
+    ahk_path=$(su - $user -c 'winepath -u c:\\Apps\\AHK');
     su - $user -c "
       wget -P '$ahk_path' -nc https://www.autohotkey.com/download/ahk.zip && \
       unzip '$ahk_path'/ahk.zip -d '$ahk_path' && \
