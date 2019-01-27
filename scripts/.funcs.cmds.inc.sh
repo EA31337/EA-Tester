@@ -695,9 +695,9 @@ quick_run() {
 input_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$TESTER_DIR/$SETFILE}"
+  local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
-  [ -f "$SETFILE" ] && file="$SETFILE"
+  [ -f "$EA_SETFILE" ] && file="$EA_SETFILE"
   [ -f "$file" ]
   vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
@@ -712,9 +712,9 @@ input_set() {
 # Usage: input_get [key] [file]
 input_get() {
   local key="$1"
-  local file="${2:-$TESTER_DIR/$SETFILE}"
+  local file="${2:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
-  [ -f "$SETFILE" ] && file="$SETFILE"
+  [ -f "$EA_SETFILE" ] && file="$EA_SETFILE"
   [ -f "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
@@ -772,13 +772,13 @@ ini_set_ea() {
 # Set inputs in the EA INI file.
 # Usage: ini_set_inputs [set_file] [ini_file]
 ini_set_inputs() {
-  local sfile="${1:-$TESTER_DIR/$SETFILE}"
+  local sfile="${1:-$TESTER_DIR/$EA_SETFILE}"
   local dfile="${2:-$EA_INI}"
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
   vargs+=$EXFLAG
-  echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
+  echo "Setting values from set file ($EA_SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
 

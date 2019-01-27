@@ -518,7 +518,7 @@ EXPERT="$(ini_get ^Expert)"
 EA_FILE="${TEST_EXPERT:-$EXPERT}"
 SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-SETFILE="${EA_FILE:-$SCRIPT}.set"
+EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
 
 # Copy the template INI file for binary files.
 if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'ex' ]]; then
@@ -682,7 +682,7 @@ if [ -n "$EA_OPTS" ]; then
 fi
 if [ -n "$SET_OPTS" ]; then
   echo "Setting EA options ($SET_OPTS)..." >&2
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+  if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     # Append settings into the SET file.
     IFS=','; set_options=($SET_OPTS); restore_ifs
     for set_pair in "${set_options[@]}"; do
@@ -692,30 +692,30 @@ if [ -n "$SET_OPTS" ]; then
     done
   else
     # Create a new SET file if does not exist.
-    tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$SETFILE"
+    tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$EA_SETFILE"
   fi
   if [ "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
-    echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
+    echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$EA_SETFILE" | paste -sd,)" >&2
   fi
 fi
 
 # Adds SET file into Terminal INI Configuration file.
 if [ -n "$SETORG" -o -n "$SET_OPTS" ]; then
-  echo "Configuring SET parameters ($SETFILE)..." >&2
+  echo "Configuring SET parameters ($EA_SETFILE)..." >&2
   if [ -f "$SETORG" ]; then
-    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$EA_SETFILE"
   fi
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+  if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     if [ -n "$TEST_EXPERT" ]; then
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set "^TestExpertParameters" "$EA_SETFILE" "$TESTER_INI"
     elif [ -n "$EXPERT" ]; then
-      ini_set "^ExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set "^ExpertParameters" "$EA_SETFILE" "$TESTER_INI"
     elif [ -n "$SCRIPT" ]; then
-      ini_set "^ScriptParameters" "$SETFILE" "$TESTER_INI"
+      ini_set "^ScriptParameters" "$EA_SETFILE" "$TESTER_INI"
     fi
     echo "Copying parameters from SET into INI file..." >&2
-    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+    ini_set_inputs "$TESTER_DIR/$EA_SETFILE" "$EA_INI"
   else
     echo "ERROR: Set file not found ($SETORG)!" >&2
     exit 1
