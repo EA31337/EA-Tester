@@ -46,7 +46,7 @@ Usage: $0 (args)
     Variable (string): EXPERT
   -f (filename)
     The .set file to run the test.
-    Variable (string): SETORG
+    Variable (string): SETFILE
   -F
     Convert test report file to full detailed text format.
     Variable (bool): OPT_FORMAT_FULL
@@ -249,8 +249,8 @@ parse_results() {
     if [ -z "$input_values" ]; then
       for input in ${param_list[@]}; do
         value=$(ini_get "$input" "$TEST_REPORT_HTM")
-        echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
-        ini_set "^$input" "$value" "$SETORG"
+        echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
+        ini_set "^$input" "$value" "$SETFILE"
       done
     fi
   fi
@@ -371,7 +371,7 @@ while getopts $ARGS arg; do
       ;;
 
     f) # The .set file to run the test.
-      SETORG="$OPTARG"
+      SETFILE="$OPTARG"
       ;;
 
     I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
@@ -701,10 +701,10 @@ if [ -n "$SET_OPTS" ]; then
 fi
 
 # Adds SET file into Terminal INI Configuration file.
-if [ -n "$SETORG" -o -n "$SET_OPTS" ]; then
+if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
   echo "Configuring SET parameters ($EA_SETFILE)..." >&2
-  if [ -f "$SETORG" ]; then
-    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$EA_SETFILE"
+  if [ -f "$SETFILE" ]; then
+    cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
   fi
   if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     if [ -n "$TEST_EXPERT" ]; then
@@ -717,7 +717,7 @@ if [ -n "$SETORG" -o -n "$SET_OPTS" ]; then
     echo "Copying parameters from SET into INI file..." >&2
     ini_set_inputs "$TESTER_DIR/$EA_SETFILE" "$EA_INI"
   else
-    echo "ERROR: Set file not found ($SETORG)!" >&2
+    echo "ERROR: Set file not found ($SETFILE)!" >&2
     exit 1
   fi
 fi

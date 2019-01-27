@@ -206,7 +206,7 @@ To customize the command, here are the supported parameters and variables:
     Variable (string): EXPERT
   -f (filename)
     The .set file to run the test.
-    Variable (string): SETORG
+    Variable (string): SETFILE
   -F
     Convert test report file to full detailed text format.
     Variable (bool): OPT_FORMAT_FULL
