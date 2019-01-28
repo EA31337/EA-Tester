@@ -111,6 +111,11 @@ case "$(uname -s)" in
       "
     fi
 
+    # Setup VNC.
+    if [ -n "$PROVISION_VNC" ]; then
+      apt-get install -y x11vnc
+    fi
+
     # Install required gems.
     apt-get install -qy ruby
     gem install gist
