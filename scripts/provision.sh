@@ -102,12 +102,14 @@ case "$(uname -s)" in
     su - $user -c winecfg
 
     # Install AHK.
-    ahk_path=$(su - $user -c 'winepath -u c:\\Apps\\AHK');
-    su - $user -c "
-      wget -P '$ahk_path' -nc https://www.autohotkey.com/download/ahk.zip && \
-      unzip '$ahk_path'/ahk.zip -d '$ahk_path' && \
-      rm -v '$ahk_path'/ahk.zip
-    "
+    if [ -n "$PROVISION_AHK" ]; then
+      ahk_path=$(su - $user -c 'winepath -u c:\\Apps\\AHK');
+      su - $user -c "
+        wget -P '$ahk_path' -nc https://www.autohotkey.com/download/ahk.zip && \
+        unzip '$ahk_path'/ahk.zip -d '$ahk_path' && \
+        rm -v '$ahk_path'/ahk.zip
+      "
+    fi
 
     # Install required gems.
     apt-get install -qy ruby
