@@ -193,7 +193,10 @@ set_display() {
   export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
   export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=,winebrowser.exe=}" # Disable gecko and default browser in wine.
   export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
-  pgrep -a Xvfb || Xvfb $DISPLAY -screen 0 1024x768x16 &
+  if which x11vnc &>/dev/null; then
+    ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
+  fi
+  ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &
   sleep 1
 }
 
