@@ -189,10 +189,10 @@ print_ver() {
 # Configure virtual display and wine.
 # Usage: set_display
 set_display() {
-  xdpyinfo &>/dev/null && return
-  export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
   export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=,winebrowser.exe=}" # Disable gecko and default browser in wine.
   export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
+  xdpyinfo &>/dev/null && return
+  export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
   if which x11vnc &>/dev/null; then
     ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
   fi
@@ -321,12 +321,13 @@ export_set() {
   local name=${1:-$TEST_EXPERT}
   local dstfile=${2:-$1.set}
   local temp=$(wine cmd /c echo %TEMP% | tr -d '\r')
+  local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
   set_display
   ini_set "^Expert" "$name" "$TERMINAL_INI"
   cp $VFLAG "$SCR"/ahk/export_set.ahk "$(winepath -u "$temp")/"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
   timeout 120 \
-  wine AutoHotkeyU64 "%TEMP%/export_set.ahk" /ErrorStdOut ${@:2}
+  wine AutoHotkeyU64 $ahk_path /ErrorStdOut ${@:2}
 }
 
 # Copy ini settings from templates.
