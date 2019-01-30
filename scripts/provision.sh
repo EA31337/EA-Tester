@@ -95,7 +95,7 @@ case "$(uname -s)" in
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qy winehq-stable --install-recommends                        # Install Wine.
+    apt-get install -qy winehq-stable wine-gecko --install-recommends             # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Configure Wine.
