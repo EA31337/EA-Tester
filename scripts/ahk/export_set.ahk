@@ -7,9 +7,9 @@
 ;MsgBox, Foo bar
 
 Run, "terminal.exe"
-WinWaitActive, ahk_exe terminal.exe
+WinWaitActive, ahk_exe terminal.exe, 10
 if ErrorLevel {
-    MsgBox, WinWait timed out.
+    MsgBox, Cannot open Terminal app.
     ExitApp
 }
 Sleep, 500
@@ -26,16 +26,27 @@ if (!IsVisible) {
 ControlClick, Button1, ahk_exe terminal.exe
 if ErrorLevel {
     MsgBox, Cannot find Expert properties.
-    return
+    ExitApp
 }
-WinWaitActive, ahk_class #32770
+WinWaitActive, ahk_class #32770, 2
+if ErrorLevel {
+    MsgBox, Cannot open Expert properties.
+    ExitApp
+}
 Sleep, 200
 
-; Press _Save_.
+; Select Inputs tab.
+SendMessage, 0x1330, 1, , SysTabControl321, ahk_class #32770
+if ErrorLevel {
+    MsgBox, Cannot find Inputs tab.
+    ExitApp
+}
+
+; Press _Save_ in Inputs tab.
 ControlClick, &Save, ahk_class #32770
 if ErrorLevel {
     MsgBox, Cannot find Save button.
-    return
+    ExitApp
 }
 Sleep, 2000
 
@@ -43,7 +54,7 @@ Sleep, 2000
 ControlSend, Edit1, Test.set, ahk_class #32770
 if ErrorLevel {
     MsgBox, Cannot type the filename.
-    return
+    ExitApp
 }
 Sleep, 200
 Send, {Enter}
