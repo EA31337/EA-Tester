@@ -8,6 +8,8 @@ type wine >/dev/null
 
 # Initialize variables.
 . $CWD/.vars.inc.sh
+. $CWD/.funcs.cmds.inc.sh
+set_display
 
 [ "$TERMINAL_EXE" ] \
   || { echo "Error: Terminal not found, please install it first." >&2; exit 1; }
