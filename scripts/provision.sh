@@ -113,7 +113,7 @@ case "$(uname -s)" in
 
     # Setup VNC.
     if [ -n "$PROVISION_VNC" ]; then
-      apt-get install -y x11vnc
+      apt-get install -y x11vnc fluxbox
     fi
 
     # Install required gems.
