@@ -320,10 +320,12 @@ compile_and_test() {
 export_set() {
   local name=${1:-$TEST_EXPERT}
   local dstfile=${2:-$1.set}
+  local ea_path=$(ea_find "$name")
   local temp=$(wine cmd /c echo %TEMP% | tr -d '\r')
   local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
+  [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
   set_display
-  ini_set "^Expert" "$name" "$TERMINAL_INI"
+  ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
   cp $VFLAG "$SCR"/ahk/export_set.ahk "$(winepath -u "$temp")/"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
   timeout 120 \
