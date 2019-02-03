@@ -44,8 +44,9 @@ Usage: $0 (args)
   -E (filename/url/pattern)
     EA name to run (Expert).
     Variable (string): EXPERT
-  -f (filename)
+  -f (filename/auto)
     The .set file to run the test.
+    If value is "auto", export SET from EA.
     Variable (string): SETFILE
   -F
     Convert test report file to full detailed text format.
@@ -405,6 +406,18 @@ while getopts $ARGS arg; do
   esac
 done
 
+# Export SET file when SETFILE is set to "auto".
+EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
+if [ ! -s "$TESTER_DIR/$EA_SETFILE" -a "$SETFILE" = "auto" ]; then
+  export_set "${TEST_EXPERT:-$EXPERT}"
+  SETFILE="$TESTER_DIR/EA.set"
+  if [ ! -s "$SETFILE" ]; then
+    echo "ERROR: Export of SET file failed ($SETFILE)!" >&2
+    exit 1
+  fi
+# cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
+fi
+
 # Apply settings.
 if [ -n "$INCLUDE_BOOT" ]; then
   echo "Invoking include booting file(s) (${INCLUDE_BOOT[@]})..." >&2
@@ -518,7 +531,6 @@ EXPERT="$(ini_get ^Expert)"
 EA_FILE="${TEST_EXPERT:-$EXPERT}"
 SCRIPT="$(ini_get ^Script)"
 SERVER="${SERVER:-$(ini_get Server)}"
-EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
 
 # Copy the template INI file for binary files.
 if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'ex' ]]; then
@@ -717,8 +729,10 @@ if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
     echo "Copying parameters from SET into INI file..." >&2
     ini_set_inputs "$TESTER_DIR/$EA_SETFILE" "$EA_INI"
   else
-    echo "ERROR: Set file not found ($SETFILE)!" >&2
-    exit 1
+    if [ ! -s "$SETFILE" ]; then
+      echo "ERROR: Set file not found ($SETFILE)!" >&2
+      exit 1
+    fi
   fi
 fi
 

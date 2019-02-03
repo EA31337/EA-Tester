@@ -352,8 +352,9 @@ export_set() {
   set_display
   ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
-  timeout 120 \
+  timeout 20 \
   wine AutoHotkeyU64 "$ahk_path" /ErrorStdOut ${@:2}
+  [ "$OPT_VERBOSE" ] && times >&2
 }
 
 # Copy ini settings from templates.
@@ -742,6 +743,7 @@ input_set() {
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
+  [ -f "$SETFILE" ] && file="$SETFILE"
   [ -f "$EA_SETFILE" ] && file="$EA_SETFILE"
   [ -f "$file" ]
   vargs+=$EXFLAG
