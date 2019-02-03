@@ -17,5 +17,5 @@ echo "Display is: $DISPLAY"
 
 # Run the test under the platform.
 echo "Running platform..." >&2
-wine "$TERMINAL_EXE" 2> "$TERMINAL_LOG"
+wine "$TERMINAL_EXE" $TERMINAL_ARG 2> "$TERMINAL_LOG"
 echo "$0 done." 1>&2
