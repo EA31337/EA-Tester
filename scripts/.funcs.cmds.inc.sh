@@ -310,6 +310,26 @@ compile_ea() {
   cd - &> /dev/null
 }
 
+# Compile all in MQL4 folder.
+# Usage: compile_all (logfile/CON)
+compile_all() {
+  local logfile=${1:-CON}
+  # Run compiler.
+  cd "$TERMINAL_DIR"
+  wine metaeditor.exe /compile:${MQL_DIR} /log:$logfile ${@:2}
+  compiled_no=$?
+  # Reset errexit to the previous value.
+  [[ $errexit -eq 0 ]] && set -e
+  echo "Info: Number of files compiled: $compiled_no" >&2
+  [ ! -f "$logfile" ] && logfile="${logfile%.*}.log"
+  if [ -f "$logfile" ]; then
+    results=$(iconv -f utf-16 -t utf-8 "$logfile")
+    grep -A10 "${name%.*}" <<<$results
+    grep -qw "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
+  fi
+  cd - &> /dev/null
+}
+
 # Compile and test the given EA.
 # Usage: compile_and_test [EA/pattern] (args...)
 compile_and_test() {
@@ -332,7 +352,7 @@ export_set() {
   cp $VFLAG "$SCR"/ahk/export_set.ahk "$(winepath -u "$temp")/"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
   timeout 120 \
-  wine AutoHotkeyU64 $ahk_path /ErrorStdOut ${@:2}
+  wine AutoHotkeyU64 "$ahk_path" /ErrorStdOut ${@:2}
 }
 
 # Copy ini settings from templates.
