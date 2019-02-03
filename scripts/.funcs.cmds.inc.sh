@@ -316,6 +316,8 @@ compile_all() {
   local logfile=${1:-CON}
   # Run compiler.
   cd "$TERMINAL_DIR"
+  # Read value of errexit, and disable it.
+  shopt -qo errexit; local errexit=$?; set +e
   wine metaeditor.exe /compile:${MQL_DIR} /log:$logfile ${@:2}
   compiled_no=$?
   # Reset errexit to the previous value.
@@ -334,7 +336,7 @@ compile_all() {
 # Usage: compile_and_test [EA/pattern] (args...)
 compile_and_test() {
   local name=${1:-$TEST_EXPERT}
-  compile_ea $name
+  compile_ea "$name"
   $CWD/run_backtest.sh -e "$@"
 }
 
@@ -344,12 +346,11 @@ export_set() {
   local name=${1:-$TEST_EXPERT}
   local dstfile=${2:-$1.set}
   local ea_path=$(ea_find "$name")
-  local temp=$(wine cmd /c echo %TEMP% | tr -d '\r')
   local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
   [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
+  compile_ea "$name"
   set_display
   ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
-  cp $VFLAG "$SCR"/ahk/export_set.ahk "$(winepath -u "$temp")/"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
   timeout 120 \
   wine AutoHotkeyU64 "$ahk_path" /ErrorStdOut ${@:2}
