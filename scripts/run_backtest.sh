@@ -46,7 +46,8 @@ Usage: $0 (args)
     Variable (string): EXPERT
   -f (filename/auto)
     The .set file to run the test.
-    If value is "auto", export SET from EA.
+    When in optimization mode, better settings are applied into that file.
+    If file doesn't exist, generate one from EA.
     Variable (string): SETFILE
   -F
     Convert test report file to full detailed text format.
@@ -372,7 +373,7 @@ while getopts $ARGS arg; do
       ;;
 
     f) # The .set file to run the test.
-      SETFILE="$OPTARG"
+      SETFILE="$(eval echo "$OPTARG")"
       ;;
 
     I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
@@ -406,16 +407,11 @@ while getopts $ARGS arg; do
   esac
 done
 
-# Export SET file when SETFILE is set to "auto".
-EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
-if [ ! -s "$TESTER_DIR/$EA_SETFILE" -a "$SETFILE" = "auto" ]; then
+# Export SET file when SETFILE does not exist.
+if [ ! -s "$SETFILE" ]; then
   export_set "${TEST_EXPERT:-$EXPERT}"
-  SETFILE="$TESTER_DIR/EA.set"
-  if [ ! -s "$SETFILE" ]; then
-    echo "ERROR: Export of SET file failed ($SETFILE)!" >&2
-    exit 1
-  fi
-# cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
+  [ ! -s "$TESTER_DIR/EA.set" ] && { echo "ERROR: Export of SET file failed!" >&2; exit 1; }
+  cp -f $VFLAG "$TESTER_DIR/EA.set" "$SETFILE"
 fi
 
 # Apply settings.
