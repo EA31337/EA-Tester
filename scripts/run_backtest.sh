@@ -518,7 +518,9 @@ fi
 TEST_EXPERT="$(ini_get ^TestExpert)"
 EXPERT="$(ini_get ^Expert)"
 EA_FILE="${TEST_EXPERT:-$EXPERT}"
+EA_INI="$TESTER_DIR/${EA_FILE##*/}.ini"
 SCRIPT="$(ini_get ^Script)"
+SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
 EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
 EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
 SERVER="${SERVER:-$(ini_get Server)}"
@@ -535,12 +537,11 @@ if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
   cp -f $VFLAG "$TESTER_DIR/EA.set" "$TESTER_DIR/$EA_SETFILE"
 fi
 
-# Copy the template INI file for binary files.
-if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'ex' ]]; then
-  EA_INI="$TESTER_DIR/$EA_FILE.ini"
+# Copy the template INI file.
+if [ -n "$EA_FILE" -a ! -s "$EA_INI" ]; then
   cp $VFLAG "$TPL_EA" "$EA_INI"
-elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'ex' ]]; then
-  SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
+elif [ -n "$SCRIPT" -a ! -s "$SCR_INI" ]; then
+  cp $VFLAG "$TPL_EA" "$SCR_INI"
 fi
 
 srv_copy
