@@ -345,8 +345,9 @@ compile_and_test() {
 export_set() {
   local name=${1:-$TEST_EXPERT}
   local dstfile=${2:-$1.set}
-  local ea_path=$(ea_find "$name")
+  local ea_path=$name
   local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
+  [ ! -s "$name" ] && ea_path=$(ea_find "${name##/}")
   [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
   compile_ea "$name"
   set_display
