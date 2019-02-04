@@ -652,7 +652,7 @@ post_gist() {
     <<<$"INVQI9lTPl0UJZ1TSBFJ"))')))))'
   [ -n "$OPT_TRACE" ] && set -x
   cd "$dir"
-  local files=$(find . -type f -maxdepth 1 '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
+  local files=$(find . -maxdepth 1 -type f '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
   local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
   local desc=$(result_summary)
   gist -d "$desc" $files
