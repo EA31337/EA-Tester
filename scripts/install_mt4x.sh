@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Script to install MT platform using xdotool.
+[ "$OPT_NOERR" ] || set -e
+[ "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P || pwd -P)"
 DTMP=$(mktemp -d)
 EXEFILE=mt4setup.exe

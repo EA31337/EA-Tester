@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Script to install MT4 platform using winetricks.
-set -e
+[ "$OPT_NOERR" ] || set -e
+[ "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P || pwd -P)"
 WURL=${WURL:-https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks}
 export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
