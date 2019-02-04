@@ -4,14 +4,14 @@
 [ "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null; pwd -P)"
 WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
-export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
 
-echo "Checking display..." >&2
-if [ ! "$DISPLAY" ]; then
-  echo "Configuring display..." >&2
-  . .funcs.cmds.inc.sh
-  set_display
-fi
+# Load the shell functions.
+. "$CWD/.funcs.inc.sh"
+. "$CWD/.funcs.cmds.inc.sh"
+
+# Prints information of the window status in the background.
+set_display
+live_stats &
 
 echo "Installing winhttp..." >&2
 sh -s winhttp < <(wget -qO- $WURL)
