@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
 
 # Initialize variables.
-[ "$NOERR" ] || set -e
+[ "$OPT_NOERR" ] || set -e
 [ "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
@@ -114,6 +114,7 @@ Usage: $0 (args)
     Variable (bool): VISUAL_MODE
   -x
     Run the script in trace/debug mode.
+    Variable (bool): OPT_TRACE
   -X (file)
     Invoke file on exit after the successful test.
   -y (year)
@@ -126,6 +127,8 @@ Other variables (without arguments assigned):
 - BT_TESTMODE (uint)
   This controls type of backtest data being downloaded.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
+- OPT_NOERR (bool)
+  Disables errexit flag to prevent exiting script on failure.
 
 Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
 _EOF

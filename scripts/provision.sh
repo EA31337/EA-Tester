@@ -5,8 +5,8 @@
 #
 
 # Initialize script.
+[ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
-[ -n "$NOERR" ] || set -e
 if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
