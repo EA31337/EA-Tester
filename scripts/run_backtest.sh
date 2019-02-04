@@ -218,6 +218,22 @@ parse_results() {
     convert_html2json "$TEST_REPORT_HTM"
   fi
 
+  if [ "$OPT_OPTIMIZATION" ]; then
+    # Parse and save the optimization test results.
+    echo "Sorting optimization test results..." >&2
+    if [ "${MT_VER%%.*}" -ne 5 ]; then
+      sort_opt_results "$TEST_REPORT_HTM"
+    fi
+    echo "Saving optimization results..."
+    if [ -z "$input_values" ]; then
+      for input in ${param_list[@]}; do
+        value=$(ini_get "$input" "$TEST_REPORT_HTM")
+        echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
+        ini_set "^$input" "$value" "$SETFILE"
+      done
+    fi
+  fi
+
   if [ "$OPT_FORMAT_FULL" ]; then
     # Convert test report file to full detailed text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
@@ -238,22 +254,6 @@ parse_results() {
     if [ -f "$TEST_REPORT_TXT" ]; then
       local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
       enhance_gif "$report_gif" -t "$gif_text"
-    fi
-  fi
-
-  if [ "$OPT_OPTIMIZATION" ]; then
-    # Parse and save the optimization test results.
-    echo "Sorting optimization test results..." >&2
-    if [ "${MT_VER%%.*}" -ne 5 ]; then
-      sort_opt_results "$TEST_REPORT_HTM"
-    fi
-    echo "Saving optimization results..."
-    if [ -z "$input_values" ]; then
-      for input in ${param_list[@]}; do
-        value=$(ini_get "$input" "$TEST_REPORT_HTM")
-        echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
-        ini_set "^$input" "$value" "$SETFILE"
-      done
     fi
   fi
 
