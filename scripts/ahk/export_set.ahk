@@ -2,7 +2,8 @@
 ; Opens Terminal and exports EA's SET file.
 
 ; Execute the terminal.
-Run, "terminal.exe" /skipupdate /portable
+Run, terminal.exe /skipupdate /portable
+Process, Wait, terminal.exe, 5
 if ErrorLevel {
     MsgBox, Cannot open Terminal app.
     Process, Close, terminal.exe
