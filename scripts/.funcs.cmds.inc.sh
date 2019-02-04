@@ -743,9 +743,7 @@ input_set() {
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
-  [ -f "$SETFILE" ] && file="$SETFILE"
-  [ -f "$EA_SETFILE" ] && file="$EA_SETFILE"
-  [ -f "$file" ]
+  [ -s "$file" ]
   vargs+=$EXFLAG
   if [ ! -z "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
@@ -761,8 +759,7 @@ input_get() {
   local key="$1"
   local file="${2:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
-  [ -f "$EA_SETFILE" ] && file="$EA_SETFILE"
-  [ -f "$file" ]
+  [ -s "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
 }

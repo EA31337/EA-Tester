@@ -526,6 +526,8 @@ TEST_EXPERT="$(ini_get ^TestExpert)"
 EXPERT="$(ini_get ^Expert)"
 EA_FILE="${TEST_EXPERT:-$EXPERT}"
 SCRIPT="$(ini_get ^Script)"
+EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
+EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
 SERVER="${SERVER:-$(ini_get Server)}"
 
 # Copy the template INI file for binary files.
