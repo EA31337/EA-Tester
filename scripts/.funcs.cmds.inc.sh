@@ -340,22 +340,23 @@ compile_and_test() {
   $CWD/run_backtest.sh -e "$@"
 }
 
-# Experts SET file.
+# Experts SET file. Returns exported filename.
 # Usage: export_set [EA/pattern] (dst/file) (...args)
 export_set() {
   local name=${1:-$TEST_EXPERT}
-  local dstfile=${2:-$1.set}
+  local dstfile=${2:-${name}.set}
   local ea_path=$name
   local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
   [ ! -s "$name" ] && ea_path=$(ea_find "${name##/}")
   [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
-  compile_ea "$name"
-  set_display
+  compile_ea "$name" >&2
+  set_display >&2
   ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
   timeout 20 \
-  wine AutoHotkeyU64 "$ahk_path" /ErrorStdOut ${@:2}
+  wine AutoHotkeyU64 /ErrorStdOut "$ahk_path" "${dstfile}" ${@:2}
   [ "$OPT_VERBOSE" ] && times >&2
+  echo "${dstfile}"
 }
 
 # Copy ini settings from templates.
