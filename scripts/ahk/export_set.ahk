@@ -1,9 +1,14 @@
 ; AutoHotkey
 ; Opens Terminal and exports EA's SET file.
 
+; Initialize variables.
+EA = %1%
+if (!EA)
+  EA := "EA"
+
 ; Execute the terminal.
-Run, terminal.exe /skipupdate /portable
-Process, Wait, terminal.exe, 5
+Run, "terminal.exe" "/skipupdate /portable"
+Process, Wait, "terminal.exe", 10
 if ErrorLevel {
     MsgBox, Cannot open Terminal app.
     Process, Close, terminal.exe
@@ -63,7 +68,7 @@ if ErrorLevel {
 Sleep, 1000
 
 ; Type filename, and confirm.
-ControlSend, Edit1, {Control down}a{Control up}EA.set{Enter}, ahk_class #32770
+ControlSend, Edit1, {Control down}a{Control up}%EA%{Enter}, ahk_class #32770
 if ErrorLevel {
     MsgBox, Cannot type the filename.
     Process, Close, terminal.exe
