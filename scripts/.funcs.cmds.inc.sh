@@ -191,8 +191,8 @@ print_ver() {
 set_display() {
   export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=,winebrowser.exe=}" # Disable gecko and default browser in wine.
   export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
-  xdpyinfo &>/dev/null && return
   export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
+  xdpyinfo &>/dev/null && return
   if which x11vnc &>/dev/null; then
     ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
   fi
@@ -524,7 +524,7 @@ read_result_values() {
 # Prints result summary in one line.
 # E.g. result_summary [Report.htm]
 result_summary() {
-  local file="${1:-TEST_REPORT_HTM}"
+  local file="${1:-$TEST_REPORT_HTM}"
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
   [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   cd "$TESTER_DIR" 2>/dev/null
