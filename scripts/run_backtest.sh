@@ -531,9 +531,10 @@ SERVER="${SERVER:-$(ini_get Server)}"
 # Export SET file when SETFILE does not exist.
 if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   echo "Specified SET file via -f param does not exist ($SETFILE), exporting from EA ..." >&2
-  export_set "${TEST_EXPERT:-$EXPERT}"
-  [ ! -s "$TESTER_DIR/EA.set" ] && { echo "ERROR: Export of SET file failed!" >&2; exit 1; }
-  cp -f $VFLAG "$TESTER_DIR/EA.set" "$SETFILE"
+  exported_setfile=${TEST_EXPERT:-$EXPERT}
+  exported_setfile=$(export_set "${exported_setfile##*/}" "$(basename "$SETFILE")")
+  [ ! -s "$TESTER_DIR/$exported_setfile" ] && { echo "ERROR: Export of SET file failed!" >&2; exit 1; }
+  cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
 if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
   echo "EA's SET file does not exist ($EA_SETFILE), copying from $SETFILE..." >&2
