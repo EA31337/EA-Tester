@@ -483,7 +483,7 @@ srv_copy() {
 }
 
 # Read value from result HTML file.
-# read_result_value [key] [Report.htm]
+# read_result_value [key] (Report.htm)
 # E.g. read_result_value "Profit factor" Report.htm
 read_result_value() {
   local key="$1"
@@ -524,19 +524,31 @@ read_result_values() {
 # Prints result summary in one line.
 # E.g. result_summary [Report.htm]
 result_summary() {
-  local file="${TEST_REPORT_HTM:-Report.htm}"
+  local file="${1:-TEST_REPORT_HTM}"
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
   [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
-  symbol=$(read_result_value "Symbol")
-  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
-  pf=$(read_result_value "Profit factor")
-  ep=$(read_result_value "Expected payoff")
-  dd=$(read_result_value "Relative drawdown")
-  deposit=$(read_result_value "Initial deposit")
-  profit=$(read_result_value "Total net profit")
-  printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f; %s %s" \
-    $ttype "${EA_FILE:-EA}" \
-    "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "${symbol%%[[:space:]]*}" "$period"
+  cd "$TESTER_DIR" 2>/dev/null
+  symbol=$(read_result_value "Symbol" "$file")
+  period=$(read_result_value "Period" "$file" | grep -o '([^)]\+)' | xargs | tr -d ' ')
+  deposit=$(read_result_value "Initial deposit" "$file")
+  spread=$(read_result_value "Spread" "$file")
+  case "$ttype" in
+    "Backtest")
+      pf=$(read_result_value "Profit factor" "$file")
+      ep=$(read_result_value "Expected payoff" "$file")
+      dd=$(read_result_value "Relative drawdown" "$file")
+      profit=$(read_result_value "Total net profit" "$file")
+      printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f/Spread:%d; %s %s" \
+        $ttype "${EA_FILE:-EA}" \
+        "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$spread" "${symbol%%[[:space:]]*}" "$period"
+      ;;
+    "Optimization")
+      printf "%s results for %s: Deposit:%.0f/Spread:%d; %s %s" \
+        $ttype "${EA_FILE:-EA}" \
+        "$deposit" "$spread" "${symbol%%[[:space:]]*}" "$period"
+      ;;
+  esac
+  cd - &>/dev/null
 }
 
 # Convert HTML to text format.
