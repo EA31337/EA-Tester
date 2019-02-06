@@ -667,7 +667,7 @@ post_gist() {
   cd "$dir"
   local files=$(find . -maxdepth 1 -type f '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
   local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
-  local desc=$(result_summary)
+  local desc=$(result_summary "$TEST_REPORT_HTM")
   gist -d "$desc" $files
   cd - &>/dev/null
 }
