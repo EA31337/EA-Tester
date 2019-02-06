@@ -44,7 +44,7 @@ if ErrorLevel {
 }
 WinActivate, ahk_class #32770
 WinWaitActive, ahk_class #32770
-Sleep, 200
+Sleep, 500
 
 ; Select Inputs tab.
 SendMessage, 0x1330, 1,, SysTabControl321, ahk_class #32770 ; 0x1330 is TCM_SETCURFOCUS.

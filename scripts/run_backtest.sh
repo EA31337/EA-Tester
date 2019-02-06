@@ -538,7 +538,7 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
 fi
 if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
   echo "EA's SET file does not exist ($EA_SETFILE), copying from $SETFILE..." >&2
-  cp -f $VFLAG "$TESTER_DIR/EA.set" "$TESTER_DIR/$EA_SETFILE"
+  cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
 fi
 
 # Copy the template INI file.
