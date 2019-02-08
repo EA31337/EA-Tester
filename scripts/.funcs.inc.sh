@@ -5,7 +5,7 @@
 #
 
 ## Initialize.
-[ "$OPT_VERBOSE" ] && echo "Loading $0... " >&2
+[ "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "$0")" && pwd -P)}"
 
 #
