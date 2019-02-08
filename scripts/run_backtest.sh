@@ -123,12 +123,16 @@ Usage: $0 (args)
   -?
     Display help.
 
-Other variables (without arguments assigned):
+Other supported variables (without arguments assigned):
 - BT_TESTMODE (uint)
   This controls type of backtest data being downloaded.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
 - OPT_NOERR (bool)
   Disables errexit flag to prevent exiting script on failure.
+- BOOT_CODE (string)
+  Shell code to execute before the test.
+- FINAL_CODE (string)
+  Shell code to execute after the test.
 
 Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
 _EOF

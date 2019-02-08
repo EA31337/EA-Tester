@@ -204,8 +204,10 @@ To customize the command, here are the supported parameters and variables:
   -E (filename/url/pattern)
     EA name to run (Expert).
     Variable (string): EXPERT
-  -f (filename)
+  -f (filename/auto)
     The .set file to run the test.
+    When in optimization mode, better settings are applied into that file.
+    If file doesn't exist, generate one from EA.
     Variable (string): SETFILE
   -F
     Convert test report file to full detailed text format.
@@ -229,7 +231,7 @@ To customize the command, here are the supported parameters and variables:
     Specify a lot step (e.g. 0.01).
     Variable (float): BT_LOTSTEP
   -L (limit)
-    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown=20.00).
+    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown_enable=1,maxdrawdown=20.00).
     Variable (string): EA_OPTS
   -m (month)
     Month to test. Default: 1-12.
@@ -272,6 +274,7 @@ To customize the command, here are the supported parameters and variables:
     Variable (bool): VISUAL_MODE
   -x
     Run the script in trace/debug mode.
+    Variable (bool): OPT_TRACE
   -X (file)
     Invoke file on exit after the successful test.
   -y (year)
@@ -280,8 +283,14 @@ To customize the command, here are the supported parameters and variables:
   -?
     Display help.
 
-Other variables (without arguments assigned):
+Other supported variables (without arguments assigned):
 - BT_TESTMODE (uint)
   This controls type of backtest data being downloaded.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
+- OPT_NOERR (bool)
+  Disables errexit flag to prevent exiting script on failure.
+- BOOT_CODE (string)
+  Shell code to execute before the test.
+- FINAL_CODE (string)
+  Shell code to execute after the test.
 ```
