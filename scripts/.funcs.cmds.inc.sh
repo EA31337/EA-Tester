@@ -424,7 +424,7 @@ ea_copy() {
   if [ ${#includes[@]} -eq 0 ]; then
     cp $VFLAG "$file" "$dir_dst"/
   else
-    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+    cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
   fi
 }
 
@@ -444,7 +444,7 @@ script_copy() {
   if [ ${#includes[@]} -eq 0 ]; then
     cp $VFLAG "$file" "$dir_dst"/
   else
-    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+    cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
   fi
 }
 
