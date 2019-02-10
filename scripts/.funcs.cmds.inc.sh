@@ -306,7 +306,11 @@ compile_ea() {
   if [ -f "$logfile" ]; then
     results=$(iconv -f utf-16 -t utf-8 "$logfile")
     grep -A10 "${name%.*}" <<<$results
-    grep -qw "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
+    if ! grep -qw "0 error" <<<$results; then
+      echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2;
+      WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /s /compile:"$rel_path" /log:CON
+      exit 1; # Fail on error.
+    fi
   fi
   cd - &> /dev/null
 }
