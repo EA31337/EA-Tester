@@ -315,6 +315,15 @@ compile_ea() {
   cd - &> /dev/null
 }
 
+# Compile given script name.
+# Usage: compile_script
+compile_script() {
+  local name="$1"
+  cd "$TERMINAL_DIR"
+  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
+  cd - &> /dev/null
+}
+
 # Compile all in MQL4 folder.
 # Usage: compile_all (logfile/CON)
 compile_all() {
@@ -631,15 +640,6 @@ convert_html2json() {
     done | paste -sd,
     printf "}"
   } > "$file_out"
-}
-
-# Compile given script name.
-# Usage: compile_script
-compile_script() {
-  local name="$1"
-  cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
-  cd - &> /dev/null
 }
 
 # Sort optimization test result values by profit factor.
