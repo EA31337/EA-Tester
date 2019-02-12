@@ -201,7 +201,7 @@ set_display() {
   if which fluxbox &>/dev/null; then
     ! pgrep -a fluxbox && fluxbox 2>/dev/null &
   fi
-  echo Hostname: $(hostname)
+  echo "IP: $(hostname -I) ($(hostname))"
 }
 
 # Detect and configure proxy.
