@@ -844,6 +844,14 @@ if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   exit 1
 fi
 
+if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'mq' ]]; then
+  # Compile EA when source code file is specified.
+  compile_ea ${EA_PATH##*/}
+elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
+  # Compile script when source code file is specified.
+  compile_script ${SCR_PATH##*/}
+fi
+
 # Kill on condition when running script.
 if [ -n "$SCRIPT" ]; then
   kill_on_match "uninit reason 0" &
