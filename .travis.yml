@@ -29,14 +29,15 @@ env:
   - CMD="scripts/eval.sh help; scripts/run_backtest.sh -?"
   - CMD="shellcheck -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2207,SC2221,SC2222,SC2230 scripts/*.sh scripts/.*.sh"
   - CMD="$DOCKER_RUN 'help; run_backtest;'"
-  - CMD="$DOCKER_RUN 'for file in \$(ls /opt/tests/scripts); do run_backtest -s \$file; done'"
-  - CMD="$DOCKER_RUN 'for file in TestFXTHeader; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -e \$file; done'"
+  - CMD="docker-compose run -f scripts/docker-compose.yml PrintPaths"
+  - CMD="docker-compose run TestFXTHeader"
   # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1.
-  - CMD="$DOCKER_RUN 'for digits in 4; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -S20 -D \$digits -e TestLotstep; done'"
-  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestTimeframes -T \$tf; done'"
-  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestBands -T \$tf; done'"
-  - CMD="$DOCKER_RUN 'for tf in M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestEnvelopes -T \$tf; done'"
-  - CMD="$DOCKER_RUN 'for tf in M1 M5 M15 M30; do run_backtest -v -t -p EURUSD -y 2017 -m 1 -b DS -D5 -e TestModellingQuality -T \$tf; done'"
+  - CMD="docker-compose run TestLotstep4"
+# - CMD="docker-compose run TestLotstep5"
+  - CMD="docker-compose run TestTimeframes"
+  - CMD="docker-compose run TestBands"
+  - CMD="docker-compose run TestEnvelopes"
+  - CMD="docker-compose run TestModellingQuality"
   - CMD="$DOCKER_RUN install_mt 4"
   - CMD="$DOCKER_RUN install_mt 4x"
   - CMD="$DOCKER_RUN install_mt 5"
@@ -66,10 +67,11 @@ install:
 before_script:
 - docker info
 - docker images
+- cd tests
 script:
 - set -e
-- ruby -wc Vagrantfile
-- shellcheck scripts/.aliases.inc.sh
+#- ruby -wc Vagrantfile
+#- shellcheck scripts/.aliases.inc.sh
 - echo $CMD
 - eval $CMD
 after_script:

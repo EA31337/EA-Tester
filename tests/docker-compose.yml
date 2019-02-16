@@ -10,7 +10,7 @@ services:
     environment:
       BT_MONTHS: 1
   TestEnvelopes:
-    command: run_backtest -e TestEnvelopes
+    command: for tf in M15 M30; do run_backtest -e TestEnvelopes -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ../:/opt/src
@@ -33,8 +33,16 @@ services:
     tty: true
     environment:
       BT_MONTHS: 1
-  TestLotstep:
-    command: run_backtest -e TestLotstep
+  TestLotstep4:
+    command: run_backtest -e TestLotstep -D 4
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ../:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestLotstep5:
+    command: run_backtest -e TestLotstep -D 5
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ../:/opt/src
@@ -50,7 +58,7 @@ services:
     environment:
       BT_MONTHS: 1
   TestModellingQuality:
-    command: run_backtest -e TestModellingQuality
+    command: for tf in M1 M5 M15 M30; do run_backtest -e TestModellingQuality -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ../:/opt/src
@@ -98,7 +106,7 @@ services:
     environment:
       BT_MONTHS: 1
   TestTimeframes:
-    command: run_backtest -e TestTimeframes
+    command: for tf in M15 M30; do run_backtest -e TestTimeframes -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ../:/opt/src
