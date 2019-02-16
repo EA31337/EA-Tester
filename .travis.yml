@@ -29,7 +29,7 @@ env:
   - CMD="scripts/eval.sh help; scripts/run_backtest.sh -?"
   - CMD="shellcheck -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2207,SC2221,SC2222,SC2230 scripts/*.sh scripts/.*.sh"
   - CMD="$DOCKER_RUN 'help; run_backtest;'"
-  - CMD="docker-compose run -f scripts/docker-compose.yml PrintPaths"
+  - CMD="cd scripts && docker-compose run PrintPaths"
   - CMD="docker-compose run TestFXTHeader"
   # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1.
   - CMD="docker-compose run TestLotstep4"
@@ -70,8 +70,6 @@ before_script:
 - cd tests
 script:
 - set -e
-#- ruby -wc Vagrantfile
-#- shellcheck scripts/.aliases.inc.sh
 - echo $CMD
 - eval $CMD
 after_script:
