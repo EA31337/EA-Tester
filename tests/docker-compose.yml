@@ -1,7 +1,7 @@
 version: '3'
 services:
   TestBands:
-    command: run_backtest -e TestBands
+    command: for tf in M15 M30; do run_backtest -e TestBands -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ../:/opt/src

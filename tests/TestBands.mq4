@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                    TestBands.mq4 |
-//|                            Copyright 2018, 31337 Investments Ltd |
+//|                       Copyright 2018-2019, 31337 Investments Ltd |
 //|                                       https://github.com/EA31337 |
 //+------------------------------------------------------------------+
 
@@ -33,7 +33,7 @@ int OnInit() {
 
   Print("Testing values for Bands indicator...");
   PrintFormat("Symbol            : %s", _Symbol);
-  PrintFormat("Current timeframe : %d", PERIOD_CURRENT);
+  PrintFormat("Current timeframe : %d", _Period);
   PrintFormat("Bid/Ask           : %g/%g", NormalizeDouble(Bid, Digits), NormalizeDouble(Ask, Digits));
   for (int p = 0; p < ArraySize(tf); p++) {
     for (int m = 0; m < ArraySize(modes); m++) {

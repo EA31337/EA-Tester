@@ -557,12 +557,12 @@ result_summary() {
       ep=$(read_result_value "Expected payoff" "$file")
       dd=$(read_result_value "Relative drawdown" "$file")
       profit=$(read_result_value "Total net profit" "$file")
-      printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f/Spread:%d; %s %s" \
+      printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f/Spread:%d; %s %s\n" \
         $ttype "${EA_FILE:-EA}" \
         "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$spread" "${symbol%%[[:space:]]*}" "$period"
       ;;
     "Optimization")
-      printf "%s results for %s: Deposit:%.0f/Spread:%d; %s %s" \
+      printf "%s results for %s: Deposit:%.0f/Spread:%d; %s %s\n" \
         $ttype "${EA_FILE:-EA}" \
         "$deposit" "$spread" "${symbol%%[[:space:]]*}" "$period"
       ;;
