@@ -434,7 +434,7 @@ ea_copy() {
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   exec 1>&2
-  includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
+  mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   if [ ${#includes[@]} -eq 0 ]; then
     # Copy a single file when no includes present.
     cp $VFLAG "$file" "$dir_dst"/
@@ -459,7 +459,7 @@ script_copy() {
   [ "$(dirname "$file")" == "$(dirname "$dir_dst")" ] && return
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   exec 1>&2
-  includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
+  mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   if [ ${#includes[@]} -eq 0 ]; then
     cp $VFLAG "$file" "$dir_dst"/
   else
