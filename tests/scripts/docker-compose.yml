@@ -1,0 +1,9 @@
+version: '3'
+services:
+  PrintsPath:
+    command: run_backtest -e PrintsPaths
+    image: ea31337/ea-tester:dev
+    volumes:
+    - ./:/opt/src
+#   - ../../EA-Tester/scripts:/opt/scripts
+    tty: true
