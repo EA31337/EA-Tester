@@ -75,7 +75,7 @@ begin
       when '--vm-name';        vm_name        = arg
     end # case
   end # each
-  rescue
+rescue
 # @todo: Correct an invalid option error.
 end
 script = "set -x;"
