@@ -769,7 +769,7 @@ input_set() {
   local vargs="-u NONE"
   [ -s "$file" ]
   vargs+=$EXFLAG
-  if [ ! -z "$value" ]; then
+  if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
   else
@@ -798,7 +798,7 @@ ini_set() {
   [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
   vargs+=$EXFLAG
-  if [ ! -z "$value" ]; then
+  if [ -n "$value" ]; then
     if grep -q "$key" "$file"; then
       echo "Setting '$key' to '$value' in $(basename "$file")" >&2
       ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -869,7 +869,7 @@ tag_set() {
   local vargs="-u NONE"
   [ -f "$file" ]
   vargs+=$EXFLAG
-  if [ ! -z "$value" ]; then
+  if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
   else
