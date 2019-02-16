@@ -1,0 +1,18 @@
+version: '3'
+services:
+  SyntaxVagrantfile:
+    command: ruby -wc /opt/src/Vagrantfile
+    image: ruby
+    volumes:
+    - ./:/opt/src
+  SyntaxBash:
+    command: bash -c 'bash -n $$(find /opt/src -name "*.sh" -print)'
+    image: bash
+    volumes:
+    - ./:/opt/src
+# @fixme
+# SyntaxShellcheck:
+#   command: /opt/src/scripts/*.sh /opt/src/scripts/.*.sh
+#   image: koalaman/shellcheck
+#   volumes:
+#   - ./:/opt/src
