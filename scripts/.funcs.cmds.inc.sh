@@ -279,23 +279,21 @@ file_get() {
   wget -cP "$dest" $url
 }
 
-# Compile the given EA name.
-# Usage: compile_ea [EA/pattern] [log_file]
-compile_ea() {
-  local name=${1:-$TEST_EXPERT}
+# Compile the source code file.
+# Usage: compile_file [file] (log_file)
+compile_file() {
+  local name=$1
   local logfile=${2:-${name%.*}.log}
   type iconv >/dev/null
-  local ea_path=$(ea_find "$name")
-  local ea_dir=$(dirname "$ea_path")
-  # If path is absolute, enter that dir, otherwise go to Experts dir.
-  [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
-  [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
+
   local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
   local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
   local rel_path=$(echo ${exact#./} || echo ${match#./})
   [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
+
   # Read value of errexit, and disable it.
   shopt -qo errexit; local errexit=$?; set +e
+
   # Run compiler.
   WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
   compiled_no=$?
@@ -312,15 +310,35 @@ compile_ea() {
       exit 1; # Fail on error.
     fi
   fi
+}
+
+# Compile specified EA file.
+# Usage: compile_ea [EA/pattern] (log_file)
+compile_ea() {
+  local name=${1:-$TEST_EXPERT}
+  local logfile=${2:-${name%.*}.log}
+  local ea_path=$(ea_find "$name")
+  local ea_dir=$(dirname "$ea_path")
+
+  # If path is absolute, enter that dir, otherwise go to Experts dir.
+  [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
+  [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
+  compile_file "$ea_path" "$logfile"
   cd - &> /dev/null
 }
 
-# Compile given script name.
-# Usage: compile_script
+# Compile specified script file.
+# Usage: compile_script [Script/pattern] (log_file)
 compile_script() {
-  local name="$1"
-  cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
+  local name="${1:-$SCRIPT}"
+  local logfile=${2:-${name%.*}.log}
+  local scr_path=$(script_find "$name")
+  local scr_dir=$(dirname "$ea_path")
+
+  # If path is absolute, enter that dir, otherwise go to Scripts dir.
+  [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
+  [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
+  compile_file "$scr_path" "$logfile"
   cd - &> /dev/null
 }
 
