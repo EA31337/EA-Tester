@@ -110,9 +110,9 @@ case "$(uname -s)" in
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
       su - $user -c "
-        wget -P /opt -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
-        DISPLAY=$DISPLAY wine /opt/AutoHotkey_*.exe /S && \
-        rm -v /opt/AutoHotkey_*.exe
+        wget -P /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
+        DISPLAY=$DISPLAY wine /tmp/AutoHotkey_*.exe /S && \
+        rm -v /tmp/AutoHotkey_*.exe
       "
       ahk_path=$(su - $user -c 'winepath -u "c:\\Program Files\\AutoHotkey"');
       if [ -d "$ahk_path" ]; then
@@ -121,13 +121,13 @@ case "$(uname -s)" in
         echo "Error: AutoHotkey installation failed!" >&2
         exit 1
       fi
-    fi
+    fi &
 
     # Install required gems.
     apt-get install -qy ruby
     gem install gist
     # Apply a patch (https://github.com/defunkt/gist/pull/232).
-    patch -d "$(gem env gemdir)"/gems/gist-* -p1 < <(curl -s https://github.com/defunkt/gist/commit/5843e9827f529cba020d08ac764d70c8db8fbd71.patch)
+    patch -d "$(gem env gemdir)"/gems/gist-* -p1 < <(curl -s https://github.com/defunkt/gist/commit/5843e9827f529cba020d08ac764d70c8db8fbd71.patch) &
 
     # Setup SSH if requested.
     if [ -n "$PROVISION_SSH" ]; then
@@ -142,11 +142,10 @@ case "$(uname -s)" in
       sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
     fi
 
-    # Erase downloaded archive files.
-    apt-get clean
-
     # Install pup parser.
-    install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
+    (
+      install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
+    ) &
 
     # Setup swap file if none (exclude Docker image).
     if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
@@ -161,7 +160,11 @@ case "$(uname -s)" in
         swapon swapfile
         cd - &>/dev/null
       fi
-    fi
+    fi &
+
+    # Erase downloaded archive files.
+    apt-get clean
+
     ;;
   Darwin)
     brew install git
@@ -171,18 +174,25 @@ esac
 set +x
 
 # Set-up hostname.
-grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts
+grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts &
 
 # Set-up git.
-git config --system user.name $user
-git config --system user.email "$user@$HOSTNAME"
-git config --system core.sharedRepository group
+(
+  git config --system user.name $user
+  git config --system user.email "$user@$HOSTNAME"
+  git config --system core.sharedRepository group
+) &
 
 # Add version control for /opt.
-git init /opt
+git init /opt &
 
 # Give user write permission for /opt.
-chown -R $user /opt
+chown -R $user /opt &
+
+# Wait for background jobs to finish.
+pkill Xvfb
+jobs
+wait
 
 # Mark system as provisioned.
 > ~/.provisioned
