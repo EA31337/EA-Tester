@@ -286,9 +286,13 @@ compile_file() {
   local logfile=${2:-${name%.*}.log}
   type iconv >/dev/null
 
-  local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
-  local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
-  local rel_path=$(echo ${exact#./} || echo ${match#./})
+  local rel_path=$name
+  [ ! -s "$rel_path" ] && (
+    name=${name##*/} # Drop the path.
+    local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
+    local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
+    rel_path=$(echo ${exact#./} || echo ${match#./})
+  )
   [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
 
   # Read value of errexit, and disable it.
