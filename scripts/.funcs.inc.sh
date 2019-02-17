@@ -92,7 +92,6 @@ get_time() {
 live_monitor_errors() {
   local filter=${1:-cannot open}
   local interval=${2:-10}
-  set -x
   # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
   {
     while sleep $interval; do

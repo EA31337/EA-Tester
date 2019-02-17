@@ -482,8 +482,8 @@ elif [ -n "$SCRIPT" ]; then
     script_copy "$SCR_PATH"
     SCR_PATH=$(script_find "$SCRIPT")
   fi
-  # Use relative path to Experts dir.
-  ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
+  # Use relative path to Scripts dir.
+  ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
   cd - &>/dev/null
 fi
 
