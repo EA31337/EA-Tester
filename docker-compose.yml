@@ -1,18 +1,142 @@
 version: '3'
 services:
-  SyntaxVagrantfile:
+# General tests.
+  TestSyntaxVagrantfile:
     command: ruby -wc /opt/src/Vagrantfile
     image: ruby
     volumes:
     - ./:/opt/src
-  SyntaxBash:
+  TestSyntaxBash:
     command: bash -c 'bash -n $$(find /opt/src -name "*.sh" -print)'
     image: bash
     volumes:
     - ./:/opt/src
 # @fixme
-# SyntaxShellcheck:
+# TestSyntaxShellcheck:
 #   command: /opt/src/scripts/*.sh /opt/src/scripts/.*.sh
 #   image: koalaman/shellcheck
 #   volumes:
 #   - ./:/opt/src
+
+# MQL tests.
+  TestBands:
+    command: for tf in M15 M30; do run_backtest -e TestBands -T $$tf; done
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+#   - ../EA-Tester/scripts:/opt/scripts
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestEnvelopes:
+    command: for tf in M15 M30; do run_backtest -e TestEnvelopes -T $$tf; done
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestFXTHeader:
+    command: run_backtest -e TestFXTHeader
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestHSTHeader:
+    command: run_backtest -e TestHSTHeader
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestLotstep4:
+    command: run_backtest -e TestLotstep -D 4
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestLotstep5:
+    command: run_backtest -e TestLotstep -D 5
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestMargin:
+    command: run_backtest -e TestMargin
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestModellingQuality:
+    command: for tf in M1 M5 M15 M30; do run_backtest -e TestModellingQuality -T $$tf; done
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestSpread:
+    command: run_backtest -e TestSpread
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestSymbolsRaw:
+    command: run_backtest -e TestSymbolsRaw
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestSymbolsSel:
+    command: run_backtest -e TestSymbolsSel
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestSymgroupsRaw:
+    command: run_backtest -e TestSymgroupsRaw
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestTicksRaw:
+    command: run_backtest -e TestTicksRaw
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+  TestTimeframes:
+    command: for tf in M15 M30; do run_backtest -e TestTimeframes -T $$tf; done
+    image: ea31337/ea-tester:EURUSD-2018-DS
+    volumes:
+    - ./tests:/opt/src
+    tty: true
+    environment:
+      BT_MONTHS: 1
+
+# MQL Scripts.
+  PrintPaths:
+    command: run_backtest -e PrintPaths
+    image: ea31337/ea-tester:dev
+    volumes:
+    - ./tests/scripts:/opt/src
+    tty: true
