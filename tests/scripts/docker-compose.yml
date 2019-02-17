@@ -1,6 +1,6 @@
 version: '3'
 services:
-  PrintsPath:
+  PrintPaths:
     command: run_backtest -e PrintsPaths
     image: ea31337/ea-tester:dev
     volumes:
