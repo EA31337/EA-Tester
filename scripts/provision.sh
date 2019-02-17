@@ -65,10 +65,11 @@ case "$(uname -s)" in
         swapon swapfile
         cd - &>/dev/null
       fi
+      echo "Swap file configured successfully." >&2
     fi &
 
     # For Ubuntu/Debian.
-    echo "Installing APT packages..." >&2
+    echo "Configuring APT..." >&2
     if which dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
@@ -85,12 +86,16 @@ case "$(uname -s)" in
     fi
 
     # Update APT index.
-    [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
+    [ -z "$NO_APT_UPDATE" ] && (
+      echo "Updating APT packages..." >&2
+      apt-get -qq update
+    )
 
     # Install curl if not present.
     which curl &>/dev/null || apt-get install -qq curl
 
     # Add PPA/Wine repository.
+    echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
     apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
@@ -99,9 +104,13 @@ case "$(uname -s)" in
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
     # Update APT index.
-    [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
+    [ -z "$NO_APT_UPDATE" ] && (
+      echo "Updating APT packages..." >&2
+      apt-get -qq update
+    )
 
     # Install necessary packages
+    echo "Installing APT packages..." >&2
     apt-get install -qq language-pack-en                                          # Language pack to prevent an invalid locale.
     apt-get install -qq ca-certificates
     apt-get install -qq dbus                                                      # Required for Debian AMI on EC2.
@@ -117,6 +126,7 @@ case "$(uname -s)" in
 
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
+      echo "Installing AutoHotkey..." >&2
       su - $user -c "
         wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
         DISPLAY=$DISPLAY wine /tmp/AutoHotkey_*.exe /S && \
@@ -124,7 +134,7 @@ case "$(uname -s)" in
       "
       ahk_path=$(su - $user -c 'winepath -u "c:\\Program Files\\AutoHotkey"');
       if [ -d "$ahk_path" ]; then
-        echo "AutoHotkey installed successfully!"
+        echo "AutoHotkey installed successfully!" >&2
       else
         echo "Error: AutoHotkey installation failed!" >&2
         exit 1
@@ -133,6 +143,7 @@ case "$(uname -s)" in
 
     # Setup VNC.
     if [ -n "$PROVISION_VNC" ]; then
+      echo "Installing VNC..." >&2
       apt-get install -qq x11vnc fluxbox
     fi
 
