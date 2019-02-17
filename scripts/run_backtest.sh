@@ -862,6 +862,7 @@ if [ -n "$OPT_VERBOSE" ]; then
   live_logs &
   live_stats &
 fi
+live_monitor_errors "cannot open file" &
 
 # Run the test in the platform.
 echo "Starting..." >&2

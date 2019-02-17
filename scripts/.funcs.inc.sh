@@ -87,6 +87,26 @@ get_time() {
   echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
 }
 
+# Check logs in real-time for any errors.
+# Usage: live_monitor_errors [pattern] (interval)
+live_monitor_errors() {
+  local filter=${1:-cannot open}
+  local interval=${2:-10}
+  set -x
+  # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
+  {
+    while sleep $interval; do
+      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done
+    while sleep $interval; do
+      if grep -w "$filter" "$log_file"; then
+        kill_wine
+      fi
+    done
+  } &
+}
+
 # Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
