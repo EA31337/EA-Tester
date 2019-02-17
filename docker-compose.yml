@@ -62,7 +62,7 @@ services:
     environment:
       BT_MONTHS: 1
   TestFXTHeader:
-    command: run_backtest -e TestFXTHeader
+    command: for tf in M1 M30; do run_backtest -e TestFXTHeader -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./tests:/opt/src
@@ -70,7 +70,7 @@ services:
     environment:
       BT_MONTHS: 1
   TestHSTHeader:
-    command: run_backtest -e TestHSTHeader
+    command: for tf in M1 M30; do run_backtest -e TestHSTHeader -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./tests:/opt/src

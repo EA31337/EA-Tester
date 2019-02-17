@@ -30,7 +30,7 @@ env:
   - CMD="sudo scripts/provision.sh"
   - CMD="docker-compose run TestSyntaxVagrantfile; docker-compose run TestSyntaxBash; docker-compose run TestSyntaxShellcheck"
   - CMD="docker-compose run PrintPaths"
-  - CMD="docker-compose run TestFXTHeader"
+  - CMD="docker-compose run TestHSTHeader; docker-compose run TestFXTHeader"
   - CMD="docker-compose run TestLotstep4"
 # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1.
 # - CMD="docker-compose run TestLotstep5"
