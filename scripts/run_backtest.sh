@@ -124,6 +124,8 @@ Usage: $0 (args)
     Display help.
 
 Other supported variables (without arguments assigned):
+- BT_DAYS (uint/string)
+  Specify days to test. Default: 1-31.
 - BT_TESTMODE (uint)
   This controls type of backtest data being downloaded.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
@@ -429,6 +431,10 @@ if [ -n "$BOOT_CODE" ]; then
   eval "$BOOT_CODE"
 fi
 
+if [ -n "$BT_DAYS" ]; then
+  IFS='-' BT_DAYS=(${BT_DAYS})
+  restore_ifs
+fi
 if [ -n "$BT_MONTHS" ]; then
   IFS='-' BT_MONTHS=(${BT_MONTHS})
   restore_ifs
@@ -438,8 +444,8 @@ if [ -n "$BT_YEARS" ]; then
   restore_ifs
 fi
 if [ -n "$BT_YEARS" ]; then
-  BT_START_DATE="${BT_YEARS[0]}.${BT_MONTHS[0]:-01}.01"
-  BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.31"
+  BT_START_DATE="${BT_YEARS[0]}.${BT_MONTHS[0]:-01}.${BT_DAYS[0]:-01}"
+  BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.${BT_DAYS[1]:-$(echo ${BT_DAYS[0]:-31})}"
 fi
 
 # Locate the main file to execute.

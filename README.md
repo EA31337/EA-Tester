@@ -284,6 +284,8 @@ To customize the command, here are the supported parameters and variables:
     Display help.
 
 Other supported variables (without arguments assigned):
+- BT_DAYS (uint/string)
+  Specify days to test. Default: 1-31.
 - BT_TESTMODE (uint)
   This controls type of backtest data being downloaded.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
