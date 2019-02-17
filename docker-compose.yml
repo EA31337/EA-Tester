@@ -11,14 +11,39 @@ services:
     image: bash
     volumes:
     - ./:/opt/src
-# @fixme
-# TestSyntaxShellcheck:
-#   command: /opt/src/scripts/*.sh /opt/src/scripts/.*.sh
-#   image: koalaman/shellcheck
-#   volumes:
-#   - ./:/opt/src
+  TestSyntaxShellcheck:
+    command: -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230 /opt/src/scripts/eval.sh /opt/src/scripts/run_backtest.sh /opt/src/scripts/provision.sh /opt/src/scripts/.vars.inc.sh /opt/src/scripts/install_mt5.sh /opt/src/scripts/.aliases.inc.sh /opt/src/scripts/get_bt_data.sh /opt/src/scripts/get_gh_asset.sh /opt/src/scripts/push_repo.sh /opt/src/scripts/run_terminal.sh /opt/src/scripts/.funcs.inc.sh /opt/src/scripts/dl_ea.sh /opt/src/scripts/clone_repo.sh /opt/src/scripts/.funcs.cmds.inc.sh /opt/src/scripts/install_mt4.sh /opt/src/scripts/install_mt4x.sh
+    image: koalaman/shellcheck
+    volumes:
+    - ./:/opt/src
 
-# MQL tests.
+# Shell script tests.
+  RunHelp:
+    command: help
+    image: ea31337/ea-tester:dev
+    tty: true
+  RunInstallMt4:
+    command: install_mt 4
+    image: ea31337/ea-tester:dev
+    tty: true
+  RunInstallMt4x:
+    command: install_mt 4x
+    image: ea31337/ea-tester:dev
+    tty: true
+  RunInstallMt5:
+    command: install_mt 5
+    image: ea31337/ea-tester:dev
+    tty: true
+
+# Docker image tests
+  DockerLargeFiles:
+    entrypoint: /lib64/ld-linux-x86-64.so.2
+    command: /usr/bin/find / -xdev -type f -size +10M -ls
+    user: root
+    image: ea31337/ea-tester:dev
+    tty: true
+
+# MQL EA tests.
   TestBands:
     command: for tf in M15 M30; do run_backtest -e TestBands -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
