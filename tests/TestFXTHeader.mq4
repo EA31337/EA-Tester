@@ -234,7 +234,7 @@ bool ReadAndCheckHeader(const int handle,const int _period,int &bars)
    if(kernel32::SetFilePointer(handle,0,distance,0)==INVALID_SET_FILE_POINTER)
      {
       PrintFormat("Failed to seek on file handle (%d), Error code = %d",handle,kernel32::GetLastError());
-      return(FALSE);
+      return (false);
      }
 //---
    TestHistoryHeader header;
@@ -243,7 +243,7 @@ bool ReadAndCheckHeader(const int handle,const int _period,int &bars)
    if(!kernel32::ReadFile(handle,header,sizeof(header),numOfBytes,0))
      {
       PrintFormat("Failed to read, Error code = %d",kernel32::GetLastError());
-      return(FALSE);
+      return (false);
      }
 
 //--- check version
