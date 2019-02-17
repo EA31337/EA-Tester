@@ -178,9 +178,6 @@ case "$(uname -s)" in
 esac
 set +x
 
-# Set-up hostname.
-grep "$(hostname)" /etc/hosts && echo "127.0.0.1 $(hostname)" >> /etc/hosts &
-
 # Set-up git.
 (
   git config --system user.name $user
