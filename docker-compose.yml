@@ -159,7 +159,7 @@ services:
       BT_MONTHS: 1
 
 # MQL Scripts.
-  PrintPaths:
+  ScriptPrintPaths:
     command: run_backtest -e PrintPaths
     image: ea31337/ea-tester:dev
     volumes:
