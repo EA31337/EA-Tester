@@ -74,8 +74,10 @@ case "$(uname -s)" in
 
         # Perform an unattended installation of a Debian packages.
         export DEBIAN_FRONTEND=noninteractive
-        which ex > /dev/null && [ -f /etc/apt/apt.conf.d/70debconf ] && timeout 2 ex +"%s@DPkg@//DPkg" -scwq /etc/apt/apt.conf.d/70debconf
+        # Disable pre-configuration of all packages with debconf before they are installed.
+        which sed &> /dev/null && sed -i'.bak' "s@DPkg@//DPkg@" /etc/apt/apt.conf.d/70debconf
         dpkg-reconfigure debconf -f noninteractive
+        # Accept EULA for MS Core Fonts.
         echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
         # Omit source repositories from updates for performance reasons.
