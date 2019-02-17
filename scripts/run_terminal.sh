@@ -11,7 +11,7 @@ type wine >/dev/null
 . $CWD/.funcs.cmds.inc.sh
 set_display
 
-[ "$TERMINAL_EXE" ] \
+[ -n "$TERMINAL_EXE" ] \
   || { echo "Error: Terminal not found, please install it first." >&2; exit 1; }
 echo "Display is: $DISPLAY"
 

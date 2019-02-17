@@ -3,12 +3,12 @@
 # Usage: push_repo.sh repo_url branch message
 set -e
 # shellcheck disable=SC2153 # OPT_TRACE may not be assigned.
-[ "$OPT_TRACE" ] && { GIT_TRACE=1; set -x; }
+[ -n "$OPT_TRACE" ] && { GIT_TRACE=1; set -x; }
 GIT_EDITOR=true
 type git >/dev/null
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 read repo branch message <<<$@
-[ ! "$repo" ] && { echo "Usage: $0 (git@repo/url) (branch) (message) (author)"; exit 1; }
+[ -z "$repo" ] && { echo "Usage: $0 (git@repo/url) (branch) (message) (author)"; exit 1; }
 dir="$(basename "$repo")"
 message="${message:-$(echo "$branch")}"
 
@@ -17,7 +17,7 @@ git --version
 git status || pwd
 
 # Checkout or create the given branch.
-[ "$branch" ] && git checkout -mB "$branch"
+[ -n "$branch" ] && git checkout -mB "$branch"
 
 # Pull the changes from upstream branch or ignore.
 git pull -Xtheirs -r origin "$branch" 2> /dev/null || git pull -Xours origin "$branch" 2> /dev/null || true

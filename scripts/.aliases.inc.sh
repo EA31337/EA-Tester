@@ -3,7 +3,7 @@
 #
 
 ## Initialize.
-[ "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
+[ -n "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
 
 # Expand aliases in shell.
 shopt -s expand_aliases

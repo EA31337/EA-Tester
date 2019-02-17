@@ -9,10 +9,10 @@ type curl grep sed tr >/dev/null
 xargs=$(which gxargs || which xargs)
 
 # Validate settings.
-[ ! "$GITHUB_API_TOKEN" ] && [ -f ~/.secrets ] && source ~/.secrets
-[ "$GITHUB_API_TOKEN" ] || { echo "Error: Please define GITHUB_API_TOKEN variable." >&2; exit 1; }
+[ -z "$GITHUB_API_TOKEN" ] && [ -f ~/.secrets ] && source ~/.secrets
+[ -n "$GITHUB_API_TOKEN" ] || { echo "Error: Please define GITHUB_API_TOKEN variable." >&2; exit 1; }
 [ $# -lt 4 ] && { echo "Usage: $0 [owner] [repo] [tag] [name] [dest]"; exit 1; }
-[ "$OPT_TRACE" ] && set -x
+[ -n "$OPT_TRACE" ] && set -x
 read owner repo tag name dest <<<$@
 
 # Define variables.
@@ -35,7 +35,7 @@ echo "Fetching asset ID..." >&2
 id=$(echo "$response" | grep -C3 "name.:.\+$name" | grep -w id | head -n1)
 echo $id
 eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
-[ "$id" ] || { echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2; exit 1; }
+[ -n "$id" ] || { echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2; exit 1; }
 GH_ASSET="$GH_REPO/releases/assets/$id"
 
 # Changing the working folder. Create if does not exist.
@@ -44,6 +44,6 @@ cd "$BT_DEST"
 
 # Download asset file.
 echo "Downloading asset..." >&2
-[ "$ASSET_OVERRIDE" ] && find "$BT_DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
+[ -n "$ASSET_OVERRIDE" ] && find "$BT_DEST" -type f -name '*.ex?' -execdir mv -vf {} {}.bak ';'
 curl $CURL_ARGS -H 'Accept: application/octet-stream' "$GH_ASSET?access_token=$GITHUB_API_TOKEN"
 echo "${BASH_SOURCE[0]} done." >&2

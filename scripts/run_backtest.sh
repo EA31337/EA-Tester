@@ -3,8 +3,8 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
 
 # Initialize variables.
-[ "$OPT_NOERR" ] || set -e
-[ "$OPT_TRACE" ] && set -x
+[ -n "$OPT_NOERR" ] || set -e
+[ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
@@ -219,13 +219,13 @@ parse_results() {
   echo "Checking the total time elapsed..." >&2
   save_time
 
-  if [ "$OPT_FORMAT_JSON" ]; then
+  if [ -n "$OPT_FORMAT_JSON" ]; then
     # Convert test report file into JSON format.
     echo "Converting HTML report ($TEST_REPORT_DIR) into JSON file..." >&2
     convert_html2json "$TEST_REPORT_HTM"
   fi
 
-  if [ "$OPT_OPTIMIZATION" ]; then
+  if [ -n "$OPT_OPTIMIZATION" ]; then
     # Parse and save the optimization test results.
     echo "Sorting optimization test results..." >&2
     if [ "${MT_VER%%.*}" -ne 5 ]; then
@@ -241,19 +241,19 @@ parse_results() {
     fi
   fi
 
-  if [ "$OPT_FORMAT_FULL" ]; then
+  if [ -n "$OPT_FORMAT_FULL" ]; then
     # Convert test report file to full detailed text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
     echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..." >&2
     convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-  elif [ "$OPT_FORMAT_BRIEF" ]; then
+  elif [ -n "$OPT_FORMAT_BRIEF" ]; then
     # Convert test report file into brief text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
     echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
     convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
   fi
 
-  if [ "$OPT_GIF_ENHANCE" ]; then
+  if [ -n "$OPT_GIF_ENHANCE" ]; then
     # Enhance gif report files.
     report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
     echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
@@ -264,7 +264,7 @@ parse_results() {
     fi
   fi
 
-  if [ "$OPT_VERBOSE" ]; then
+  if [ -n "$OPT_VERBOSE" ]; then
     # Print test results in plain text.
     echo "Printing test report ($(basename "$TEST_REPORT_HTM"))..." >&2
     grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
@@ -278,7 +278,7 @@ parse_results() {
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
 
-  if [ "$OPT_GIST" ]; then
+  if [ -n "$OPT_GIST" ]; then
     # Post results to Gist if set.
     [ -n "$OPT_TRACE" ] && set +x
     post_gist "${BT_DEST:-$TEST_REPORT_DIR}" "$TEST_REPORT_BASE"
@@ -335,7 +335,7 @@ if [ -f "$TERMINAL_EXE" ]; then
   # Check required directories.
   check_dirs
 else
-  [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
+  [ -n "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
   echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
   exit 1;
 fi
@@ -718,7 +718,7 @@ if [ -n "$SET_OPTS" ]; then
     # Create a new SET file if does not exist.
     tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$EA_SETFILE"
   fi
-  if [ "$OPT_VERBOSE" ]; then
+  if [ -n "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
     echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$EA_SETFILE" | paste -sd,)" >&2
   fi
@@ -786,13 +786,13 @@ if [ -n "$BT_SPREAD" ]; then
 fi
 
 # Sets the optimization mode if present.
-if [ "$OPT_OPTIMIZATION" ]; then
+if [ -n "$OPT_OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
 
 # Sets the visual mode if present.
-if [ "$VISUAL_MODE" ]; then
+if [ -n "$VISUAL_MODE" ]; then
   echo "Enabling visual mode..." >&2
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
@@ -814,7 +814,7 @@ fi
 
 # Download backtest data if required.
 BT_PERIOD=$(ini_get ^TestPeriod)
-if [ "$TEST_EXPERT" ]; then
+if [ -n "$TEST_EXPERT" ]; then
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
@@ -822,7 +822,7 @@ if [ "$TEST_EXPERT" ]; then
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE \
       $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE}
-    if [ "$OPT_VERBOSE" ]; then
+    if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
       cd - &>/dev/null
@@ -833,8 +833,8 @@ if [ "$TEST_EXPERT" ]; then
 fi
 
 # Prepare before test run.
-if [ "$TEST_EXPERT" ]; then
-  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
+if [ -n "$TEST_EXPERT" ]; then
+  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
 clean_files
@@ -858,7 +858,7 @@ if [ -n "$SCRIPT" ]; then
 fi
 
 # Show live logs and stats when in verbose mode.
-if [ "$OPT_VERBOSE" ]; then
+if [ -n "$OPT_VERBOSE" ]; then
   live_logs &
   live_stats &
 fi
@@ -878,5 +878,5 @@ if [ -n "$FINAL_CODE" ]; then
   eval "$FINAL_CODE"
 fi
 
-[ "$OPT_VERBOSE" ] && times >&2 && echo "$0 done" >&2
+[ -n "$OPT_VERBOSE" ] && times >&2 && echo "$0 done" >&2
 exit $exit_status

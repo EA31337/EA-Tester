@@ -29,7 +29,6 @@ env:
   - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
   - CMD="sudo scripts/provision.sh"
   - CMD="docker-compose run TestSyntaxVagrantfile; docker-compose run TestSyntaxBash; docker-compose run TestSyntaxShellcheck"
-  - CMD="$DOCKER_RUN 'help; run_backtest;'"
   - CMD="docker-compose run PrintPaths"
   - CMD="docker-compose run TestFXTHeader"
   - CMD="docker-compose run TestLotstep4"

@@ -3,7 +3,7 @@
 #
 
 ## Initialize.
-[ "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
+[ -n "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 
 #
@@ -212,7 +212,7 @@ set_proxy() {
   curl -s $gw:3128       > /dev/null || true && export http_proxy="http://$gw:3128"
 
   # Set proxy for wine registry if present.
-  [ "$http_proxy" ] &&
+  [ -n "$http_proxy" ] &&
   cat << EOF | wine regedit -
   Regedit4
   [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
@@ -266,7 +266,7 @@ file_copy() {
 srv_copy() {
   local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
-  if [ "$srv_file" ]; then
+  if [ -n "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
 }
@@ -369,7 +369,7 @@ export_set() {
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
   timeout 20 \
   wine AutoHotkeyU64 /ErrorStdOut "$ahk_path" "${dstfile}" ${@:3}
-  [ "$OPT_VERBOSE" ] && times >&2
+  [ -n "$OPT_VERBOSE" ] && times >&2
   echo "${dstfile}"
 }
 
@@ -400,7 +400,7 @@ ea_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
-  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -419,7 +419,7 @@ script_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
-  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -496,7 +496,7 @@ file_copy() {
 srv_copy() {
   local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
-  if [ "$srv_file" ]; then
+  if [ -n "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
 }
@@ -545,7 +545,7 @@ read_result_values() {
 result_summary() {
   local file="${1:-$TEST_REPORT_HTM}"
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
-  [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
+  [ -n "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   cd "$TESTER_DIR" 2>/dev/null
   symbol=$(read_result_value "Symbol" "$file")
   period=$(read_result_value "Period" "$file" | grep -o '([^)]\+)' | xargs | tr -d ' ')

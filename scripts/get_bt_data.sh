@@ -14,8 +14,8 @@ xargs=$(which gxargs || which xargs)
 
 # Check user input.
 [ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period/M1] [mode/0]"; exit 1; }
-[ "$OPT_VERBOSE" ] && vflag="-v"
-[ "$OPT_TRACE" ] && set -x
+[ -n "$OPT_VERBOSE" ] && vflag="-v"
+[ -n "$OPT_TRACE" ] && set -x
 read symbol year bt_src period mode <<<$@
 bt_key="$symbol-$year-$bt_src"
 convert=1

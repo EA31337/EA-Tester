@@ -5,7 +5,7 @@
 #
 
 ## Initialize.
-[ "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
+[ -n "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "$0")" && pwd -P)}"
 
 #
@@ -22,9 +22,9 @@ initialize() {
   trap onerror 1 2 3 15 ERR
 
   # Activate trace on demand.
-  [ "$OPT_TRACE" ] && set -x
+  [ -n "$OPT_TRACE" ] && set -x
   # Exit immediately if a command exits with a non-zero status.
-  [ ! "$NOFAIL" ] && set -e
+  [ -z "$NOFAIL" ] && set -e
 
 }
 
@@ -90,7 +90,7 @@ get_time() {
 # Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
-  [ "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
+  [ -n "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
   [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
@@ -297,7 +297,7 @@ kill_wine() {
 onexit() {
   local exit_status=${1:-$?}
   kill_jobs
-  [ "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
+  [ -n "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
 
