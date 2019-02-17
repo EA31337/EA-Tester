@@ -52,6 +52,21 @@ case "$(uname -s)" in
 
   Linux)
 
+    # Setup swap file if none (exclude Docker image).
+    if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
+      if [ -f /var/cache/swap/swapfile ]; then
+        swapon /var/cache/swap/swapfile
+      else
+        mkdir -pv /var/cache/swap
+        cd /var/cache/swap
+        dd if=/dev/zero of=swapfile bs=1K count=4M
+        chmod 600 swapfile
+        mkswap swapfile
+        swapon swapfile
+        cd - &>/dev/null
+      fi
+    fi &
+
     # For Ubuntu/Debian.
     if which dpkg-reconfigure > /dev/null; then
 
@@ -71,14 +86,14 @@ case "$(uname -s)" in
     # Update APT index.
     [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
 
-    # Install basic utils (such as curl, wget and Vim).
-    apt-get install -qy curl wget vim
+    # Install curl if not present.
+    which curl || apt-get install -qy curl
 
     # Add PPA/Wine repository.
-    # APT dependencies (for the add-apt-repository).
-    apt-get install -qy software-properties-common python-software-properties
     # Adds GPG release key.
     apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
+    # APT dependencies (for the add-apt-repository).
+    which add-apt-repository || apt-get install -qy software-properties-common python-software-properties
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
@@ -87,21 +102,13 @@ case "$(uname -s)" in
 
     # Install necessary packages
     apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qy less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
-    apt-get install -qy imagemagick                                               # ImageMagick.
-    apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
-    apt-get install -qy git realpath links html2text tree pv bc                   # Required commands.
     apt-get install -qy ca-certificates
+    apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
     apt-get install -qy winehq-stable wine-gecko --install-recommends             # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
-
-    # Setup VNC.
-    if [ -n "$PROVISION_VNC" ]; then
-      apt-get install -y x11vnc fluxbox
-    fi
 
     # Setup display.
     DISPLAY=${DISPLAY:-:0}
@@ -110,7 +117,7 @@ case "$(uname -s)" in
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
       su - $user -c "
-        wget -P /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
+        wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
         DISPLAY=$DISPLAY wine /tmp/AutoHotkey_*.exe /S && \
         rm -v /tmp/AutoHotkey_*.exe
       "
@@ -123,22 +130,35 @@ case "$(uname -s)" in
       fi
     fi &
 
+    # Setup VNC.
+    if [ -n "$PROVISION_VNC" ]; then
+      apt-get install -qy x11vnc fluxbox
+    fi
+
+    # Install other CLI tools.
+    apt-get install -qy less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
+    apt-get install -qy git realpath links html2text tree pv bc                   # Required commands.
+    apt-get install -qy imagemagick                                               # ImageMagick.
+    apt-get install -qy wget vim                                                  # Wget and Vim
+
     # Install required gems.
     apt-get install -qy ruby
     gem install gist
     # Apply a patch (https://github.com/defunkt/gist/pull/232).
-    patch -d "$(gem env gemdir)"/gems/gist-* -p1 < <(curl -s https://github.com/defunkt/gist/commit/5843e9827f529cba020d08ac764d70c8db8fbd71.patch) &
+    (
+      patch -d "$(gem env gemdir)"/gems/gist-* -p1 < <(curl -s https://github.com/defunkt/gist/commit/5843e9827f529cba020d08ac764d70c8db8fbd71.patch)
+    ) &
 
     # Setup SSH if requested.
     if [ -n "$PROVISION_SSH" ]; then
-      apt-get install -y openssh-server
+      apt-get install -qy openssh-server
       [ ! -d /var/run/sshd ] && mkdir -v /var/run/sshd
       sed -i'.bak' 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
     fi
 
     # Setup sudo if requested.
     if [ -n "$PROVISION_SUDO" ]; then
-      apt-get install sudo
+      apt-get install -qy sudo
       sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
     fi
 
@@ -146,21 +166,6 @@ case "$(uname -s)" in
     (
       install -v -m755 <(curl -sL https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip | gunzip) /usr/local/bin/pup
     ) &
-
-    # Setup swap file if none (exclude Docker image).
-    if [ ! -f /.dockerenv -a -z "$(swapon -s)" ]; then
-      if [ -f /var/cache/swap/swapfile ]; then
-        swapon /var/cache/swap/swapfile
-      else
-        mkdir -pv /var/cache/swap
-        cd /var/cache/swap
-        dd if=/dev/zero of=swapfile bs=1K count=4M
-        chmod 600 swapfile
-        mkswap swapfile
-        swapon swapfile
-        cd - &>/dev/null
-      fi
-    fi &
 
     # Erase downloaded archive files.
     apt-get clean
