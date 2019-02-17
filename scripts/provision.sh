@@ -68,6 +68,7 @@ case "$(uname -s)" in
     fi &
 
     # For Ubuntu/Debian.
+    echo "Installing APT packages..." >&2
     if which dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
@@ -87,13 +88,13 @@ case "$(uname -s)" in
     [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
 
     # Install curl if not present.
-    which curl || apt-get install -qy curl
+    which curl &>/dev/null || apt-get install -qq curl
 
     # Add PPA/Wine repository.
     # Adds GPG release key.
     apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
-    which add-apt-repository || apt-get install -qy software-properties-common python-software-properties
+    which add-apt-repository || apt-get install -qq software-properties-common python-software-properties
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
@@ -101,14 +102,14 @@ case "$(uname -s)" in
     [ -z "$NO_APT_UPDATE" ] && apt-get -qq update
 
     # Install necessary packages
-    apt-get install -qy language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qy ca-certificates
-    apt-get install -qy dbus                                                      # Required for Debian AMI on EC2.
+    apt-get install -qq language-pack-en                                          # Language pack to prevent an invalid locale.
+    apt-get install -qq ca-certificates
+    apt-get install -qq dbus                                                      # Required for Debian AMI on EC2.
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qy winehq-stable wine-gecko --install-recommends             # Install Wine.
-    apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
+    apt-get install -qq winehq-stable wine-gecko --install-recommends             # Install Wine.
+    apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Setup display.
     DISPLAY=${DISPLAY:-:0}
@@ -132,17 +133,17 @@ case "$(uname -s)" in
 
     # Setup VNC.
     if [ -n "$PROVISION_VNC" ]; then
-      apt-get install -qy x11vnc fluxbox
+      apt-get install -qq x11vnc fluxbox
     fi
 
     # Install other CLI tools.
-    apt-get install -qy less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
-    apt-get install -qy git realpath links html2text tree pv bc                   # Required commands.
-    apt-get install -qy imagemagick                                               # ImageMagick.
-    apt-get install -qy wget vim                                                  # Wget and Vim
+    apt-get install -qq less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
+    apt-get install -qq git realpath links html2text tree pv bc                   # Required commands.
+    apt-get install -qq imagemagick                                               # ImageMagick.
+    apt-get install -qq wget vim                                                  # Wget and Vim
 
     # Install required gems.
-    apt-get install -qy ruby
+    apt-get install -qq ruby
     gem install gist
     # Apply a patch (https://github.com/defunkt/gist/pull/232).
     (
@@ -151,14 +152,14 @@ case "$(uname -s)" in
 
     # Setup SSH if requested.
     if [ -n "$PROVISION_SSH" ]; then
-      apt-get install -qy openssh-server
+      apt-get install -qq openssh-server
       [ ! -d /var/run/sshd ] && mkdir -v /var/run/sshd
       sed -i'.bak' 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
     fi
 
     # Setup sudo if requested.
     if [ -n "$PROVISION_SUDO" ]; then
-      apt-get install -qy sudo
+      apt-get install -qq sudo
       sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
     fi
 
