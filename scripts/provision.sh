@@ -10,7 +10,7 @@
 if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
-elif [ -f ~/.provisioned ]; then
+elif [ -f ~/.provisioned -a -z "$OPT_FORCE" ]; then
   echo "Info: System already provisioned, skipping." >&2
   exit 0
 fi
@@ -98,22 +98,29 @@ case "$(uname -s)" in
     apt-get install -qy winehq-stable wine-gecko --install-recommends             # Install Wine.
     apt-get install -qy xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
-    # Configure Wine.
-    su - $user -c winecfg
-
-    # Install AHK.
-    if [ -n "$PROVISION_AHK" ]; then
-      ahk_path=$(su - $user -c 'winepath -u c:\\Apps\\AHK');
-      su - $user -c "
-        wget -P '$ahk_path' -nc https://www.autohotkey.com/download/ahk.zip && \
-        unzip '$ahk_path'/ahk.zip -d '$ahk_path' && \
-        rm -v '$ahk_path'/ahk.zip
-      "
-    fi
-
     # Setup VNC.
     if [ -n "$PROVISION_VNC" ]; then
       apt-get install -y x11vnc fluxbox
+    fi
+
+    # Setup display.
+    DISPLAY=${DISPLAY:-:0}
+    xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16) &
+
+    # Install AHK.
+    if [ -n "$PROVISION_AHK" ]; then
+      su - $user -c "
+        wget -P /opt -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
+        DISPLAY=$DISPLAY wine /opt/AutoHotkey_*.exe /S && \
+        rm -v /opt/AutoHotkey_*.exe
+      "
+      ahk_path=$(su - $user -c 'winepath -u "c:\\Program Files\\AutoHotkey"');
+      if [ -d "$ahk_path" ]; then
+        echo "AutoHotkey installed successfully!"
+      else
+        echo "Error: AutoHotkey installation failed!" >&2
+        exit 1
+      fi
     fi
 
     # Install required gems.
