@@ -483,8 +483,13 @@ script_copy() {
   exec 1>&2
   mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   if [ ${#includes[@]} -eq 0 ]; then
+    # Copy a single file when no includes present.
     cp $VFLAG "$file" "$dir_dst"/
+  elif [[ "${includes[*]}" =~ .. ]]; then
+    # Copy the parent folder of EA, when relative includes are found.
+    cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
   else
+    # Copy the whole EA folder, when includes are found.
     cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
   fi
 }
