@@ -15,9 +15,9 @@ test_script:
 - shellcheck -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230 ./scripts/eval.sh ./scripts/run_backtest.sh ./scripts/provision.sh ./scripts/.vars.inc.sh ./scripts/install_mt5.sh ./scripts/.aliases.inc.sh ./scripts/get_bt_data.sh ./scripts/get_gh_asset.sh ./scripts/push_repo.sh ./scripts/run_terminal.sh ./scripts/.funcs.inc.sh ./scripts/dl_ea.sh ./scripts/clone_repo.sh ./scripts/.funcs.cmds.inc.sh ./scripts/install_mt4.sh ./scripts/install_mt4x.sh
 - metaeditor /s /compile:tests /log:%FILELOG% || exit /b 0
 - type %FILELOG%
-- ruby -e 'if File.readlines("metaeditor.log").grep(/[1-9] error/) {exit 1}; end'
-- ruby -e 'if File.readlines("metaeditor.log").grep(/[1-9] warning/) {exit 1}; end'
-- ruby -e 'if File.readlines("metaeditor.log").grep(/[1-9][0-9] error/) {exit 1}; end'
-- ruby -e 'if File.readlines("metaeditor.log").grep(/[1-9][0-9] warning/) {exit 1}; end'
+- ruby -e 'if File.open("metaeditor.log", mode: "rb:BOM|UTF-16LE").readlines.grep(Regexp.new "[1-9] error".encode(Encoding::UTF_16LE)) {exit 1}; end'
+- ruby -e 'if File.open("metaeditor.log", mode: "rb:BOM|UTF-16LE").readlines.grep(Regexp.new "[1-9] warning".encode(Encoding::UTF_16LE)) {exit 1}; end'
+- ruby -e 'if File.open("metaeditor.log", mode: "rb:BOM|UTF-16LE").readlines.grep(Regexp.new "[1-9][0-9] error".encode(Encoding::UTF_16LE)) {exit 1}; end'
+- ruby -e 'if File.open("metaeditor.log", mode: "rb:BOM|UTF-16LE").readlines.grep(Regexp.new "[1-9][0-9] warning".encode(Encoding::UTF_16LE)) {exit 1}; end'
 build: off
 platform: x86
