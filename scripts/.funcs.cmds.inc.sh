@@ -302,7 +302,7 @@ compile() {
   # Run compiler.
   rel_path=$(winepath -w "$rel_path")
   log_file="$(winepath -w "$log_file")"
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:"$log_file"
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:3} /compile:"$rel_path" /log:"$log_file"
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
@@ -313,7 +313,7 @@ compile() {
     grep -A10 "${name%.*}" <<<$results
     if ! grep -qw "0 error" <<<$results; then
       echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2;
-      WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /s /compile:"$rel_path" /log:CON
+      WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:3} /s /compile:"$rel_path" /log:CON
       exit 1; # Fail on error.
     fi
   fi
