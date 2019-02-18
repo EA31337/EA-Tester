@@ -88,10 +88,11 @@ get_time() {
 }
 
 # Check logs in real-time for any errors.
-# Usage: live_monitor_errors [pattern] (interval)
+# Usage: live_monitor_errors (interval)
 live_monitor_errors() {
-  local filter=${1:-cannot open}
-  local interval=${2:-10}
+  local interval=${1:-10}
+  local errors=("cannot open" "uninit reason" "not initialized")
+  set +x
   # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
   {
     while sleep $interval; do
@@ -99,11 +100,13 @@ live_monitor_errors() {
       [ -f "$log_file" ] && break
     done
     while sleep $interval; do
-      if grep -w "$filter" "$log_file"; then
+      # Check for each error.
+      if eval grep -w "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
+        # In case of error, kill the wine process.
         kill_wine
       fi
-    done
-  } &
+    done &
+  }
 }
 
 # Save time (in hours) and store in rule file if exists.
