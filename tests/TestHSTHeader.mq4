@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                TestHSTHeader.mq4 |
-//|                       Copyright 2016-2018, 31337 Investments Ltd |
+//|                       Copyright 2016-2019, 31337 Investments Ltd |
 //|                                       https://github.com/EA31337 |
 //+------------------------------------------------------------------+
 
@@ -128,7 +128,7 @@ bool HstCheckHeader(const int handle) {
    int distance=0;
    if (kernel32::SetFilePointer(handle,0,distance,0) == INVALID_SET_FILE_POINTER) {
       PrintFormat("Failed to seek on file handle (%d), Error: %s",handle,GetErrorDescription(kernel32::GetLastError()));
-      return (FALSE);
+      return (false);
    }
 
    // Read header.
@@ -138,7 +138,7 @@ bool HstCheckHeader(const int handle) {
 
    if (!kernel32::ReadFile(handle, header, sizeof(header), numOfBytes, 0)) {
       PrintFormat("Failed to read, Error: %s", GetErrorDescription(kernel32::GetLastError()));
-      return (FALSE);
+      return (false);
    }
 
    // Check version.
