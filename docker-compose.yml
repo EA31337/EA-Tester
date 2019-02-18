@@ -45,7 +45,7 @@ services:
     - ./scripts:/opt/scripts
     - ./tests:/opt/tests:rw
     environment:
-      OPT_TRACE: ${OPT_TRACE:-}
+      OPT_TRACE: "$OPT_TRACE"
   RunCompileMql5:
     command: compile /opt/tests mql5.log /mql5
     image: ea31337/ea-tester
@@ -53,7 +53,7 @@ services:
     - ./scripts:/opt/scripts
     - ./tests:/opt/tests:rw
     environment:
-      OPT_TRACE: ${OPT_TRACE:-}
+      OPT_TRACE: "$OPT_TRACE"
 
 # Docker image tests
   DockerLargeFiles:
