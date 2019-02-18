@@ -5,50 +5,55 @@ services:
     command: ruby -wc /opt/src/Vagrantfile
     image: ruby
     volumes:
-    - ./:/opt/src
+    - .:/opt/src
   TestSyntaxBash:
-    command: bash -c 'bash -n $$(find /opt/src -name "*.sh" -print)'
+    command: bash -c 'bash -n $$(find /opt/scripts -name "*.sh" -print)'
     image: bash
     volumes:
-    - ./:/opt/src
+    - ./scripts:/opt/scripts
   TestSyntaxShellcheck:
-    command: -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230 /opt/src/scripts/eval.sh /opt/src/scripts/run_backtest.sh /opt/src/scripts/provision.sh /opt/src/scripts/.vars.inc.sh /opt/src/scripts/install_mt5.sh /opt/src/scripts/.aliases.inc.sh /opt/src/scripts/get_bt_data.sh /opt/src/scripts/get_gh_asset.sh /opt/src/scripts/push_repo.sh /opt/src/scripts/run_terminal.sh /opt/src/scripts/.funcs.inc.sh /opt/src/scripts/dl_ea.sh /opt/src/scripts/clone_repo.sh /opt/src/scripts/.funcs.cmds.inc.sh /opt/src/scripts/install_mt4.sh /opt/src/scripts/install_mt4x.sh
+    command: -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230 /opt/scripts/eval.sh /opt/scripts/run_backtest.sh /opt/scripts/provision.sh /opt/scripts/.vars.inc.sh /opt/scripts/install_mt5.sh /opt/scripts/.aliases.inc.sh /opt/scripts/get_bt_data.sh /opt/scripts/get_gh_asset.sh /opt/scripts/push_repo.sh /opt/scripts/run_terminal.sh /opt/scripts/.funcs.inc.sh /opt/scripts/dl_ea.sh /opt/scripts/clone_repo.sh /opt/scripts/.funcs.cmds.inc.sh /opt/scripts/install_mt4.sh /opt/scripts/install_mt4x.sh
     image: koalaman/shellcheck
     volumes:
-    - ./:/opt/src
+    - ./scripts:/opt/scripts
 
 # Shell script tests.
   RunHelp:
     command: help
-    image: ea31337/ea-tester:dev
-    tty: true
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
   RunInstallMt4:
     command: install_mt 4
-    image: ea31337/ea-tester:dev
-    tty: true
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
   RunInstallMt4x:
     command: install_mt 4x
-    image: ea31337/ea-tester:dev
-    tty: true
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
   RunInstallMt5:
     command: install_mt 5
-    image: ea31337/ea-tester:dev
-    tty: true
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
 
 # Docker image tests
   DockerLargeFiles:
     entrypoint: /lib64/ld-linux-x86-64.so.2
     command: /usr/bin/find / -xdev -type f -size +10M -ls
     user: root
-    image: ea31337/ea-tester:dev
-    tty: true
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
 
 # MQL EA tests.
   TestBands:
     command: for tf in M15 M30; do run_backtest -e TestBands -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
 #   - ../EA-Tester/scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
@@ -57,7 +62,7 @@ services:
     command: for tf in M15 M30; do run_backtest -e TestEnvelopes -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -65,7 +70,7 @@ services:
     command: for tf in M1 M30; do run_backtest -e TestFXTHeader -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -73,7 +78,7 @@ services:
     command: for tf in M1 M30; do run_backtest -e TestHSTHeader -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -81,7 +86,7 @@ services:
     command: run_backtest -e TestLotstep -D 4
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -89,7 +94,7 @@ services:
     command: run_backtest -e TestLotstep -D 5
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -97,7 +102,7 @@ services:
     command: run_backtest -e TestMargin
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -105,7 +110,7 @@ services:
     command: for tf in M1 M5 M15 M30; do run_backtest -e TestModellingQuality -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -113,7 +118,7 @@ services:
     command: run_backtest -e TestSpread
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -121,7 +126,7 @@ services:
     command: run_backtest -e TestSymbolsRaw
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -129,7 +134,7 @@ services:
     command: run_backtest -e TestSymbolsSel
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -137,7 +142,7 @@ services:
     command: run_backtest -e TestSymgroupsRaw
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -145,7 +150,7 @@ services:
     command: run_backtest -e TestTicksRaw
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -153,15 +158,14 @@ services:
     command: for tf in M15 M30; do run_backtest -e TestTimeframes -T $$tf; done
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
-    - ./tests:/opt/src
+    - ./scripts:/opt/scripts
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
 
 # MQL Scripts.
   ScriptPrintPaths:
-    command: run_backtest -e PrintPaths
-    image: ea31337/ea-tester:dev
+    command: run_backtest -s PrintPaths
+    image: ea31337/ea-tester
     volumes:
-    - ./tests/scripts:/opt/src
-    tty: true
+    - ./scripts:/opt/scripts
