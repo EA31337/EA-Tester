@@ -283,7 +283,7 @@ file_get() {
 # Usage: compile [file/dir] (log_file)
 compile() {
   local name=$1
-  local log_file=${2:-${name##*/}.log}
+  local log_file=$2
   type iconv >/dev/null
 
   local rel_path=$name
@@ -295,14 +295,28 @@ compile() {
   }
   [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
   [ "${rel_path:0:1}" == "/" ] && cd "$rel_path"
+  if [ -n "$log_file" ]; then
+    # Assign log file name if empty.
+    if [ -d "$rel_path" ]; then
+      log_file="$rel_path/mql.log"
+    else
+      log_file="${name%.*}.log"
+    fi
+  fi
+  if [ "${rel_path:0:1}" == "/" ]; then
+    # Enter if absolute path.
+    cd "$rel_path"
+    # Convert absolute path into Windows path.
+    rel_path_win=$(winepath -w "$rel_path")
+    log_path_win="$(winepath -w "$log_file")"
+  fi
 
   # Read value of errexit, and disable it.
   shopt -qo errexit; local errexit=$?; set +e
 
   # Run compiler.
-  rel_path=$(winepath -w "$rel_path")
-  log_file="$(winepath -w "$log_file")"
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:3} /compile:"$rel_path" /log:"$log_file"
+  [ "${rel_path:0:1}" == "/" ] && cd "$rel_path"
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:3} /compile:"${rel_path_win:-$rel_path}" /log:"${log_path_win:-$log_file}"
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
@@ -313,7 +327,7 @@ compile() {
     grep -A10 "${name%.*}" <<<$results
     if ! grep -qw "0 error" <<<$results; then
       echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2;
-      WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:3} /s /compile:"$rel_path" /log:CON
+      WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:3} /s /compile:"${rel_path_win:-$rel_path}" /log:CON
       exit 1; # Fail on error.
     fi
   fi

@@ -157,6 +157,7 @@ on_success() {
   ! check_logs ".\+ data error" || exit 1
   ! check_logs ".\+ deficient data" || exit 1
   ! check_logs "stop button .\+" || exit 1
+  ! check_logs "incorrect casting .\+" || exit 1
   ! check_logs "Error: .\+" || exit 1
   ! check_logs "Configuration issue .\+" || exit 1
   ! check_logs "Assert fail on .\+" || exit 1
@@ -852,9 +853,11 @@ fi
 
 if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'mq' ]]; then
   # Compile EA when source code file is specified.
+  echo "Compiling EA ($EA_PATH)..." >&2
   compile_ea ${EA_PATH##*/}
 elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   # Compile script when source code file is specified.
+  echo "Compiling script ($SCR_PATH)..." >&2
   compile_script ${SCR_PATH##*/}
 fi
 
