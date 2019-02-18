@@ -23,6 +23,7 @@ echo "Downloading MT4 installer..." >&2
 [ -f "$HOME/$EXEFILE" ]
 
 # Prints information of the window status in the background.
+echo "Checking display..." >&2
 set_display
 live_stats &
 

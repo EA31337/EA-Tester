@@ -30,7 +30,7 @@ services:
     - ./scripts:/opt/scripts
   RunInstallMt4x:
     command: install_mt 4x
-    image: ea31337/ea-tester
+    image: ea31337/ea-tester:dev
     volumes:
     - ./scripts:/opt/scripts
   RunInstallMt5:

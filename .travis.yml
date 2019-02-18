@@ -60,6 +60,7 @@ before_install:
 install:
 - make docker-load
 before_script:
+- docker --version && docker-compose --version
 - docker info
 - docker images
 script:
