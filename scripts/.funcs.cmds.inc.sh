@@ -280,10 +280,10 @@ file_get() {
 }
 
 # Compile the source code file.
-# Usage: compile_file [file] (log_file)
-compile_file() {
+# Usage: compile [file/dir] (log_file)
+compile() {
   local name=$1
-  local logfile=${2:-${name%.*}.log}
+  local log_file=${2:-${name##*/}.log}
   type iconv >/dev/null
 
   local rel_path=$name
@@ -294,19 +294,22 @@ compile_file() {
     rel_path=$(echo ${exact#./} || echo ${match#./})
   }
   [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
+  [ "${rel_path:0:1}" == "/" ] && cd "$rel_path"
 
   # Read value of errexit, and disable it.
   shopt -qo errexit; local errexit=$?; set +e
 
   # Run compiler.
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
+  rel_path=$(winepath -w "$rel_path")
+  log_file="$(winepath -w "$log_file")"
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:"$log_file"
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
   echo "Info: Number of files compiled: $compiled_no" >&2
-  [ ! -f "$logfile" ] && logfile="${logfile%.*}.log"
-  if [ -f "$logfile" ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$logfile")
+  [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
+  if [ -f "$log_file" ]; then
+    results=$(iconv -f utf-16 -t utf-8 "$log_file")
     grep -A10 "${name%.*}" <<<$results
     if ! grep -qw "0 error" <<<$results; then
       echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2;
@@ -320,14 +323,14 @@ compile_file() {
 # Usage: compile_ea [EA/pattern] (log_file)
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
-  local logfile=${2:-${name%.*}.log}
+  local log_file=${2:-${name%.*}.log}
   local ea_path=$(ea_find "$name")
   local ea_dir=$(dirname "$ea_path")
 
   # If path is absolute, enter that dir, otherwise go to Experts dir.
   [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
   [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
-  compile_file "$ea_path" "$logfile"
+  compile "$ea_path" "$log_file"
   cd - &> /dev/null
 }
 
@@ -335,36 +338,24 @@ compile_ea() {
 # Usage: compile_script [Script/pattern] (log_file)
 compile_script() {
   local name="${1:-$SCRIPT}"
-  local logfile=${2:-${name%.*}.log}
+  local log_file=${2:-${name%.*}.log}
   local scr_path=$(script_find "$name")
   local scr_dir=$(dirname "$ea_path")
 
   # If path is absolute, enter that dir, otherwise go to Scripts dir.
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
   [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
-  compile_file "$scr_path" "$logfile"
+  compile "$scr_path" "$log_file"
   cd - &> /dev/null
 }
 
 # Compile all in MQL4 folder.
-# Usage: compile_all (logfile/CON)
+# Usage: compile_all (log_file/CON)
 compile_all() {
-  local logfile=${1:-CON}
+  local log_file=${1:-CON}
   # Run compiler.
   cd "$TERMINAL_DIR"
-  # Read value of errexit, and disable it.
-  shopt -qo errexit; local errexit=$?; set +e
-  wine metaeditor.exe /compile:${MQL_DIR} /log:$logfile ${@:2}
-  compiled_no=$?
-  # Reset errexit to the previous value.
-  [[ $errexit -eq 0 ]] && set -e
-  echo "Info: Number of files compiled: $compiled_no" >&2
-  [ ! -f "$logfile" ] && logfile="${logfile%.*}.log"
-  if [ -f "$logfile" ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$logfile")
-    grep -A10 "${name%.*}" <<<$results
-    grep -qw "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
-  fi
+  compile "${MQL_DIR}" "$log_file"
   cd - &> /dev/null
 }
 
