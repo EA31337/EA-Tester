@@ -101,7 +101,7 @@ live_monitor_errors() {
     done
     while sleep $interval; do
       # Check for each error.
-      if eval grep -w "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
+      if eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
         # In case of error, kill the wine process.
         kill_wine
       fi
