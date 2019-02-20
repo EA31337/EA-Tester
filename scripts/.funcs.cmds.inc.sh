@@ -317,12 +317,10 @@ compile() {
   [[ $errexit -eq 0 ]] && set -e
   echo "Info: Number of files compiled: $compiled_no" >&2
   [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
-  if [ -f "$log_file" ]; then
+  if [ $compiled_no -gt 0 -a -f "$log_file" ]; then
     results=$(iconv -f utf-16 -t utf-8 "$log_file")
-    grep -A10 "${name%.*}" <<<$results
-    if ! grep -qw "0 error" <<<$results; then
-      echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2;
-      WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /s /compile:"$target" /log:CON ${@:3}
+    if grep -B10 "[1-9]\+[0-9]\? \(warning\|error\)" <<<$results; then
+      echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
       exit 1; # Fail on error.
     fi
   fi
