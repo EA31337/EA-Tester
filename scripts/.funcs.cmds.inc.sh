@@ -280,7 +280,7 @@ file_get() {
 }
 
 # Compile the source code file.
-# Usage: compile [file/dir] (log_file)
+# Usage: compile [file/dir] (log_file) (...args)
 compile() {
   local name=$1
   local log_file=${2:-${name##*/}.log}
@@ -327,7 +327,7 @@ compile() {
 }
 
 # Compile specified EA file.
-# Usage: compile_ea [EA/pattern] (log_file)
+# Usage: compile_ea [EA/pattern] (log_file) (...args)
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
   local log_file=${2:-${name%.*}.log}
@@ -337,12 +337,13 @@ compile_ea() {
   # If path is absolute, enter that dir, otherwise go to Experts dir.
   [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
   [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
-  compile "$ea_path" "$log_file"
+  ea_path=$(ea_find "$name" .)
+  compile "$ea_path" "$log_file" ${@:3}
   cd - &> /dev/null
 }
 
 # Compile specified script file.
-# Usage: compile_script [Script/pattern] (log_file)
+# Usage: compile_script [Script/pattern] (log_file) (...args)
 compile_script() {
   local name="${1:-$SCRIPT}"
   local log_file=${2:-${name%.*}.log}
@@ -352,7 +353,8 @@ compile_script() {
   # If path is absolute, enter that dir, otherwise go to Scripts dir.
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
   [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
-  compile "$scr_path" "$log_file"
+  scr_path=$(script_find "$name" .)
+  compile "$scr_path" "$log_file" ${@:3}
   cd - &> /dev/null
 }
 
