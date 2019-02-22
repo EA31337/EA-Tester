@@ -15,9 +15,9 @@ elif [ -f ~/.provisioned -a -z "$OPT_FORCE" ]; then
   exit 0
 fi
 
-#--- onerror()
+#--- on_error()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-onerror() {
+on_error() {
   local exit_status=${1:-$?}
   local frame=0
   echo "ERROR: Exiting $0 with $exit_status" >&2
@@ -28,7 +28,7 @@ onerror() {
 
 # Handle bash errors. Exit on error. Trap exit.
 # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
-trap onerror 1 2 3 15 ERR
+trap on_error 1 2 3 15 ERR
 
 # Check the Linux distribution.
 echo "OS: $(uname -a)"

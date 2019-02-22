@@ -17,9 +17,9 @@ initialize() {
 
   # Handle bash errors. Exit on error. Trap exit.
   # Trap normal exit signal (exit on all errors).
-  trap onexit EXIT
+  trap on_exit EXIT
   # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
-  trap onerror 1 2 3 15 ERR
+  trap on_error 1 2 3 15 ERR
 
   # Activate trace on demand.
   [ -n "$OPT_TRACE" ] && set -x
@@ -319,20 +319,34 @@ kill_wine() {
   wineserver -k || true
 }
 
-#--- onexit()
+# Kill display.
+# Usage: kill_display
+kill_display() {
+  (
+    pkill -e Xvfb
+    [ -w /tmp/.X0-lock ] && rm $VFLAG /tmp/.X0-lock
+  ) || true
+}
+
+#--- on_exit()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-onexit() {
+on_exit() {
   local exit_status=${1:-$?}
   kill_jobs
+  kill_wine
+  kill_display
   [ -n "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
 
-#--- onerror()
+#--- on_error()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-onerror() {
+on_error() {
   local exit_status=${1:-$?}
   local frame=0
+  kill_jobs
+  kill_wine
+  kill_display
   echo "ERROR: Exiting $0 with $exit_status" >&2
   show_trace
   exit $exit_status

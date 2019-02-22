@@ -205,7 +205,9 @@ on_failure() {
 
 # Invoke on test finish.
 on_finish() {
+  kill_jobs
   kill_wine
+  kill_display
 }
 
 # Parse report files.
