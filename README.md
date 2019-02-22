@@ -178,9 +178,6 @@ To backtest EA31337 bot, check: [Backtesting using Docker](https://github.com/EA
 To customize the command, here are the supported parameters and variables:
 
 ```
-  -A (command)
-    Action to evaluate (e.g. "file_get URL").
-    Variable (string): CODE
   -b (option)
     Source of backtest data to test. Default: DS
     Variable (string): BT_SRC
@@ -292,9 +289,11 @@ Other supported variables (without arguments assigned):
 - OPT_NOERR (bool)
   Disables errexit flag to prevent exiting script on failure.
 - RUN_ON_START (string)
-  Shell code to execute on startup (before the test).
+  Run shell code on startup (before the test).
+- RUN_ON_SET (string)
+  Run shell code on SET configuration (e.g. "file_get URL").
 - RUN_ON_EXIT (string)
-  Shell code to execute on exit (after the test).
+  Run shell code on exit (after the test).
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
 ```

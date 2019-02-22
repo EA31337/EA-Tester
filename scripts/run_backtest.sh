@@ -18,9 +18,6 @@ usage() {
   cat <<_EOF
 Usage: $0 (args)
 
-  -A (command)
-    Action to evaluate (e.g. "file_get URL").
-    Variable (string): CODE
   -b (option)
     Source of backtest data to test. Default: DS
     Variable (string): BT_SRC
@@ -132,9 +129,11 @@ Other supported variables (without arguments assigned):
 - OPT_NOERR (bool)
   Disables errexit flag to prevent exiting script on failure.
 - RUN_ON_START (string)
-  Shell code to execute on startup (before the test).
+  Run shell code on startup (before the test).
+- RUN_ON_SET (string)
+  Run shell code on SET configuration (e.g. "file_get URL").
 - RUN_ON_EXIT (string)
-  Shell code to execute on exit (after the test).
+  Run shell code on exit (after the test).
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
 
@@ -432,7 +431,7 @@ fi
 
 # Invoke boot code.
 if [ -n "$RUN_ON_START" ]; then
-  echo "Evaluating starting code ($RUN_ON_START)..." >&2
+  echo "Running code on startup ($RUN_ON_START)..." >&2
   eval "$RUN_ON_START"
 fi
 
@@ -572,7 +571,7 @@ while getopts $ARGS arg; do
   case ${arg} in
 
     A) # Action to evaluate (e.g. "file_get URL")
-      CODE+=("${OPTARG}")
+      RUN_ON_SET+=("${OPTARG}")
       ;;
 
     b) ;; # Already parsed.
@@ -700,9 +699,9 @@ if [ -n "$BT_PERIOD" ]; then
 fi
 
 # Action(s) to evaluate.
-if [ -n "$CODE" ]; then
-  for code in "${CODE[@]}"; do
-    echo "Evaluating action ($code)..." >&2
+if [ -n "$RUN_ON_SET" ]; then
+  for code in "${RUN_ON_SET[@]}"; do
+    echo "Running code on SET configuration ($code)..." >&2
     eval "$code"
   done
 fi
@@ -888,7 +887,7 @@ echo "Starting..." >&2
 
 # Invoke shutdown/final code.
 if [ -n "$RUN_ON_EXIT" ]; then
-  echo "Evaluating final code ($RUN_ON_EXIT)..." >&2
+  echo "Running code on exit ($RUN_ON_EXIT)..." >&2
   eval "$RUN_ON_EXIT"
 fi
 
