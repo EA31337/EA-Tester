@@ -186,7 +186,7 @@ on_failure() {
   # Sometimes MT4 fails on success, therefore double checking.
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   if [ -n "$TEST_REPORT_BASE" ]; then
-    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -name "$TEST_REPORT_BASE.htm" -print -quit)
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
     test -f "$TEST_REPORT_HTM" && on_success $@
     return
   fi
@@ -216,7 +216,7 @@ parse_results() {
   [ -z "$TEST_REPORT_BASE" -o -z "$TEST_EXPERT" ] && return
 
   # Locate the report file.
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -name "$TEST_REPORT_BASE.htm" -print -quit)
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
