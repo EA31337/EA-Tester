@@ -83,8 +83,13 @@ check_dirs() {
 }
 
 # Get time from the terminal log in minutes.
+# Usage: get_time
 get_time() {
-  echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
+  if [ -f "$TERMINAL_LOG" ]; then
+    echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
+  else
+    echo ?
+  fi
 }
 
 # Check logs in real-time for any errors.
