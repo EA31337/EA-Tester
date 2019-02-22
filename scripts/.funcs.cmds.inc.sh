@@ -627,6 +627,7 @@ convert_html2json() {
   type pup >/dev/null
   local file_in="${1:-$TEST_REPORT_HTM}"
   local file_out=${2:-${file_in%.*}.json}
+  local json_res
   local keys=()
   [ -f "$file_in" ] || exit 1
   keys+=("Title")
@@ -663,7 +664,7 @@ convert_html2json() {
   keys+=("consecutive loss")
   keys+=("consecutive wins")
   keys+=("consecutive losses")
-  {
+  json_res=$(
     printf "{\n"
     printf '"%s": "%s",' Time $(get_time)
     for key in "${keys[@]}"; do
@@ -671,7 +672,12 @@ convert_html2json() {
       printf '"%s": "%s"\n' "$key" "$value"
     done | paste -sd,
     printf "}"
-  } > "$file_out"
+  )
+  if [ -n "$JSON_PARSER" ]; then
+    cat >"$file_out" <($JSON_PARSER <<<"$json_res")
+  else
+    cat >"$file_out" <<<$json_res
+  fi
 }
 
 # Sort optimization test result values by profit factor.

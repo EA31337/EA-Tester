@@ -295,4 +295,6 @@ Other supported variables (without arguments assigned):
   Shell code to execute before the test.
 - FINAL_CODE (string)
   Shell code to execute after the test.
+- JSON_PARSER (string)
+  Command to parse JSON file (e.g. jq or python).
 ```

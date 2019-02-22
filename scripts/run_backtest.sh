@@ -135,6 +135,8 @@ Other supported variables (without arguments assigned):
   Shell code to execute before the test.
 - FINAL_CODE (string)
   Shell code to execute after the test.
+- JSON_PARSER (string)
+  Command to parse JSON file (e.g. jq or python).
 
 Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
 _EOF
