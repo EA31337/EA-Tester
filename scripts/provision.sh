@@ -151,7 +151,8 @@ case "$(uname -s)" in
 
     # Install other CLI tools.
     apt-get install -qq less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
-    apt-get install -qq git realpath links html2text tree pv bc                   # Required commands.
+    apt-get install -qq git realpath links tree pv bc                             # Required commands.
+    apt-get install -qq html2text jq                                              # Required parsers.
     apt-get install -qq imagemagick                                               # ImageMagick.
     apt-get install -qq wget vim                                                  # Wget and Vim
 
