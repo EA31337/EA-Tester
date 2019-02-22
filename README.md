@@ -251,7 +251,7 @@ To customize the command, here are the supported parameters and variables:
     Variable (string): SET_OPTS
   -r (string)
     The name of the test report file. Default: tester/Report
-    Variable (string): TEST_REPORT
+    Variable (string): TEST_REPORT_NAME
   -R
     Set files to read-only.
   -s (file/url/pattern)

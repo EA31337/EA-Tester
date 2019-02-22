@@ -91,7 +91,7 @@ Usage: $0 (args)
     Variable (string): SET_OPTS
   -r (string)
     The name of the test report file. Default: tester/Report
-    Variable (string): TEST_REPORT
+    Variable (string): TEST_REPORT_NAME
   -R
     Set files to read-only.
   -s (file/url/pattern)
@@ -635,7 +635,7 @@ while getopts $ARGS arg; do
       ;;
 
     r) # The name of the test report file.
-      TEST_REPORT="tester/$(basename "${OPTARG}")"
+      TEST_REPORT_NAME="tester/$(basename "${OPTARG}")"
       ;;
 
     R) # Set files to read-only.
@@ -781,9 +781,9 @@ fi
 
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
-  TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE##*/}-Report}
-  echo "Configuring test report ($TEST_REPORT)..." >&2
-  ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
+  TEST_REPORT_NAME=${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}
+  echo "Configuring test report ($TEST_REPORT_NAME)..." >&2
+  ini_set "^TestReport" "$TEST_REPORT_NAME" "$TESTER_INI"
 fi
 
 # Sets a spread if present.
