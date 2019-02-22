@@ -291,10 +291,10 @@ Other supported variables (without arguments assigned):
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
 - OPT_NOERR (bool)
   Disables errexit flag to prevent exiting script on failure.
-- BOOT_CODE (string)
-  Shell code to execute before the test.
-- FINAL_CODE (string)
-  Shell code to execute after the test.
+- RUN_ON_START (string)
+  Shell code to execute on startup (before the test).
+- RUN_ON_EXIT (string)
+  Shell code to execute on exit (after the test).
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
 ```

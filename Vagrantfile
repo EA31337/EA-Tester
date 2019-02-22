@@ -110,7 +110,7 @@ Vagrant.configure(2) do |config|
 
   if run_test
     script << %Q[/usr/bin/env \
-                 BOOT_CODE=#{ENV['BOOT_CODE']} \
+                 RUN_ON_START=#{ENV['RUN_ON_START']} \
                  GIF_ENHANCE=#{ENV['GIF_ENHANCE']} \
                  GIF_TEXT_COLOR=#{ENV['GIF_TEXT_COLOR']} \
                  /vagrant/scripts/run_backtest.sh #{run_test} &&]
