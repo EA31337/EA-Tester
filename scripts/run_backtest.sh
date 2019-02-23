@@ -6,7 +6,7 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
+ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
 # Check dependencies.
 type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
@@ -569,10 +569,6 @@ check_files
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
-
-    A) # Action to evaluate (e.g. "file_get URL")
-      RUN_ON_SET+=("${OPTARG}")
-      ;;
 
     b) ;; # Already parsed.
     B) ;; # Already parsed.
