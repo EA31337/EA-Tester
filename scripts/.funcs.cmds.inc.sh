@@ -676,9 +676,9 @@ convert_html2json() {
     printf "}"
   )
   if [ -n "$JSON_PARSER" ]; then
-    cat >"$file_out" <($JSON_PARSER <<<"$json_res")
+    $JSON_PARSER >"$file_out" <<<"$json_res"
   else
-    cat >"$file_out" <<<$json_res
+    cat >"$file_out" <<<"$json_res"
   fi
 }
 
