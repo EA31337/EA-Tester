@@ -65,7 +65,7 @@ to list available commands. Here is the list:
 # Usage: set_proxy
 --
 # Display recent logs.
-# Usage: show_logs
+# Usage: show_logs (lines_no/40)
 --
 # Copy script file given the file path.
 # Usage: script_copy [file]

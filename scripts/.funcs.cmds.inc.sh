@@ -225,9 +225,10 @@ EOF
 }
 
 # Display recent logs.
-# Usage: show_logs
+# Usage: show_logs (lines_no/40)
 show_logs() {
-  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n20 "{}" +
+  local no_lines=${1:-40}
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n${no_lines} "{}" +
 }
 
 # Copy script file given the file path.
