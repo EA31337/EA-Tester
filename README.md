@@ -178,3 +178,8 @@ To backtest EA31337 bot, check: [Backtesting using Docker](https://github.com/EA
 ### CLI options
 
 Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters and variables.
+
+### Support
+
+- For bugs/features, raise a [new issue at GitHub](https://github.com/EA31337/EA-Tester/issues).
+- Join our [Telegram group](https://t.me/EA31337) and [channel](https://t.me/EA31337_Announcements) for help.
