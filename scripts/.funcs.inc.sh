@@ -96,7 +96,7 @@ get_time() {
 # Usage: live_monitor_errors (interval)
 live_monitor_errors() {
   local interval=${1:-10}
-  local errors=("cannot open" "not initialized")
+  local errors=("cannot open" "not initialized" "initialization failed")
   set +x
   # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
   {
