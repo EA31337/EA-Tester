@@ -18,20 +18,24 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.schema-version="1.0"
 
 # Setup the default user.
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 -p ubuntu ubuntu
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
 WORKDIR /home/ubuntu
 
 # Build-time variables.
 ARG BT_DEST
 ARG MT_VER
+ARG PROVISION_AHK
 ARG PROVISION_SSH
 ARG PROVISION_SUDO
+ARG PROVISION_VNC
 
 # Provision container image,
 ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
-ENV PROVISION_SSH 1
+ENV PROVISION_AHK 1
+ENV PROVISION_SSH 0
 ENV PROVISION_SUDO 1
+ENV PROVISION_VNC 1
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
@@ -60,8 +64,8 @@ USER ubuntu
 RUN eval.sh clean_bt
 RUN eval.sh clean_files
 
-# Expose SSH when installed.
-EXPOSE 22
+# Expose SSH and VNC when installed.
+EXPOSE 22 5900
 
 # Configure a container as an executable.
 ENTRYPOINT ["eval.sh"]

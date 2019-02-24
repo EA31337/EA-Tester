@@ -8,12 +8,14 @@ type wine >/dev/null
 
 # Initialize variables.
 . $CWD/.vars.inc.sh
+. $CWD/.funcs.cmds.inc.sh
+set_display
 
-[ "$TERMINAL_EXE" ] \
+[ -n "$TERMINAL_EXE" ] \
   || { echo "Error: Terminal not found, please install it first." >&2; exit 1; }
 echo "Display is: $DISPLAY"
 
 # Run the test under the platform.
 echo "Running platform..." >&2
-wine "$TERMINAL_EXE" 2> "$TERMINAL_LOG"
+wine "$TERMINAL_EXE" $TERMINAL_ARG 2> "$TERMINAL_LOG"
 echo "$0 done." 1>&2

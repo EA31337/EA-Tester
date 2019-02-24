@@ -6,5 +6,5 @@ type git >/dev/null
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 REPO=$1
 DIR="$(basename "$REPO")"
-[ ! "$REPO" ] && { echo "Usage: $0 (git@repo/url) (args)"; exit 1; }
+[ -z "$REPO" ] && { echo "Usage: $0 (git@repo/url) (args)"; exit 1; }
 [ ! -d "$DIR" ] && git clone "$@" -q -b master --recursive --single-branch --depth 1

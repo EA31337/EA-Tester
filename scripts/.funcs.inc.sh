@@ -5,7 +5,7 @@
 #
 
 ## Initialize.
-[ "$OPT_VERBOSE" ] && echo "Loading $0... " >&2
+[ -n "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "$0")" && pwd -P)}"
 
 #
@@ -17,14 +17,14 @@ initialize() {
 
   # Handle bash errors. Exit on error. Trap exit.
   # Trap normal exit signal (exit on all errors).
-  trap onexit EXIT
+  trap on_exit EXIT
   # Trap non-normal exit signals: 1/HUP, 2/INT, 3/QUIT, 15/TERM, ERR (9/KILL cannot be trapped).
-  trap onerror 1 2 3 15 ERR
+  trap on_error 1 2 3 15 ERR
 
   # Activate trace on demand.
-  [ "$TRACE" ] && set -x
+  [ -n "$OPT_TRACE" ] && set -x
   # Exit immediately if a command exits with a non-zero status.
-  [ ! "$NOFAIL" ] && set -e
+  [ -z "$NOFAIL" ] && set -e
 
 }
 
@@ -83,14 +83,41 @@ check_dirs() {
 }
 
 # Get time from the terminal log in minutes.
+# Usage: get_time
 get_time() {
-  echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
+  if [ -f "$TERMINAL_LOG" ]; then
+    echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
+  else
+    echo ?
+  fi
+}
+
+# Check logs in real-time for any errors.
+# Usage: live_monitor_errors (interval)
+live_monitor_errors() {
+  local interval=${1:-10}
+  local errors=("cannot open" "not initialized")
+  set +x
+  # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
+  {
+    while sleep $interval; do
+      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done
+    while sleep $interval; do
+      # Check for each error.
+      if eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
+        # In case of error, kill the wine process.
+        kill_wine
+      fi
+    done &
+  }
 }
 
 # Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
-  [ "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
+  [ -n "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
   [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
@@ -292,20 +319,34 @@ kill_wine() {
   wineserver -k || true
 }
 
-#--- onexit()
+# Kill display.
+# Usage: kill_display
+kill_display() {
+  (
+    pkill -e Xvfb
+    [ -w /tmp/.X0-lock ] && rm $VFLAG /tmp/.X0-lock
+  ) || true
+}
+
+#--- on_exit()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-onexit() {
+on_exit() {
   local exit_status=${1:-$?}
   kill_jobs
-  [ "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
+  kill_wine
+  kill_display
+  [ -n "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
 
-#--- onerror()
+#--- on_error()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-onerror() {
+on_error() {
   local exit_status=${1:-$?}
   local frame=0
+  kill_jobs
+  kill_wine
+  kill_display
   echo "ERROR: Exiting $0 with $exit_status" >&2
   show_trace
   exit $exit_status

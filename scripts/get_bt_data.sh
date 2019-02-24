@@ -14,8 +14,8 @@ xargs=$(which gxargs || which xargs)
 
 # Check user input.
 [ $# -lt 3 ] && { echo "Usage: $0 [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period/M1] [mode/0]"; exit 1; }
-[ "$OPT_VERBOSE" ] && vflag="-v"
-[ "$TRACE" ] && set -x
+[ -n "$OPT_VERBOSE" ] && vflag="-v"
+[ -n "$OPT_TRACE" ] && set -x
 read symbol year bt_src period mode <<<$@
 bt_key="$symbol-$year-$bt_src"
 convert=1
@@ -47,31 +47,67 @@ mkdir -p $vflag "$dest_dir" || true
 # Select tick data files based on the required timeframe.
 case $period in
   "M1")
-    fxt_files=( ${symbol}1_${mode:-0}.fxt )
+    mins=1
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "M5")
-    fxt_files=( ${symbol}5_${mode:-0}.fxt )
+    mins=5
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "M15")
-    fxt_files=( ${symbol}15_${mode:-0}.fxt )
+    mins=15
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "M30")
-    fxt_files=( ${symbol}30_${mode:-0}.fxt )
+    mins=30
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "H1")
-    fxt_files=( ${symbol}60_${mode:-0}.fxt )
+    mins=60
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "H4")
-    fxt_files=( ${symbol}240_${mode:-0}.fxt )
+    mins=240
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "D1")
-    fxt_files=( ${symbol}1440_${mode:-0}.fxt )
+    mins=1440
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "W1")
-    fxt_files=( ${symbol}10080_${mode:-0}.fxt )
+    mins=10080
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   "MN")
-    fxt_files=( ${symbol}43200_${mode:-0}.fxt )
+    mins=43200
+    case $mode in
+      0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
+      *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
+    esac
   ;;
   *)
     fxt_files=( ${symbol}1_${mode:-0}.fxt )

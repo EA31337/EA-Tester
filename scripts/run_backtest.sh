@@ -3,140 +3,21 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2017 -s 20 -b DS -r Report -O "_optimization_results"
 
 # Initialize variables.
-[ "$NOERR" ] || set -e
-[ "$TRACE" ] && set -x
+[ -n "$OPT_NOERR" ] || set -e
+[ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="?A:b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
+ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
 
 # Check dependencies.
-type git pgrep xargs ex xxd od perl >/dev/null
-
-# Invoke includes.
-. "$CWD"/.aliases.inc.sh
-. "$CWD"/.funcs.cmds.inc.sh
-. "$CWD"/.funcs.inc.sh
-. "$CWD"/.vars.inc.sh
-
-# Initialize.
-initialize
-set_display
+type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
 
 ## Define local functions. ##
 
 # Show script usage and exit.
 usage() {
-  cat <<_EOF
-Usage: $0 (args)
-
-  -A (command)
-    Action to evaluate (e.g. "file_get URL").
-    Variable (string): CODE
-  -b (option)
-    Source of backtest data to test. Default: DS
-    Variable (string): BT_SRC
-  -B (filename)
-    Specify early booting script to execute.
-    Variable (string): INCLUDE_BOOT
-  -c (currency)
-    Base currency for test. Default: USD
-    Variable (string): BT_CURRENCY
-  -C
-    Clear previous backtest data files.
-  -d (amount)
-    Deposit amount to test. Default: 10000
-    Variable (int): BT_DEPOSIT
-  -D (digits)
-    Specify market digits (e.g. 5 or 4).
-    Variable (uint): BT_DIGITS
-  -e (filename/url/pattern)
-    EA name to test (TestExpert).
-    Variable (string): EXPERT
-  -E (filename/url/pattern)
-    EA name to run (Expert).
-    Variable (string): EXPERT
-  -f (filename)
-    The .set file to run the test.
-    Variable (string): SETORG
-  -F
-    Convert test report file to full detailed text format.
-    Variable (bool): OPT_FORMAT_FULL
-  -g
-    Post results to Gist. It enables: -j and -t
-    Variables (bool): OPT_GIST
-  -G
-    Enhance gif report files.
-    Variable (bool): OPT_GIF_ENHANCE
-  -i (file)
-    Invoke file with custom rules.
-    Variable (string): INCLUDE
-  -I (options)
-    Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
-    Variable (string): TEST_OPTS
-  -j
-    Convert test report file into JSON format.
-    Variable (bool): OPT_FORMAT_JSON
-  -l (double)
-    Specify a lot step (e.g. 0.01).
-    Variable (float): BT_LOTSTEP
-  -L (limit)
-    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown=20.00).
-    Variable (string): EA_OPTS
-  -m (month)
-    Month to test. Default: 1-12.
-    Variable (uint/string): BT_MONTHS
-  -M (version)
-    Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
-  -o
-    Run test in optimization mode.
-    Variable (bool): OPT_OPTIMIZATION
-  -O (dir)
-    Output directory to save the test results. Default: /opt/results for Docker container.
-    Variable (string): BT_DEST
-  -p (pair)
-    Symbol pair to test (e.g. EURUSD).
-  -P (param)
-    Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
-    Variable (string): SET_OPTS
-  -r (string)
-    The name of the test report file. Default: tester/Report
-    Variable (string): TEST_REPORT
-  -R
-    Set files to read-only.
-  -s (file/url/pattern)
-    Script to run (Script).
-    Variable (string): SCRIPT
-  -S (spread)
-    Spread to test in points.
-    Variable (uint): BT_SPREAD
-  -t
-    Convert test report file into brief text format.
-    Variable (bool): OPT_FORMAT_BRIEF
-  -T (timeframe)
-    Timeframe (TestPeriod) to test. Default: M30
-    Variable (string): BT_PERIOD
-  -v
-    Verbose mode.
-    Variable (bool): OPT_VERBOSE
-  -V
-    Run test in visual mode (TestVisualEnable).
-    Variable (bool): VISUAL_MODE
-  -x
-    Run the script in trace/debug mode.
-  -X (file)
-    Invoke file on exit after the successful test.
-  -y (year)
-    Year to test. Default: 2017
-    Variable (uint/string): BT_YEARS
-  -?
-    Display help.
-
-Other variables (without arguments assigned):
-- BT_TESTMODE (uint)
-  This controls type of backtest data being downloaded.
-  Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
-
-Example: $0 -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30
-_EOF
+  printf "Usage: %s (args)\n\n" "$0"
+  cat $CWD/options.txt
+  printf "\n\nExample: %s -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2017 -m 1-2 -S 20 -b DS -T M30\n" "$0"
 }
 
 # Invoke on test success.
@@ -156,6 +37,7 @@ on_success() {
   ! check_logs ".\+ data error" || exit 1
   ! check_logs ".\+ deficient data" || exit 1
   ! check_logs "stop button .\+" || exit 1
+  ! check_logs "incorrect casting .\+" || exit 1
   ! check_logs "Error: .\+" || exit 1
   ! check_logs "Configuration issue .\+" || exit 1
   ! check_logs "Assert fail on .\+" || exit 1
@@ -182,11 +64,11 @@ on_failure() {
   # Sometimes MT4 fails on success, therefore double checking.
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   if [ -n "$TEST_REPORT_BASE" ]; then
-    TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "$TEST_REPORT_BASE.htm")
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
     test -f "$TEST_REPORT_HTM" && on_success $@
     return
   fi
-  if [ -z "$EA_NAME" -a -n "$SCRIPT" ]; then
+  if [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
     log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
     grep -w -C1 "uninit reason 0" "$log_file" && on_success $@
@@ -201,18 +83,20 @@ on_failure() {
 
 # Invoke on test finish.
 on_finish() {
+  kill_jobs
   kill_wine
+  kill_display
 }
 
 # Parse report files.
 parse_results() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
 
-  # Ignore if no results (e.g. when running the script).
-  [ -z "$TEST_REPORT_BASE" -o -z "$EA_NAME" ] && return
+  # Ignore if no test results or test expert name is set (e.g. when running the script).
+  [ -z "$TEST_REPORT_BASE" -o -z "$TEST_EXPERT" ] && return
 
   # Locate the report file.
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" -name "${TEST_REPORT_BASE}.htm")
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
@@ -220,25 +104,41 @@ parse_results() {
   echo "Checking the total time elapsed..." >&2
   save_time
 
-  if [ "$OPT_FORMAT_JSON" ]; then
+  if [ -n "$OPT_FORMAT_JSON" ]; then
     # Convert test report file into JSON format.
     echo "Converting HTML report ($TEST_REPORT_DIR) into JSON file..." >&2
     convert_html2json "$TEST_REPORT_HTM"
   fi
 
-  if [ "$OPT_FORMAT_FULL" ]; then
+  if [ -n "$OPT_OPTIMIZATION" ]; then
+    # Parse and save the optimization test results.
+    echo "Sorting optimization test results..." >&2
+    if [ "${MT_VER%%.*}" -ne 5 ]; then
+      sort_opt_results "$TEST_REPORT_HTM"
+    fi
+    echo "Saving optimization results..."
+    if [ -z "$input_values" ]; then
+      for input in ${param_list[@]}; do
+        value=$(ini_get "$input" "$TEST_REPORT_HTM")
+        echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
+        ini_set "^$input" "$value" "$SETFILE"
+      done
+    fi
+  fi
+
+  if [ -n "$OPT_FORMAT_FULL" ]; then
     # Convert test report file to full detailed text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
     echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..." >&2
     convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-  elif [ "$OPT_FORMAT_BRIEF" ]; then
+  elif [ -n "$OPT_FORMAT_BRIEF" ]; then
     # Convert test report file into brief text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
     echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
     convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
   fi
 
-  if [ "$OPT_GIF_ENHANCE" ]; then
+  if [ -n "$OPT_GIF_ENHANCE" ]; then
     # Enhance gif report files.
     report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
     echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
@@ -249,23 +149,7 @@ parse_results() {
     fi
   fi
 
-  if [ "$OPT_OPTIMIZATION" ]; then
-    # Parse and save the optimization test results.
-    echo "Sorting optimization test results..." >&2
-    if [ "${MT_VER%%.*}" -ne 5 ]; then
-      sort_opt_results "$TEST_REPORT_HTM"
-    fi
-    echo "Saving optimization results..."
-    if [ -z "$input_values" ]; then
-      for input in ${param_list[@]}; do
-        value=$(ini_get "$input" "$TEST_REPORT_HTM")
-        echo "Setting '$input' to '$value' in '$(basename $SETORG)'" >&2
-        ini_set "^$input" "$value" "$SETORG"
-      done
-    fi
-  fi
-
-  if [ "$OPT_VERBOSE" ]; then
+  if [ -n "$OPT_VERBOSE" ]; then
     # Print test results in plain text.
     echo "Printing test report ($(basename "$TEST_REPORT_HTM"))..." >&2
     grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
@@ -279,11 +163,11 @@ parse_results() {
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
 
-  if [ "$OPT_GIST" ]; then
+  if [ -n "$OPT_GIST" ]; then
     # Post results to Gist if set.
-    [ -n "$TRACE" ] && set +x
+    [ -n "$OPT_TRACE" ] && set +x
     post_gist "${BT_DEST:-$TEST_REPORT_DIR}" "$TEST_REPORT_BASE"
-    [ -n "$TRACE" ] && set -x
+    [ -n "$OPT_TRACE" ] && set -x
   fi
   result_summary
 }
@@ -300,14 +184,6 @@ while getopts $ARGS arg; do
       exit 0
       ;;
 
-    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-      MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip >/dev/null
-      install_mt $MT_VER
-      . "$CWD"/.vars.inc.sh # Reload variables.
-      check_dirs
-      ;;
-
     v) # Verbose mode.
       OPT_VERBOSE=true
       VFLAG="-v"
@@ -318,15 +194,25 @@ while getopts $ARGS arg; do
       ;;
 
     x) # Run the script in debug mode.
-      TRACE=1
+      OPT_TRACE=1
       set -x
       ;;
 
   esac
 done
 
+# Invoke includes.
+. "$CWD"/.aliases.inc.sh
+. "$CWD"/.funcs.cmds.inc.sh
+. "$CWD"/.funcs.inc.sh
+. "$CWD"/.vars.inc.sh
+
+# Initialize.
+initialize
+set_display
+
 [ -n "$NOERR" ] || set -e
-[ -n "$TRACE" ] && set -x
+[ -n "$OPT_TRACE" ] && set -x
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
@@ -334,7 +220,7 @@ if [ -f "$TERMINAL_EXE" ]; then
   # Check required directories.
   check_dirs
 else
-  [ "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
+  [ -n "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
   echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
   exit 1;
 fi
@@ -379,7 +265,7 @@ while getopts $ARGS arg; do
       ;;
 
     f) # The .set file to run the test.
-      SETORG="$OPTARG"
+      SETFILE="$(eval echo "$OPTARG")"
       ;;
 
     I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
@@ -388,6 +274,14 @@ while getopts $ARGS arg; do
 
     m) # Which months to test (default: 1-12).
       BT_MONTHS=${OPTARG}
+      ;;
+
+    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
+      MT_VER=${OPTARG:-4.0.0.1010}
+      type unzip >/dev/null
+      install_mt $MT_VER
+      . "$CWD"/.vars.inc.sh # Reload variables.
+      check_dirs
       ;;
 
     p) # Symbol pair to test (e.g. EURUSD).
@@ -415,11 +309,15 @@ if [ -n "$INCLUDE_BOOT" ]; then
 fi
 
 # Invoke boot code.
-if [ -n "$BOOT_CODE" ]; then
-  echo "Evaluating boot code ($BOOT_CODE)..." >&2
-  eval "$BOOT_CODE"
+if [ -n "$RUN_ON_START" ]; then
+  echo "Running code on startup ($RUN_ON_START)..." >&2
+  eval "$RUN_ON_START"
 fi
 
+if [ -n "$BT_DAYS" ]; then
+  IFS='-' BT_DAYS=(${BT_DAYS})
+  restore_ifs
+fi
 if [ -n "$BT_MONTHS" ]; then
   IFS='-' BT_MONTHS=(${BT_MONTHS})
   restore_ifs
@@ -429,8 +327,8 @@ if [ -n "$BT_YEARS" ]; then
   restore_ifs
 fi
 if [ -n "$BT_YEARS" ]; then
-  BT_START_DATE="${BT_YEARS[0]}.${BT_MONTHS[0]:-01}.01"
-  BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.31"
+  BT_START_DATE="${BT_YEARS[0]}.${BT_MONTHS[0]:-01}.${BT_DAYS[0]:-01}"
+  BT_END_DATE="${BT_YEARS[1]:-$(echo ${BT_YEARS[0]})}.${BT_MONTHS[1]:-$(echo ${BT_MONTHS[0]:-12})}.${BT_DAYS[1]:-$(echo ${BT_DAYS[0]:-31})}"
 fi
 
 # Locate the main file to execute.
@@ -473,8 +371,8 @@ elif [ -n "$SCRIPT" ]; then
     script_copy "$SCR_PATH"
     SCR_PATH=$(script_find "$SCRIPT")
   fi
-  # Use relative path to Experts dir.
-  ini_set "^Script" "$(basename "${SCR_PATH%.*}")" "$TESTER_INI"
+  # Use relative path to Scripts dir.
+  ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
   cd - &>/dev/null
 fi
 
@@ -516,16 +414,31 @@ fi
 TEST_EXPERT="$(ini_get ^TestExpert)"
 EXPERT="$(ini_get ^Expert)"
 EA_FILE="${TEST_EXPERT:-$EXPERT}"
+EA_INI="$TESTER_DIR/${EA_FILE##*/}.ini"
 SCRIPT="$(ini_get ^Script)"
+SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
+EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
+EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
 SERVER="${SERVER:-$(ini_get Server)}"
-SETFILE="${EA_FILE:-$SCRIPT}.set"
 
-# Copy the template INI file for binary files.
-if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'ex' ]]; then
-  EA_INI="$TESTER_DIR/$EA_FILE.ini"
+# Export SET file when SETFILE does not exist.
+if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
+  echo "Specified SET file via -f param does not exist ($SETFILE), exporting from EA ..." >&2
+  exported_setfile=${TEST_EXPERT:-$EXPERT}
+  exported_setfile=$(export_set "${exported_setfile##*/}" "$(basename "$SETFILE")")
+  [ ! -s "$TESTER_DIR/$exported_setfile" ] && { echo "ERROR: Export of SET file failed!" >&2; exit 1; }
+  cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
+fi
+if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
+  echo "EA's SET file does not exist ($EA_SETFILE), copying from $SETFILE..." >&2
+  cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
+fi
+
+# Copy the template INI file.
+if [ -n "$EA_FILE" -a ! -s "$EA_INI" ]; then
   cp $VFLAG "$TPL_EA" "$EA_INI"
-elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'ex' ]]; then
-  SCR_INI="$SCRIPTS_DIR/$SCRIPT.ini"
+elif [ -n "$SCRIPT" -a ! -s "$SCR_INI" ]; then
+  cp $VFLAG "$TPL_EA" "$SCR_INI"
 fi
 
 srv_copy
@@ -535,10 +448,6 @@ check_files
 OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
-
-    A) # Action to evaluate (e.g. "file_get URL")
-      CODE+=("${OPTARG}")
-      ;;
 
     b) ;; # Already parsed.
     B) ;; # Already parsed.
@@ -604,7 +513,7 @@ while getopts $ARGS arg; do
       ;;
 
     r) # The name of the test report file.
-      TEST_REPORT="tester/$(basename "${OPTARG}")"
+      TEST_REPORT_NAME="tester/$(basename "${OPTARG}")"
       ;;
 
     R) # Set files to read-only.
@@ -665,9 +574,9 @@ if [ -n "$BT_PERIOD" ]; then
 fi
 
 # Action(s) to evaluate.
-if [ -n "$CODE" ]; then
-  for code in "${CODE[@]}"; do
-    echo "Evaluating action ($code)..." >&2
+if [ -n "$RUN_ON_SET" ]; then
+  for code in "${RUN_ON_SET[@]}"; do
+    echo "Running code on SET configuration ($code)..." >&2
     eval "$code"
   done
 fi
@@ -682,7 +591,7 @@ if [ -n "$EA_OPTS" ]; then
 fi
 if [ -n "$SET_OPTS" ]; then
   echo "Setting EA options ($SET_OPTS)..." >&2
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+  if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     # Append settings into the SET file.
     IFS=','; set_options=($SET_OPTS); restore_ifs
     for set_pair in "${set_options[@]}"; do
@@ -692,33 +601,35 @@ if [ -n "$SET_OPTS" ]; then
     done
   else
     # Create a new SET file if does not exist.
-    tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$SETFILE"
+    tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$EA_SETFILE"
   fi
-  if [ "$OPT_VERBOSE" ]; then
+  if [ -n "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
-    echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$SETFILE" | paste -sd,)" >&2
+    echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$EA_SETFILE" | paste -sd,)" >&2
   fi
 fi
 
 # Adds SET file into Terminal INI Configuration file.
-if [ -n "$SETORG" -o -n "$SET_OPTS" ]; then
-  echo "Configuring SET parameters ($SETFILE)..." >&2
-  if [ -f "$SETORG" ]; then
-    cp -f $VFLAG "$SETORG" "$TESTER_DIR/$SETFILE"
+if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
+  echo "Configuring SET parameters ($EA_SETFILE)..." >&2
+  if [ -f "$SETFILE" ]; then
+    cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
   fi
-  if [ -f "$TESTER_DIR/$SETFILE" ]; then
+  if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     if [ -n "$TEST_EXPERT" ]; then
-      ini_set "^TestExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set "^TestExpertParameters" "$EA_SETFILE" "$TESTER_INI"
     elif [ -n "$EXPERT" ]; then
-      ini_set "^ExpertParameters" "$SETFILE" "$TESTER_INI"
+      ini_set "^ExpertParameters" "$EA_SETFILE" "$TESTER_INI"
     elif [ -n "$SCRIPT" ]; then
-      ini_set "^ScriptParameters" "$SETFILE" "$TESTER_INI"
+      ini_set "^ScriptParameters" "$EA_SETFILE" "$TESTER_INI"
     fi
     echo "Copying parameters from SET into INI file..." >&2
-    ini_set_inputs "$TESTER_DIR/$SETFILE" "$EA_INI"
+    ini_set_inputs "$TESTER_DIR/$EA_SETFILE" "$EA_INI"
   else
-    echo "ERROR: Set file not found ($SETORG)!" >&2
-    exit 1
+    if [ ! -s "$SETFILE" ]; then
+      echo "ERROR: Set file not found ($SETFILE)!" >&2
+      exit 1
+    fi
   fi
 fi
 
@@ -748,9 +659,9 @@ fi
 
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
-  TEST_REPORT=${TEST_REPORT:-tester/${EA_FILE:-$(date +%Y%m%d)}-Report}
-  echo "Configuring test report ($TEST_REPORT)..." >&2
-  ini_set "^TestReport" "$TEST_REPORT" "$TESTER_INI"
+  TEST_REPORT_NAME=${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}
+  echo "Configuring test report ($TEST_REPORT_NAME)..." >&2
+  ini_set "^TestReport" "$TEST_REPORT_NAME" "$TESTER_INI"
 fi
 
 # Sets a spread if present.
@@ -760,13 +671,13 @@ if [ -n "$BT_SPREAD" ]; then
 fi
 
 # Sets the optimization mode if present.
-if [ "$OPT_OPTIMIZATION" ]; then
+if [ -n "$OPT_OPTIMIZATION" ]; then
   echo "Configuring optimization mode..." >&2
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
 
 # Sets the visual mode if present.
-if [ "$VISUAL_MODE" ]; then
+if [ -n "$VISUAL_MODE" ]; then
   echo "Enabling visual mode..." >&2
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
@@ -788,15 +699,15 @@ fi
 
 # Download backtest data if required.
 BT_PERIOD=$(ini_get ^TestPeriod)
-if [ "$TEST_EXPERT" ]; then
+if [ -n "$TEST_EXPERT" ]; then
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
-    env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE TRACE=$TRACE \
-      $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE:-0}
-    if [ "$OPT_VERBOSE" ]; then
+    env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE \
+      $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE}
+    if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
       cd - &>/dev/null
@@ -807,8 +718,8 @@ if [ "$TEST_EXPERT" ]; then
 fi
 
 # Prepare before test run.
-if [ "$TEST_EXPERT" ]; then
-  [ "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
+if [ -n "$TEST_EXPERT" ]; then
+  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
 clean_files
@@ -818,16 +729,27 @@ if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   exit 1
 fi
 
+if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'mq' ]]; then
+  # Compile EA when source code file is specified.
+  echo "Compiling EA ($EA_PATH)..." >&2
+  compile_ea ${EA_PATH##*/}
+elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
+  # Compile script when source code file is specified.
+  echo "Compiling script ($SCR_PATH)..." >&2
+  compile_script ${SCR_PATH##*/}
+fi
+
 # Kill on condition when running script.
 if [ -n "$SCRIPT" ]; then
   kill_on_match "uninit reason 0" &
 fi
 
 # Show live logs and stats when in verbose mode.
-if [ "$OPT_VERBOSE" ]; then
+if [ -n "$OPT_VERBOSE" ]; then
   live_logs &
   live_stats &
 fi
+live_monitor_errors &
 
 # Run the test in the platform.
 echo "Starting..." >&2
@@ -839,10 +761,10 @@ echo "Starting..." >&2
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@
 
 # Invoke shutdown/final code.
-if [ -n "$FINAL_CODE" ]; then
-  echo "Evaluating final code ($FINAL_CODE)..." >&2
-  eval "$FINAL_CODE"
+if [ -n "$RUN_ON_EXIT" ]; then
+  echo "Running code on exit ($RUN_ON_EXIT)..." >&2
+  eval "$RUN_ON_EXIT"
 fi
 
-[ "$OPT_VERBOSE" ] && times >&2 && echo "$0 done" >&2
+[ -n "$OPT_VERBOSE" ] && times >&2 && echo "$0 done" >&2
 exit $exit_status

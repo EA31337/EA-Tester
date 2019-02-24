@@ -25,7 +25,7 @@ TERMINAL_DIR="${TERMINAL_DIR:-$([ -f "$TERMINAL_EXE" ] && dirname "$TERMINAL_EXE
 MTEDITOR_EXE="$([ -d "$TERMINAL_DIR" ] && find "$TERMINAL_DIR" -name metaeditor.exe -print -quit || true)"
 is_vm && set +x
 MQL_DIR="MQL4"
-if [ "$TERMINAL_DIR" ]; then
+if [ -n "$TERMINAL_DIR" ]; then
   TERMINAL_ARG="/skipupdate /portable"
   TERMINAL_CNF="${TERMINAL_DIR}/config"
   TERMINAL_INI="${TERMINAL_INI:-$TERMINAL_CNF/$CONF_TERM}"

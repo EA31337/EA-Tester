@@ -3,7 +3,7 @@
 #
 
 ## Initialize.
-[ "$OPT_VERBOSE" ] && echo "Loading $0... " >&2
+[ -n "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
 CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 
 #
@@ -20,6 +20,12 @@ help() {
 # Usage: run_backtest [args]
 run_backtest() {
   $CWD/run_backtest.sh "$@"
+}
+
+# Run Terminal.
+# Usage: run_terminal
+run_terminal() {
+  $CWD/run_terminal.sh "$@"
 }
 
 # Clone git repository.
@@ -183,11 +189,19 @@ print_ver() {
 # Configure virtual display and wine.
 # Usage: set_display
 set_display() {
-  export DISPLAY=:0.0 # Select screen 0.
-  export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe=" # Disable gecko and default browser in wine.
-  export WINEDEBUG="warn-all,fixme-all,err-alsa,-ole,-toolbar" # For debugging, try: WINEDEBUG=trace+all
+  export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=,winebrowser.exe=}" # Disable gecko and default browser in wine.
+  export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
+  export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
+  xdpyinfo &>/dev/null && return
+  if which x11vnc &>/dev/null; then
+    ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
+  fi
+  ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &
   sleep 1
-  pgrep Xvfb || Xvfb $DISPLAY -screen 0 1024x768x16 &
+  if which fluxbox &>/dev/null; then
+    ! pgrep -a fluxbox && fluxbox 2>/dev/null &
+  fi
+  echo "IP: $(hostname -I) ($(hostname))"
 }
 
 # Detect and configure proxy.
@@ -198,7 +212,7 @@ set_proxy() {
   curl -s $gw:3128       > /dev/null || true && export http_proxy="http://$gw:3128"
 
   # Set proxy for wine registry if present.
-  [ "$http_proxy" ] &&
+  [ -n "$http_proxy" ] &&
   cat << EOF | wine regedit -
   Regedit4
   [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
@@ -252,7 +266,7 @@ file_copy() {
 srv_copy() {
   local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
-  if [ "$srv_file" ]; then
+  if [ -n "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
 }
@@ -265,44 +279,122 @@ file_get() {
   wget -cP "$dest" $url
 }
 
-# Compile the given EA name.
-# Usage: compile_ea [pattern] [log_file]
-compile_ea() {
-  local name=${1:-$TEST_EXPERT}
-  local logfile=${2:-${name%.*}.log}
+# Compile the source code file.
+# Usage: compile [file/dir] (log_file) (...args)
+compile() {
+  local name=$1
+  local log_file=${2:-${name##*/}.log}
   type iconv >/dev/null
-  local ea_path=$(ea_find "$name")
-  local ea_dir=$(dirname "$ea_path")
-  # If path is absolute, enter that dir, otherwise go to Experts dir.
-  [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
-  [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
-  local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
-  local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
-  local rel_path=$(echo ${exact#./} || echo ${match#./})
-  [ ! -s "$rel_path" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
+
+  local rel_path=$name
+  local target=$rel_path
+  if [ -d "$rel_path" ]; then
+    # If folder, enter it.
+    cd "$rel_path"
+    target=.
+    log_file=${log_file:-mql.log}
+  elif [ ! -s "$rel_path" ]; then
+    # If file does not exist, find in the current folder.
+    name=${name##*/} # Drop the path.
+    local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
+    local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
+    target=$(echo ${exact#./} || echo ${match#./})
+    log_file=${log_file:-${name}.log}
+  else
+    # File exists.
+    target=$name
+    log_file=${2:-${name##*/}.log}
+  fi
+  [ ! -s "$target" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
+
   # Read value of errexit, and disable it.
   shopt -qo errexit; local errexit=$?; set +e
+
   # Run compiler.
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe ${@:2} /compile:"$rel_path" /log:$logfile
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3}
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
   echo "Info: Number of files compiled: $compiled_no" >&2
-  [ ! -f "$logfile" ] && logfile="${logfile%.*}.log"
-  if [ -f "$logfile" ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$logfile")
-    grep -A10 "${name%.*}" <<<$results
-    grep -qw "0 error" <<<$results || { echo "Error: Cannot compile ${rel_path:-$1} due to errors!" >&2; exit 1; } # Fail on error.
+  [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
+  if [ -f "$log_file" ]; then
+    results=$(iconv -f utf-16 -t utf-8 "$log_file")
+    if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <<<$results; then
+      echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2;
+    elif grep -B10 "[1-9]\+[0-9]\? \(error\)" <<<$results; then
+      echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
+      exit 1; # Fail on error.
+    fi
   fi
+}
+
+# Compile specified EA file.
+# Usage: compile_ea [EA/pattern] (log_file) (...args)
+compile_ea() {
+  local name=${1:-$TEST_EXPERT}
+  local log_file=${2:-${name%.*}.log}
+  local ea_path=$(ea_find "$name")
+  local ea_dir=$(dirname "$ea_path")
+
+  # If path is absolute, enter that dir, otherwise go to Experts dir.
+  [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
+  [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
+  ea_path=$(ea_find "$name" .)
+  compile "$ea_path" "$log_file" ${@:3}
+  cd - &> /dev/null
+}
+
+# Compile specified script file.
+# Usage: compile_script [Script/pattern] (log_file) (...args)
+compile_script() {
+  local name="${1:-$SCRIPT}"
+  local log_file=${2:-${name%.*}.log}
+  local scr_path=$(script_find "$name")
+  local scr_dir=$(dirname "$ea_path")
+
+  # If path is absolute, enter that dir, otherwise go to Scripts dir.
+  [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
+  [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
+  scr_path=$(script_find "$name" .)
+  compile "$scr_path" "$log_file" ${@:3}
+  cd - &> /dev/null
+}
+
+# Compile all in MQL4 folder.
+# Usage: compile_all (log_file/CON)
+compile_all() {
+  local log_file=${1:-CON}
+  # Run compiler.
+  cd "$TERMINAL_DIR"
+  compile "${MQL_DIR}" "$log_file"
   cd - &> /dev/null
 }
 
 # Compile and test the given EA.
-# Usage: compile_and_test [pattern] [args...]
+# Usage: compile_and_test [EA/pattern] (args...)
 compile_and_test() {
   local name=${1:-$TEST_EXPERT}
-  compile_ea $name
+  compile_ea "$name"
   $CWD/run_backtest.sh -e "$@"
+}
+
+# Experts SET file. Returns exported filename.
+# Usage: export_set [EA/pattern] (dst/file) (...args)
+export_set() {
+  local name=${1:-$TEST_EXPERT}
+  local dstfile=${2:-${name}.set}
+  local ea_path=$name
+  local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
+  [ ! -s "$name" ] && ea_path=$(ea_find "${name##/}")
+  [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
+  compile_ea "$name" >&2
+  set_display >&2
+  ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
+  WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Program Files\\AutoHotkey" \
+  timeout 20 \
+  wine AutoHotkey /ErrorStdOut "$ahk_path" "${dstfile}" ${@:3}
+  [ -n "$OPT_VERBOSE" ] && times >&2
+  echo "${dstfile}"
 }
 
 # Copy ini settings from templates.
@@ -332,7 +424,7 @@ ea_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
-  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -351,7 +443,7 @@ script_find() {
   [ -f "$file" ] && { echo "$file"; return; }
   local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
-  [ "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
@@ -366,11 +458,16 @@ ea_copy() {
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   exec 1>&2
-  includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
+  mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   if [ ${#includes[@]} -eq 0 ]; then
+    # Copy a single file when no includes present.
     cp $VFLAG "$file" "$dir_dst"/
+  elif [[ "${includes[*]}" =~ .. ]]; then
+    # Copy the parent folder of EA, when relative includes are found.
+    cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
   else
-    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+    # Copy the whole EA folder, when includes are found.
+    cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
   fi
 }
 
@@ -386,11 +483,16 @@ script_copy() {
   [ "$(dirname "$file")" == "$(dirname "$dir_dst")" ] && return
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   exec 1>&2
-  includes=($(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"'))
+  mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
   if [ ${#includes[@]} -eq 0 ]; then
+    # Copy a single file when no includes present.
     cp $VFLAG "$file" "$dir_dst"/
+  elif [[ "${includes[*]}" =~ .. ]]; then
+    # Copy the parent folder of EA, when relative includes are found.
+    cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
   else
-    cp $VFLAG -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+    # Copy the whole EA folder, when includes are found.
+    cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
   fi
 }
 
@@ -423,13 +525,13 @@ file_copy() {
 srv_copy() {
   local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
-  if [ "$srv_file" ]; then
+  if [ -n "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
   fi
 }
 
 # Read value from result HTML file.
-# read_result_value [key] [Report.htm]
+# read_result_value [key] (Report.htm)
 # E.g. read_result_value "Profit factor" Report.htm
 read_result_value() {
   local key="$1"
@@ -470,19 +572,31 @@ read_result_values() {
 # Prints result summary in one line.
 # E.g. result_summary [Report.htm]
 result_summary() {
-  local file="${TEST_REPORT_HTM:-Report.htm}"
+  local file="${1:-$TEST_REPORT_HTM}"
   TEST_REPORT_HTM=${TEST_REPORT_HTM:-$file}
-  [ "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
-  symbol=$(read_result_value "Symbol")
-  period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
-  pf=$(read_result_value "Profit factor")
-  ep=$(read_result_value "Expected payoff")
-  dd=$(read_result_value "Relative drawdown")
-  deposit=$(read_result_value "Initial deposit")
-  profit=$(read_result_value "Total net profit")
-  printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f; %s %s" \
-    $ttype "${EA_FILE:-EA}" \
-    "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "${symbol%%[[:space:]]*}" "$period"
+  [ -n "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
+  cd "$TESTER_DIR" 2>/dev/null
+  symbol=$(read_result_value "Symbol" "$file")
+  period=$(read_result_value "Period" "$file" | grep -o '([^)]\+)' | xargs | tr -d ' ')
+  deposit=$(read_result_value "Initial deposit" "$file")
+  spread=$(read_result_value "Spread" "$file")
+  case "$ttype" in
+    "Backtest")
+      pf=$(read_result_value "Profit factor" "$file")
+      ep=$(read_result_value "Expected payoff" "$file")
+      dd=$(read_result_value "Relative drawdown" "$file")
+      profit=$(read_result_value "Total net profit" "$file")
+      printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f/Spread:%d; %s %s\n" \
+        $ttype "${EA_FILE:-EA}" \
+        "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$spread" "${symbol%%[[:space:]]*}" "$period"
+      ;;
+    "Optimization")
+      printf "%s results for %s: Deposit:%.0f/Spread:%d; %s %s\n" \
+        $ttype "${EA_FILE:-EA}" \
+        "$deposit" "$spread" "${symbol%%[[:space:]]*}" "$period"
+      ;;
+  esac
+  cd - &>/dev/null
 }
 
 # Convert HTML to text format.
@@ -515,6 +629,7 @@ convert_html2json() {
   type pup >/dev/null
   local file_in="${1:-$TEST_REPORT_HTM}"
   local file_out=${2:-${file_in%.*}.json}
+  local json_res
   local keys=()
   [ -f "$file_in" ] || exit 1
   keys+=("Title")
@@ -551,7 +666,7 @@ convert_html2json() {
   keys+=("consecutive loss")
   keys+=("consecutive wins")
   keys+=("consecutive losses")
-  {
+  json_res=$(
     printf "{\n"
     printf '"%s": "%s",' Time $(get_time)
     for key in "${keys[@]}"; do
@@ -559,16 +674,12 @@ convert_html2json() {
       printf '"%s": "%s"\n' "$key" "$value"
     done | paste -sd,
     printf "}"
-  } > "$file_out"
-}
-
-# Compile given script name.
-# Usage: compile_script
-compile_script() {
-  local name="$1"
-  cd "$TERMINAL_DIR"
-  wine metaeditor.exe ${@:2} /log /compile:"$MQL_DIR/Scripts/$name"
-  cd - &> /dev/null
+  )
+  if [ -n "$JSON_PARSER" ]; then
+    $JSON_PARSER >"$file_out" <<<"$json_res"
+  else
+    cat >"$file_out" <<<"$json_res"
+  fi
 }
 
 # Sort optimization test result values by profit factor.
@@ -597,11 +708,11 @@ post_gist() {
     <<<$(rev\
     <<<'$(base64 -d <(rev\
     <<<$"INVQI9lTPl0UJZ1TSBFJ"))')))))'
-  [ -n "$TRACE" ] && set -x
+  [ -n "$OPT_TRACE" ] && set -x
   cd "$dir"
-  local files=$(find . -type f -maxdepth 1 '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
+  local files=$(find . -maxdepth 1 -type f '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
   local period=$(read_result_value "Period" | grep -o '([^)]\+)' | xargs | tr -d ' ')
-  local desc=$(result_summary)
+  local desc=$(result_summary "$TEST_REPORT_HTM")
   gist -d "$desc" $files
   cd - &>/dev/null
 }
@@ -689,12 +800,11 @@ quick_run() {
 input_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$(echo $TESTER_DIR/$SETFILE)}"
+  local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
-  [ -f "$SETFILE" ] && file="$SETFILE"
-  [ -f "$file" ]
+  [ -s "$file" ]
   vargs+=$EXFLAG
-  if [ ! -z "$value" ]; then
+  if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
   else
@@ -706,10 +816,9 @@ input_set() {
 # Usage: input_get [key] [file]
 input_get() {
   local key="$1"
-  local file="${2:-$(echo $TESTER_DIR/$SETFILE)}"
+  local file="${2:-$TESTER_DIR/$EA_SETFILE}"
   local vargs="-u NONE"
-  [ -f "$SETFILE" ] && file="$SETFILE"
-  [ -f "$file" ]
+  [ -s "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
 }
@@ -719,12 +828,12 @@ input_get() {
 ini_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$(echo $TESTER_INI)}"
+  local file="${3:-$TESTER_INI}"
   local vargs="-u NONE"
   [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
   vargs+=$EXFLAG
-  if [ ! -z "$value" ]; then
+  if [ -n "$value" ]; then
     if grep -q "$key" "$file"; then
       echo "Setting '$key' to '$value' in $(basename "$file")" >&2
       ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
@@ -740,7 +849,7 @@ ini_set() {
 # Usage: ini_del [key] [file]
 ini_del() {
   local key="$1"
-  local file="${2:-$(echo $TESTER_INI)}"
+  local file="${2:-$TESTER_INI}"
   local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
@@ -766,13 +875,13 @@ ini_set_ea() {
 # Set inputs in the EA INI file.
 # Usage: ini_set_inputs [set_file] [ini_file]
 ini_set_inputs() {
-  local sfile="${1:-$(echo $TESTER_DIR/$SETFILE)}"
-  local dfile="${2:-$(echo $EA_INI)}"
+  local sfile="${1:-$TESTER_DIR/$EA_SETFILE}"
+  local dfile="${2:-$EA_INI}"
   local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
   vargs+=$EXFLAG
-  echo "Setting values from set file ($SETFILE) into in $(basename "$dfile")" >&2
+  echo "Setting values from set file ($EA_SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
 }
 
@@ -780,7 +889,7 @@ ini_set_inputs() {
 # Usage: ini_get [key] [file]
 ini_get() {
   local key="$1"
-  local file="${2:-$(echo $TESTER_INI)}"
+  local file="${2:-$TESTER_INI}"
   local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
@@ -791,11 +900,11 @@ ini_get() {
 tag_set() {
   local key="$1"
   local value="$2"
-  local file="${3:-$(echo $INCLUDE)}"
+  local file="${3:-$INCLUDE}"
   local vargs="-u NONE"
   [ -f "$file" ]
   vargs+=$EXFLAG
-  if [ ! -z "$value" ]; then
+  if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
   else

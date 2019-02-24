@@ -75,7 +75,7 @@ begin
       when '--vm-name';        vm_name        = arg
     end # case
   end # each
-  rescue
+rescue
 # @todo: Correct an invalid option error.
 end
 script = "set -x;"
@@ -110,7 +110,7 @@ Vagrant.configure(2) do |config|
 
   if run_test
     script << %Q[/usr/bin/env \
-                 BOOT_CODE=#{ENV['BOOT_CODE']} \
+                 RUN_ON_START=#{ENV['RUN_ON_START']} \
                  GIF_ENHANCE=#{ENV['GIF_ENHANCE']} \
                  GIF_TEXT_COLOR=#{ENV['GIF_TEXT_COLOR']} \
                  /vagrant/scripts/run_backtest.sh #{run_test} &&]
@@ -119,7 +119,7 @@ Vagrant.configure(2) do |config|
   if push_repo
     # The clone_repo parameter is required for push to work correctly.
     script << %Q[/usr/bin/env \
-                 TRACE=1 \
+                 OPT_TRACE=1 \
                  GIT_ARGS='#{git_args}' \
                  /vagrant/scripts/push_repo.sh '#{clone_repo}' '#{vm_name}' '#{vm_name}' &&]
   end
