@@ -25,7 +25,7 @@ on_success() {
   echo "Checking logs..." >&2
   show_logs
   check_log_errors
-  echo "TEST succeeded." >&2
+  echo "RUN succeeded." >&2
   parse_results $@
   on_finish
   local OPTIND
@@ -57,7 +57,7 @@ on_failure() {
 
   echo "Printing logs..." >&2
   show_logs
-  echo "TEST failed." >&2
+  echo "RUN failed." >&2
   on_finish
 }
 
@@ -719,9 +719,9 @@ elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   compile_script ${SCR_PATH##*/}
 fi
 
-# Kill on condition when running script.
+# Kill on error condition when running script.
 if [ -n "$SCRIPT" ]; then
-  kill_on_match "uninit reason 0" &
+  kill_on_error &
 fi
 
 # Show live logs and stats when in verbose mode.
@@ -729,7 +729,6 @@ if [ -n "$OPT_VERBOSE" ]; then
   live_logs &
   live_stats &
 fi
-live_monitor_errors &
 
 # Run the test in the platform.
 echo "Starting..." >&2

@@ -92,28 +92,6 @@ get_time() {
   fi
 }
 
-# Check logs in real-time for any errors.
-# Usage: live_monitor_errors (interval)
-live_monitor_errors() {
-  local interval=${1:-10}
-  local errors=("cannot open" "not initialized" "initialization failed")
-  set +x
-  # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
-  {
-    while sleep $interval; do
-      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-      [ -f "$log_file" ] && break
-    done
-    while sleep $interval; do
-      # Check for each error.
-      if eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
-        # In case of error, kill the wine process.
-        kill_wine
-      fi
-    done &
-  }
-}
-
 # Check logs for errors.
 # Usage: check_log_errors [filter] [args]
 check_log_errors() {
@@ -314,21 +292,26 @@ show_trace() {
   while caller $((n++)); do :; done; >&2
 }
 
-# Kill platform on certain log match.
-# Usage: kill_on_match [pattern] [file] [args]
-kill_on_match() {
-  local pattern=$1
-  local file=${2:-$(date +%Y%m%d)*.log}
-  local interval=10
-  set +x
-  # Prints MQL4 logs when available (e.g. MQL4/Logs/yyyymmdd.log).
-  while sleep $interval; do
-    log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-    [ -f "$log_file" ] && break
-  done
-  while sleep $interval; do
-    grep -w "$pattern" "$log_file" && { kill_wine && break; }
-  done
+# Check logs in real-time and kill platform on error match.
+# Usage: kill_on_error (interval)
+kill_on_error() {
+  local interval=${1:-10}
+  local errors=("cannot open" "not initialized" "initialization failed")
+  # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
+  {
+    set +x
+    while sleep $interval; do
+      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done
+    while sleep $interval; do
+      # Check for each error.
+      if eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
+        # In case of error, kill the wine process.
+        kill_wine
+      fi
+    done &
+  }
 }
 
 # Kill any remaining background jobs.
