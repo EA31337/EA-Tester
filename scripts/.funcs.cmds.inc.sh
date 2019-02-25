@@ -351,7 +351,7 @@ compile_script() {
   local name="${1:-$SCRIPT}"
   local log_file=${2:-${name%.*}.log}
   local scr_path=$(script_find "$name")
-  local scr_dir=$(dirname "$ea_path")
+  local scr_dir=$(dirname "$scr_path")
 
   # If path is absolute, enter that dir, otherwise go to Scripts dir.
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
@@ -410,7 +410,7 @@ ini_copy() {
 }
 
 # Find the EA file.
-# Usage: ea_find [filename/url/pattern] [optional/dir]
+# Usage: ea_find [filename/url/pattern] (optional/dir)
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="${1:-$EA_FILE}"
@@ -430,12 +430,13 @@ ea_find() {
 }
 
 # Find the script file.
-# Usage: script_find [filename/url/pattern]
+# Usage: script_find [filename/url/pattern] (optional/dir)
 # Returns path relative to platform, or absolute otherwise.
 script_find() {
   local file="$1"
+  local dir="${2:-$SCRIPTS_DIR}"
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
-  cd "$SCRIPTS_DIR"
+  cd "$dir"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
     wget $VFLAG -cP "$SCRIPTS_DIR" $file
