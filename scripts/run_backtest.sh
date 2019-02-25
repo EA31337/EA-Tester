@@ -24,24 +24,7 @@ usage() {
 on_success() {
   echo "Checking logs..." >&2
   show_logs
-  # @fixme
-  ! check_logs "Initialization failed" || exit 1
-# ! check_logs "ExpertRemove" || exit 1
-  ! check_logs "TestGenerator: .\+ not found" || exit 1
-  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; exit 1; }
-  ! check_logs ".\+ cannot start" || exit 1
-  ! check_logs ".\+ cannot open" || exit 1
-  ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated.
-  ! check_logs ".\+ not initialized" || exit 1
-  ! check_logs ".\+ file error" || exit 1
-  ! check_logs ".\+ data error" || exit 1
-  ! check_logs ".\+ deficient data" || exit 1
-  ! check_logs "stop button .\+" || exit 1
-  ! check_logs "incorrect casting .\+" || exit 1
-  ! check_logs "Error: .\+" || exit 1
-  ! check_logs "Configuration issue .\+" || exit 1
-  ! check_logs "Assert fail on .\+" || exit 1
-  ! check_logs "Testing pass stopped .\+" || exit 1
+  check_log_errors
   echo "TEST succeeded." >&2
   parse_results $@
   on_finish
@@ -65,14 +48,11 @@ on_failure() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   if [ -n "$TEST_REPORT_BASE" ]; then
     TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
-    test -f "$TEST_REPORT_HTM" && on_success $@
-    return
-  fi
-  if [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
+    test -f "$TEST_REPORT_HTM" && { on_success $@; return; }
+  elif [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
     log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-    grep -w -C1 "uninit reason 0" "$log_file" && on_success $@
-    return
+    grep -w -C1 "uninit reason 0" "$log_file" && { on_success $@; return; }
   fi
 
   echo "Printing logs..." >&2

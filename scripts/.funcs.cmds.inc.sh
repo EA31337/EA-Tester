@@ -793,7 +793,7 @@ quick_run() {
   ini_set "^Script" $scrname
   script_copy $scrname
   (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG"
-  show_logs
+  show_logs 40
 }
 
 # Set input value in the SET file.

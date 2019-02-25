@@ -114,6 +114,34 @@ live_monitor_errors() {
   }
 }
 
+# Check logs for errors.
+# Usage: check_log_errors [filter] [args]
+check_log_errors() {
+  set -x
+  local log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+  local errors=()
+  errors+=("cannot open")
+  errors+=("not initialized")
+  errors+=("initialization failed")
+  errors+=("TestGenerator: .\+ not found")
+  errors+=(".\+ no history data")
+  errors+=(".\+ cannot start")
+  errors+=(".\+ cannot open")
+  errors+=(".\+ rate cannot")
+  errors+=(".\+ not initialized")
+  errors+=(".\+ file error")
+  errors+=(".\+ data error")
+  errors+=(".\+ deficient data")
+  errors+=("stop button .\+")
+  errors+=("incorrect casting .\+")
+  errors+=("Error: .\+")
+  errors+=("Configuration issue .\+")
+  errors+=("Assert fail on .\+")
+  errors+=("Testing pass stopped .\+")
+  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"
+}
+
 # Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
