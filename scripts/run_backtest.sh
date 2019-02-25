@@ -721,7 +721,7 @@ fi
 
 # Kill on error condition when running script.
 if [ -n "$SCRIPT" ]; then
-  kill_on_error &
+  kill_on_match &
 fi
 
 # Show live logs and stats when in verbose mode.

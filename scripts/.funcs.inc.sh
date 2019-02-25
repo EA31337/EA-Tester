@@ -292,11 +292,11 @@ show_trace() {
   while caller $((n++)); do :; done; >&2
 }
 
-# Check logs in real-time and kill platform on error match.
-# Usage: kill_on_error (interval)
-kill_on_error() {
+# Check logs in real-time and kill platform on pattern match.
+# Usage: kill_on_match (interval)
+kill_on_match() {
   local interval=${1:-10}
-  local errors=("cannot open" "not initialized" "initialization failed")
+  local errors=("cannot open" "not initialized" "initialization failed" "uninit reason")
   # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
   {
     set +x
