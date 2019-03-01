@@ -22,25 +22,21 @@ RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
 WORKDIR /home/ubuntu
 
 # Build-time variables.
-ARG BT_DEST
+ARG BT_DEST=/opt/results
 ARG MT_VER
-ARG PROVISION_AHK
-ARG PROVISION_SSH
-ARG PROVISION_SUDO
-ARG PROVISION_VNC
+ARG PROVISION_AHK=1
+ARG PROVISION_SSH=0
+ARG PROVISION_SUDO=1
+ARG PROVISION_VNC=1
 
-# Provision container image,
+# Provision container image.
 ADD scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts
-ENV PROVISION_AHK 1
-ENV PROVISION_SSH 0
-ENV PROVISION_SUDO 1
-ENV PROVISION_VNC 1
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
 # Setup results directory.
-ENV BT_DEST /opt/results
+ENV BT_DEST $BT_DEST
 RUN mkdir -v -m a=rwx $BT_DEST
 RUN chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
