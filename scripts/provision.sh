@@ -93,8 +93,9 @@ case "$(uname -s)" in
       apt-get -qq update
     )
 
-    # Install curl if not present.
+    # Install curl and wget if not present.
     which curl &>/dev/null || apt-get install -qq curl
+    which wget &>/dev/null || apt-get install -qq wget
 
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
@@ -155,7 +156,7 @@ case "$(uname -s)" in
     apt-get install -qq git realpath links tree pv bc                             # Required commands.
     apt-get install -qq html2text jq                                              # Required parsers.
     apt-get install -qq imagemagick                                               # ImageMagick.
-    apt-get install -qq wget vim                                                  # Wget and Vim
+    apt-get install -qq vim                                                       # Vim.
 
     # Install required gems.
     apt-get install -qq ruby
