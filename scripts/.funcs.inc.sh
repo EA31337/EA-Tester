@@ -345,7 +345,6 @@ on_exit() {
   local exit_status=${1:-$?}
   kill_jobs
   kill_wine
-  kill_display
   [ -n "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
