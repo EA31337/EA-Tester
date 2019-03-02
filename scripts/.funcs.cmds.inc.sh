@@ -392,7 +392,7 @@ export_set() {
   set_display >&2
   ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
-  timeout 20 \
+  timeout 60 \
   wine AutoHotkey /ErrorStdOut "$ahk_path" "${dstfile}" ${@:3}
   [ -n "$OPT_VERBOSE" ] && times >&2
   echo "${dstfile}"
