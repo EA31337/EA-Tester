@@ -808,7 +808,7 @@ input_set() {
   vargs+=$EXFLAG
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
+    ex +"%s/$key=\zs.*$/$value/" -scwq! $vargs "$file" >&2 || exit 1
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
