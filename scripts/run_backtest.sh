@@ -592,9 +592,6 @@ fi
 # Adds SET file into Terminal INI Configuration file.
 if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
   echo "Configuring SET parameters ($EA_SETFILE)..." >&2
-  if [ -f "$SETFILE" ]; then
-    cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
-  fi
   if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     if [ -n "$TEST_EXPERT" ]; then
       ini_set "^TestExpertParameters" "$EA_SETFILE" "$TESTER_INI"
