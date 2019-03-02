@@ -825,6 +825,20 @@ input_get() {
   echo $value
 }
 
+# Copy input value from the SET file to MQL file.
+# Usage: input_copy [key] [file]
+input_copy() {
+  local key=$1
+  local file_src=$2
+  local file_dst=$3
+  local vargs="-u NONE"
+  [ -s "$file_src" -a -s "$file_dst" ]
+  vargs+=$EXFLAG
+  value=$(input_get "$key" "$file_src")
+  echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
+  ex +"%s/${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! $vargs "$file_dst" >&2 || exit 1
+}
+
 # Set value in the INI file.
 # Usage: ini_set [key] [value] [file]
 ini_set() {
