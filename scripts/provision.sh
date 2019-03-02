@@ -125,16 +125,19 @@ case "$(uname -s)" in
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Setup display.
-    DISPLAY=${DISPLAY:-:0}
-    xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &)
 
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
       echo "Installing AutoHotkey..." >&2
       su - $user -c "
+        set -x
+        export DISPLAY=:1.0
+        echo \$DISPLAY
+        xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
         wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
-        DISPLAY=$DISPLAY wine /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
-        rm -v /tmp/AutoHotkey_*.exe
+        wine /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
+        rm -v /tmp/AutoHotkey_*.exe && \
+        (pkill Xvfb || true)
       "
       ahk_path=$(su - $user -c 'winepath -u "C:\\Apps\\AHK"');
       if [ -d "$ahk_path" ]; then
@@ -143,7 +146,7 @@ case "$(uname -s)" in
         echo "Error: AutoHotkey installation failed!" >&2
         exit 1
       fi
-    fi &
+    fi
 
     # Setup VNC.
     if [ -n "$PROVISION_VNC" ]; then
@@ -209,7 +212,7 @@ git init /opt &
 chown -R $user /opt &
 
 # Wait for background jobs to finish.
-pkill Xvfb
+pkill Xvfb || true
 jobs
 wait
 
