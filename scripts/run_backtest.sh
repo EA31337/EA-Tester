@@ -29,10 +29,15 @@ on_success() {
   parse_results $@
   on_finish
   local OPTIND
+  # Invoke custom code on success.
+  if [ -n "$RUN_ON_SUCCESS" ]; then
+    echo "Running code on success ($RUN_ON_SUCCESS)..." >&2
+    eval "$RUN_ON_SUCCESS"
+  fi
   while getopts $ARGS arg; do
     case $arg in
       X) # Invoke file on exit after the successful test.
-        echo "Invoking file after test..." >&2
+        echo "Invoking script file after test..." >&2
         . "$OPTARG"
         ;;
       esac
@@ -55,6 +60,11 @@ on_failure() {
     grep -w -C1 "uninit reason 0" "$log_file" && { on_success $@; return; }
   fi
 
+  # Invoke custom code on failure.
+  if [ -n "$RUN_ON_FAIL" ]; then
+    echo "Running code on failure ($RUN_ON_FAIL)..." >&2
+    eval "$RUN_ON_FAIL"
+  fi
   echo "Printing logs..." >&2
   show_logs
   echo "RUN failed." >&2

@@ -95,7 +95,7 @@ Supported options:
     Run the script in trace/debug mode.
     Variable (bool): OPT_TRACE
   -X (file)
-    Invoke file on exit after the successful test.
+    Invoke script file n exit after the successful test.
   -y (year)
     Year to test. Default: 2017
     Variable (uint/string): BT_YEARS
@@ -114,6 +114,10 @@ Other supported variables (without options assigned):
   Run shell code on startup (before the test).
 - RUN_ON_SET (string)
   Run shell code on SET configuration (e.g. "file_get URL").
+- RUN_ON_SUCCESS (string)
+  Run shell code on success (after the test).
+- RUN_ON_FAIL (string)
+  Run shell code on failure (after the test).
 - RUN_ON_EXIT (string)
   Run shell code on exit (after the test).
 - JSON_PARSER (string)
