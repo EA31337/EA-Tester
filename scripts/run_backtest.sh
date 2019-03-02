@@ -733,7 +733,7 @@ fi
 # Run the test in the platform.
 echo "Starting..." >&2
 {
-  time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
+  time wineconsole --backend=curses "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
 } 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.
