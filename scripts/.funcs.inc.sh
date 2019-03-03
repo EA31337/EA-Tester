@@ -95,7 +95,6 @@ get_time() {
 # Check logs for errors.
 # Usage: check_log_errors [filter] [args]
 check_log_errors() {
-  set -x
   local log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
   local errors=()
   errors+=("cannot open")
