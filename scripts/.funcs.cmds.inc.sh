@@ -688,8 +688,11 @@ convert_html2json() {
 # Usage: sort_opt_results [file/report.html]
 sort_opt_results() {
   local file="$1"
+  local vargs="-u NONE"
+  [ -s "$file" ]
+  vargs+=$EXFLAG
   # Note: {1} - Profit; {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
-  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq "$file"
+  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq! $vargs "$file"
 }
 
 # Post results to gist.
@@ -819,7 +822,6 @@ input_set() {
 input_get() {
   local key="$1"
   local file="${2:-$TESTER_DIR/$EA_SETFILE}"
-  local vargs="-u NONE"
   [ -s "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
@@ -852,7 +854,7 @@ ini_set() {
   if [ -n "$value" ]; then
     if grep -q "$key" "$file"; then
       echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-      ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+      ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq! $vargs "$file" || exit 1
     else
       echo "$key=$value" >> "$file"
     fi
@@ -872,7 +874,7 @@ ini_del() {
   vargs+=$EXFLAG
   if grep -q "$key" "$file"; then
     echo "Deleting '$key' from $(basename "$file")" >&2
-    ex +':g/'"$key"'=/d' -scwq $vargs "$file" || exit 1
+    ex +':g/'"$key"'=/d' -scwq! $vargs "$file" || exit 1
   else
     echo "Value '$key' does not exist, ignoring." >&2
   fi
@@ -883,9 +885,11 @@ ini_del() {
 ini_set_ea() {
   local key=$1
   local value=$2
+  local vargs="-u NONE"
+  vargs+=$EXFLAG
   grep -q ^$key "$EA_INI" \
     && ini_set ^$key $value "$EA_INI" \
-    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq "$EA_INI"
+    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq! $vargs "$EA_INI"
 }
 
 # Set inputs in the EA INI file.
@@ -898,7 +902,7 @@ ini_set_inputs() {
   [ -f "$dfile" ]
   vargs+=$EXFLAG
   echo "Setting values from set file ($EA_SETFILE) into in $(basename "$dfile")" >&2
-  ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
+  ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq! $vargs "$dfile"
 }
 
 # Get value from the INI/HTM file.
@@ -922,7 +926,7 @@ tag_set() {
   vargs+=$EXFLAG
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
+    ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq! $vargs "$file"
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
