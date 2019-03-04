@@ -122,3 +122,5 @@ Other supported variables (without options assigned):
   Run shell code on exit (after the test).
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
+- EX_ARGS (string)
+  Arguments passed to Ex editor on in-place file editing.
