@@ -388,7 +388,7 @@ export_set() {
   local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
   [ ! -s "$name" ] && ea_path=$(ea_find "${name##/}")
   [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
-  compile_ea "$name" >&2
+  [[ "$ea_path" =~ 'mq' ]] && compile_ea "$name" >&2
   set_display >&2
   ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
