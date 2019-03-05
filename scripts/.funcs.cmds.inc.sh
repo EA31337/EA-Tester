@@ -836,9 +836,9 @@ input_copy() {
   local vargs=("-u NONE")
   [ -s "$file_src" -a -s "$file_dst" ]
   vargs+=($EX_ARGS)
-  value=$(input_get "$key" "$file_src")
+  value=$(input_get "^$key" "$file_src")
   echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
-  ex +"%s/${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2 || exit 1
+  ex +"%s/\s${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2 || exit 1
 }
 
 # Set value in the INI file.
