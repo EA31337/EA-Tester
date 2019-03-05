@@ -99,6 +99,9 @@ Supported options:
   -y (year)
     Year to test. Default: 2017
     Variable (uint/string): BT_YEARS
+  -_
+    Dry run.
+    Variable (bool): OPT_DRY_RUN
   -?
     Display help.
 
@@ -124,3 +127,5 @@ Other supported variables (without options assigned):
   Command to parse JSON file (e.g. jq or python).
 - EX_ARGS (string)
   Arguments passed to Ex editor on in-place file editing.
+- OPT_DRY_RUN (bool)
+  Do not run test on dry run.

@@ -6,7 +6,7 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
+ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
 
 # Check dependencies.
 type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
@@ -536,6 +536,10 @@ while getopts $ARGS arg; do
       VISUAL_MODE=true
       ;;
 
+    _) # Dry run.
+      OPT_DRY_RUN=true
+      ;;
+
     # Placeholders for parameters used somewhere else.
     ( b | B | C | e | E | f | I | m | M | p | s | x | y ) ;;
 
@@ -709,7 +713,6 @@ if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
-clean_files
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
@@ -725,6 +728,15 @@ elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   echo "Compiling script ($SCR_PATH)..." >&2
   compile_script ${SCR_PATH##*/}
 fi
+
+# Exit on dry run.
+if [ -n "$OPT_DRY_RUN" ]; then
+  echo "Dry run completed." >&2
+  exit $?
+fi
+
+# Clean files before run.
+clean_files
 
 # Kill on error condition when running script.
 if [ -n "$SCRIPT" ]; then
