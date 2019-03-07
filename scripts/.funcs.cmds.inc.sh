@@ -828,22 +828,25 @@ input_get() {
 }
 
 # Copy input value from the SET file to MQL file.
-# Usage: input_copy [key] [file]
+# Usage: input_copy [key] [src_file] [dst_file] (dst_file2...)
 input_copy() {
   local key=$1
   local file_src=$2
-  local file_dst=$3
-  local vargs=("-u NONE")
-  [ -s "$file_src" -a -s "$file_dst" ]
-  vargs+=($EX_ARGS)
-  value=$(input_get "^$key" "$file_src")
-  echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
   local retries=5
-  while ! ex +"%s/\s${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
-    sleep 1
-    ((retries-=1))
-    echo "Retrying ($retries left)..." >&2
-    [ $retries -le 0 ] && break
+  read -ra files <<<${@:3}
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
+  [ -s "$file_src" -a -s "$file1_dst" ]
+  for file_dst in "${files[@]}"; do
+    value=$(input_get "^$key" "$file_src")
+    echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
+    retries=5
+    while ! echo ex +"%s/\s${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
+      sleep 1
+      ((retries-=1))
+      echo "Retrying ($retries left)..." >&2
+      [ $retries -le 0 ] && break
+    done
   done
 }
 
