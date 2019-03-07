@@ -70,18 +70,18 @@ case "$(uname -s)" in
 
     # For Ubuntu/Debian.
     echo "Configuring APT..." >&2
-    if which dpkg-reconfigure > /dev/null; then
+    if command -v dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
         export DEBIAN_FRONTEND=noninteractive
         # Disable pre-configuration of all packages with debconf before they are installed.
-        which sed &> /dev/null && sed -i'.bak' "s@DPkg@//DPkg@" /etc/apt/apt.conf.d/70debconf
+        command -v sed &> /dev/null && sed -i'.bak' "s@DPkg@//DPkg@" /etc/apt/apt.conf.d/70debconf
         dpkg-reconfigure debconf -f noninteractive
         # Accept EULA for MS Core Fonts.
         echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
         # Omit source repositories from updates for performance reasons.
-        which sed > /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
+        command -v sed > /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
 
         # Enable 32 bit architecture for 64 bit systems (required for Wine).
         dpkg --add-architecture i386
@@ -94,15 +94,15 @@ case "$(uname -s)" in
     )
 
     # Install curl and wget if not present.
-    which curl &>/dev/null || apt-get install -qq curl
-    which wget &>/dev/null || apt-get install -qq wget
+    command -v curl &>/dev/null || apt-get install -qq curl
+    command -v wget &>/dev/null || apt-get install -qq wget
 
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
     apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
-    which add-apt-repository || apt-get install -qq software-properties-common python-software-properties
+    command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 

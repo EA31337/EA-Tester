@@ -5,7 +5,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 
 # Check dependencies.
 type git wget zip unzip xargs tee >/dev/null
-xargs=$(which gxargs || which xargs)
+xargs=$(command -v gxargs || command -v xargs)
 
 # Initialize functions and variables.
 . "$CWD"/.funcs.cmds.inc.sh
