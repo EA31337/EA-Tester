@@ -688,9 +688,9 @@ convert_html2json() {
 # Usage: sort_opt_results [file/report.html]
 sort_opt_results() {
   local file="$1"
-  local vargs=("-u NONE")
   [ -s "$file" ]
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   # Note: {1} - Profit; {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
   ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq! ${vargs[@]} "$file"
 }
@@ -806,9 +806,9 @@ input_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
-  local vargs=("-u NONE")
   [ -s "$file" ]
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\zs.*$/$value/" -scwq! ${vargs[@]} "$file" >&2 || exit 1
@@ -856,10 +856,10 @@ ini_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$TESTER_INI}"
-  local vargs=("-u NONE")
   [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if [ -n "$value" ]; then
     if grep -q "$key" "$file"; then
       echo "Setting '$key' to '$value' in $(basename "$file")" >&2
@@ -877,10 +877,10 @@ ini_set() {
 ini_del() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
-  local vargs=("-u NONE")
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if grep -q "$key" "$file"; then
     echo "Deleting '$key' from $(basename "$file")" >&2
     ex +':g/'"$key"'=/d' -scwq! ${vargs[@]} "$file" || exit 1
@@ -894,8 +894,8 @@ ini_del() {
 ini_set_ea() {
   local key=$1
   local value=$2
-  local vargs=("-u NONE")
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   grep -q ^$key "$EA_INI" \
     && ini_set ^$key $value "$EA_INI" \
     || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq! ${vargs[@]} "$EA_INI"
@@ -906,10 +906,10 @@ ini_set_ea() {
 ini_set_inputs() {
   local sfile="${1:-$TESTER_DIR/$EA_SETFILE}"
   local dfile="${2:-$EA_INI}"
-  local vargs=("-u NONE")
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   echo "Setting values from set file ($EA_SETFILE) into in $(basename "$dfile")" >&2
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq! ${vargs[@]} "$dfile"
 }
@@ -930,9 +930,9 @@ tag_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$INCLUDE}"
-  local vargs=("-u NONE")
   [ -f "$file" ]
-  vargs+=($EX_ARGS)
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq! ${vargs[@]} "$file"
