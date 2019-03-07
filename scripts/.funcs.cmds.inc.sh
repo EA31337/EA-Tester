@@ -835,8 +835,9 @@ input_copy() {
   read -ra files <<<${@:3}
   read -ra vargs <<<$EX_ARGS
   vargs+=("-u NONE")
-  [ -s "$file_src" -a -s "$file1_dst" ]
+  [ -s "$file_src" ]
   for file_dst in "${files[@]}"; do
+    [ -s "$file_dst" ]
     value=$(input_get "^$key" "$file_src")
     echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
     retries=5
