@@ -841,7 +841,7 @@ input_copy() {
     value=$(input_get "^$key" "$file_src")
     echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
     retries=5
-    while ! echo ex +"%s/\s${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
+    while ! ex +"%s/\s${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
       sleep 1
       ((retries-=1))
       echo "Retrying ($retries left)..." >&2
@@ -935,7 +935,7 @@ tag_set() {
   vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq! ${vargs[@]} "$file"
+    ex +'%s/$'"$key"':\zs.*\$$/ '"${value}"'h$/' -scwq! ${vargs[@]} "$file"
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
