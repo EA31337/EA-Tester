@@ -123,7 +123,7 @@ check_log_errors() {
 save_time() {
   local htime=$(($(eval get_time) / 60))
   [ -n "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
-  [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
+  [ -w "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
 # Read decimal value at given offset from the file.

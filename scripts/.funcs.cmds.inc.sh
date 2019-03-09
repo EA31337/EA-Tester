@@ -935,7 +935,7 @@ tag_set() {
   vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +'%s/$'"$key"':\zs.*\$$/ '"${value}"'h$/' -scwq! ${vargs[@]} "$file"
+    timeout 10 ex +'%s/$'"$key"':\zs.*\$$/ '"${value}"'h$/' -scwq! ${vargs[@]} "$file"
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
