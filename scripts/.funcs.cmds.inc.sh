@@ -914,8 +914,8 @@ ini_set_inputs() {
   ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq! ${vargs[@]} "$dfile"
 }
 
-# Get value from the INI/HTM file.
-# Usage: ini_get [key] [file]
+# Get value from the INI file.
+# Usage: ini_get [key] (file)
 ini_get() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
@@ -924,8 +924,18 @@ ini_get() {
   echo $value
 }
 
+# Get value from the HTM file.
+# Usage: htm_get [key] (file)
+htm_get() {
+  local key="$1"
+  local file="${2:-$TEST_REPORT_HTM}"
+  local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | head -1 | cut -d= -f2-)"
+  echo "Getting '$key' from $(basename "$file"): $value" >&2
+  echo $value
+}
+
 # Set tag value in the file.
-# tag_set [key] [value] [file]
+# tag_set [key] [value] (file)
 tag_set() {
   local key="$1"
   local value="$2"

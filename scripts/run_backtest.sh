@@ -113,7 +113,7 @@ parse_results() {
         restore_ifs
       fi
       for input in ${param_list[@]}; do
-        value=$(ini_get "$input" "$TEST_REPORT_HTM")
+        value=$(htm_get "$input" "$TEST_REPORT_HTM")
         echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
         ini_set "^$input" "$value" "$SETFILE"
       done
