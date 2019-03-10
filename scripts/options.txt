@@ -129,3 +129,5 @@ Other supported variables (without options assigned):
   Arguments passed to Ex editor on in-place file editing.
 - OPT_DRY_RUN (bool)
   Do not run test on dry run.
+- SET_PARAMS (string)
+  Parameters to set optimized values in SET file (SETFILE), separated by commas.

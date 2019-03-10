@@ -107,7 +107,11 @@ parse_results() {
       sort_opt_results "$TEST_REPORT_HTM"
     fi
     echo "Saving optimization results..."
-    if [ -n "${param_list[*]}" ]; then
+    if [ -n "${param_list[*]}" ] || [ -n "$SET_PARAMS" ]; then
+      if [ -z "${param_list[*]}" ]; then
+        IFS=',' param_list=(${SET_PARAMS})
+        restore_ifs
+      fi
       for input in ${param_list[@]}; do
         value=$(ini_get "$input" "$TEST_REPORT_HTM")
         echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
