@@ -319,10 +319,9 @@ compile() {
   echo "Info: Number of files compiled: $compiled_no" >&2
   [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
   if [ -f "$log_file" ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$log_file")
-    if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <<<$results; then
+    if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
       echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2;
-    elif grep -B10 "[1-9]\+[0-9]\? \(error\)" <<<$results; then
+    elif grep -B10 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
       echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
       exit 1; # Fail on error.
     fi

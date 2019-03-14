@@ -281,6 +281,15 @@ hex2bin() {
   perl -ne 'print pack "H*", $_'
 }
 
+# Convert stream from one encoding into another.
+# Usage: conv from to <input
+# E.g.: conv utf-16 utf-8 <input
+function conv() {
+  local from=${1:-utf-16}
+  local to=${2:-utf-8}
+  iconv -f "$from" -t "$to" | tr -d \\r
+}
+
 # Restore IFS.
 restore_ifs() {
   IFS=$' \t\n'
