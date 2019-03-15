@@ -326,9 +326,10 @@ compile() {
   if [ -f "$log_file" ]; then
     if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
       echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2;
-    elif grep -B10 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
+    fi
+    if grep -B10 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
       echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
-      exit 1; # Fail on error.
+      false
     fi
   fi
 }
