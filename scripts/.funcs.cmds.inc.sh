@@ -294,6 +294,11 @@ compile() {
     cd "$rel_path"
     target=.
     log_file=${log_file:-mql.log}
+  elif [ -s "$rel_path" ] && [ -d "$(dirname "$rel_path")" ]; then
+    # If path, enter the folder containing the file.
+    cd "$(dirname "$rel_path")"
+    target=.
+    log_file=${log_file:-mql.log}
   elif [ ! -s "$rel_path" ]; then
     # If file does not exist, find in the current folder.
     name=${name##*/} # Drop the path.
