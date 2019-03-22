@@ -19,7 +19,7 @@ sh -s winhttp < <(wget -qO- $WURL)
 
 echo "Downloading MT4 installer..." >&2
 [ ! -f "$HOME/$EXEFILE" ] \
-  && wget -O "$HOME/$EXEFILE" -ct3 --content-disposition ${MT_URL:-"https://www.xm.co.uk/download/xmuk-mt4"}
+  && wget -O "$HOME/$EXEFILE" -ct3 --content-disposition ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}
 [ -f "$HOME/$EXEFILE" ]
 
 # Prints information of the window status in the background.
