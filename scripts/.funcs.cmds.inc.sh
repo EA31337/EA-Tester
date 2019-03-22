@@ -555,13 +555,20 @@ read_result_value() {
       pup -f "$file" 'body > div > div:nth-child(3) text{}' | grep -o "[0-9][^)]\+"
       ;;
     "Model")
-      pup -f "$file" 'td:contains("'$key'") + td text{}' | head -n1 | grep -o "^[^(]\+"
+      pup -f "$file" 'td:contains("'"$key"'") + td text{}' | head -n1 | grep -o "^[^(]\+"
       ;;
     "Image")
       basename "$(pup -f "$file" 'body > div > img attr{src}')"
       ;;
+    "Symbol"|"Period"|"Model"|"Initial deposit"|"Spread")
+      pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+      ;;
     *)
-      pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+      if [ -n "$OPT_OPTIMIZATION" ]; then
+        pup -f "$file" 'td:contains("'"$key"'") text{}' | head -n1
+      else
+        pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+      fi
   esac
 }
 
@@ -638,40 +645,55 @@ convert_html2json() {
   local json_res
   local keys=()
   [ -f "$file_in" ] || exit 1
+  [ -n "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   keys+=("Title")
   keys+=("EA Name")
   keys+=("Build")
   keys+=("Symbol")
   keys+=("Period")
-  keys+=("Modelling quality")
-  keys+=("Parameters")
-  keys+=("Bars in test")
-  keys+=("Ticks modelled")
-  keys+=("Modelling quality")
-  keys+=("Mismatched charts errors")
+  keys+=("Model")
   keys+=("Initial deposit")
   keys+=("Spread")
-  keys+=("Total net profit")
-  keys+=("Gross profit")
-  keys+=("Gross loss")
-  keys+=("Profit factor")
-  keys+=("Expected payoff")
-  keys+=("Absolute drawdown")
-  keys+=("Maximal drawdown")
-  keys+=("Relative drawdown")
-  keys+=("Total trades")
-  keys+=("Short positions")
-  keys+=("Long positions")
-  keys+=("Profit trades")
-  keys+=("Loss trades")
-  keys+=("profit trade")
-  keys+=("loss trade")
-  keys+=("consecutive wins (profit in money)")
-  keys+=("consecutive losses (loss in money)")
-  keys+=("consecutive profit")
-  keys+=("consecutive loss")
-  keys+=("consecutive wins")
-  keys+=("consecutive losses")
+  case "$ttype" in
+    "Backtest")
+      keys+=("Modelling quality")
+      keys+=("Parameters")
+      keys+=("Bars in test")
+      keys+=("Ticks modelled")
+      keys+=("Modelling quality")
+      keys+=("Mismatched charts errors")
+      keys+=("Total net profit")
+      keys+=("Gross profit")
+      keys+=("Gross loss")
+      keys+=("Profit factor")
+      keys+=("Expected payoff")
+      keys+=("Absolute drawdown")
+      keys+=("Maximal drawdown")
+      keys+=("Relative drawdown")
+      keys+=("Total trades")
+      keys+=("Short positions")
+      keys+=("Long positions")
+      keys+=("Profit trades")
+      keys+=("Loss trades")
+      keys+=("profit trade")
+      keys+=("loss trade")
+      keys+=("consecutive wins (profit in money)")
+      keys+=("consecutive losses (loss in money)")
+      keys+=("consecutive profit")
+      keys+=("consecutive loss")
+      keys+=("consecutive wins")
+      keys+=("consecutive losses")
+      ;;
+    "Optimization")
+      keys+=("Pass")
+      keys+=("Profit")
+      keys+=("Total trades")
+      keys+=("Profit factor")
+      keys+=("Expected Payoff")
+      keys+=("Drawdown $")
+      keys+=("Drawdown %")
+      ;;
+  esac
   json_res=$(
     printf "{\n"
     printf '"%s": "%s",' Time $(get_time)
