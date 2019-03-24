@@ -1,19 +1,22 @@
-# Ignore swap files.
+# Ignores swap files.
 .*.s??
 .*.*.s??
 
-# Ignore configuration files that may contain sensitive information.
+# Ignores log files.
+*.log
+
+# Ignores configuration files that may contain sensitive information.
 EA
 nbproject
 build.properties
 files
 
-# Ignore Finder metadata files on Mac
+# Ignores Finder metadata files on Mac
 .DS_Store
 
-# Ignore Vagrant folder.
+# Ignores Vagrant folder.
 .vagrant
 
-# Ignore EA binary files.
-.ex4
-.ex5
+# Ignores EA binary files.
+*.ex4
+*.ex5

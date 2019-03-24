@@ -70,18 +70,18 @@ case "$(uname -s)" in
 
     # For Ubuntu/Debian.
     echo "Configuring APT..." >&2
-    if which dpkg-reconfigure > /dev/null; then
+    if command -v dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
         export DEBIAN_FRONTEND=noninteractive
         # Disable pre-configuration of all packages with debconf before they are installed.
-        which sed &> /dev/null && sed -i'.bak' "s@DPkg@//DPkg@" /etc/apt/apt.conf.d/70debconf
+        command -v sed &> /dev/null && sed -i'.bak' "s@DPkg@//DPkg@" /etc/apt/apt.conf.d/70debconf
         dpkg-reconfigure debconf -f noninteractive
         # Accept EULA for MS Core Fonts.
         echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
         # Omit source repositories from updates for performance reasons.
-        which sed > /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
+        command -v sed > /dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
 
         # Enable 32 bit architecture for 64 bit systems (required for Wine).
         dpkg --add-architecture i386
@@ -93,15 +93,16 @@ case "$(uname -s)" in
       apt-get -qq update
     )
 
-    # Install curl if not present.
-    which curl &>/dev/null || apt-get install -qq curl
+    # Install curl and wget if not present.
+    command -v curl &>/dev/null || apt-get install -qq curl
+    command -v wget &>/dev/null || apt-get install -qq wget
 
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
     apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
-    which add-apt-repository || apt-get install -qq software-properties-common python-software-properties
+    command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
@@ -120,29 +121,32 @@ case "$(uname -s)" in
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qq winehq-stable wine-gecko --install-recommends             # Install Wine.
+    apt-get install -qq winehq-devel wine-gecko --install-recommends              # Install Wine.
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Setup display.
-    DISPLAY=${DISPLAY:-:0}
-    xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16) &
 
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
       echo "Installing AutoHotkey..." >&2
       su - $user -c "
+        set -x
+        export DISPLAY=:1.0
+        echo \$DISPLAY
+        xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
         wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
-        DISPLAY=$DISPLAY wine /tmp/AutoHotkey_*.exe /S && \
-        rm -v /tmp/AutoHotkey_*.exe
+        wine /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
+        rm -v /tmp/AutoHotkey_*.exe && \
+        (pkill Xvfb || true)
       "
-      ahk_path=$(su - $user -c 'winepath -u "c:\\Program Files\\AutoHotkey"');
+      ahk_path=$(su - $user -c 'winepath -u "C:\\Apps\\AHK"');
       if [ -d "$ahk_path" ]; then
         echo "AutoHotkey installed successfully!" >&2
       else
         echo "Error: AutoHotkey installation failed!" >&2
         exit 1
       fi
-    fi &
+    fi
 
     # Setup VNC.
     if [ -n "$PROVISION_VNC" ]; then
@@ -155,7 +159,7 @@ case "$(uname -s)" in
     apt-get install -qq git realpath links tree pv bc                             # Required commands.
     apt-get install -qq html2text jq                                              # Required parsers.
     apt-get install -qq imagemagick                                               # ImageMagick.
-    apt-get install -qq wget vim                                                  # Wget and Vim
+    apt-get install -qq vim                                                       # Vim.
 
     # Install required gems.
     apt-get install -qq ruby
@@ -208,7 +212,7 @@ git init /opt &
 chown -R $user /opt &
 
 # Wait for background jobs to finish.
-pkill Xvfb
+pkill Xvfb || true
 jobs
 wait
 

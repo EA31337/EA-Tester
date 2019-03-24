@@ -6,7 +6,7 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
-ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:"
+ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
 
 # Check dependencies.
 type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
@@ -24,32 +24,20 @@ usage() {
 on_success() {
   echo "Checking logs..." >&2
   show_logs
-  # @fixme
-  ! check_logs "Initialization failed" || exit 1
-# ! check_logs "ExpertRemove" || exit 1
-  ! check_logs "TestGenerator: .\+ not found" || exit 1
-  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; exit 1; }
-  ! check_logs ".\+ cannot start" || exit 1
-  ! check_logs ".\+ cannot open" || exit 1
-  ! check_logs ".\+ rate cannot" || exit 1 # E.g. Tester: exchange rate cannot be calculated.
-  ! check_logs ".\+ not initialized" || exit 1
-  ! check_logs ".\+ file error" || exit 1
-  ! check_logs ".\+ data error" || exit 1
-  ! check_logs ".\+ deficient data" || exit 1
-  ! check_logs "stop button .\+" || exit 1
-  ! check_logs "incorrect casting .\+" || exit 1
-  ! check_logs "Error: .\+" || exit 1
-  ! check_logs "Configuration issue .\+" || exit 1
-  ! check_logs "Assert fail on .\+" || exit 1
-  ! check_logs "Testing pass stopped .\+" || exit 1
-  echo "TEST succeeded." >&2
+  check_log_errors
+  echo "RUN succeeded." >&2
   parse_results $@
   on_finish
   local OPTIND
+  # Invoke custom code on success.
+  if [ -n "$RUN_ON_SUCCESS" ]; then
+    echo "Running code on success ($RUN_ON_SUCCESS)..." >&2
+    eval "$RUN_ON_SUCCESS"
+  fi
   while getopts $ARGS arg; do
     case $arg in
       X) # Invoke file on exit after the successful test.
-        echo "Invoking file after test..." >&2
+        echo "Invoking script file after test..." >&2
         . "$OPTARG"
         ;;
       esac
@@ -64,20 +52,22 @@ on_failure() {
   # Sometimes MT4 fails on success, therefore double checking.
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   if [ -n "$TEST_REPORT_BASE" ]; then
-    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
-    test -f "$TEST_REPORT_HTM" && on_success $@
-    return
-  fi
-  if [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*" -print -quit)
+    test -f "$TEST_REPORT_HTM" && { on_success $@; return; }
+  elif [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
     log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-    grep -w -C1 "uninit reason 0" "$log_file" && on_success $@
-    return
+    grep -w -C1 "uninit reason 0" "$log_file" && { on_success $@; return; }
   fi
 
+  # Invoke custom code on failure.
+  if [ -n "$RUN_ON_FAIL" ]; then
+    echo "Running code on failure ($RUN_ON_FAIL)..." >&2
+    eval "$RUN_ON_FAIL"
+  fi
   echo "Printing logs..." >&2
   show_logs
-  echo "TEST failed." >&2
+  echo "RUN failed." >&2
   on_finish
 }
 
@@ -96,7 +86,7 @@ parse_results() {
   [ -z "$TEST_REPORT_BASE" -o -z "$TEST_EXPERT" ] && return
 
   # Locate the report file.
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*" -print -quit)
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
@@ -117,9 +107,13 @@ parse_results() {
       sort_opt_results "$TEST_REPORT_HTM"
     fi
     echo "Saving optimization results..."
-    if [ -z "$input_values" ]; then
+    if [ -n "${param_list[*]}" ] || [ -n "$SET_PARAMS" ]; then
+      if [ -z "${param_list[*]}" ]; then
+        IFS=',' param_list=(${SET_PARAMS})
+        restore_ifs
+      fi
       for input in ${param_list[@]}; do
-        value=$(ini_get "$input" "$TEST_REPORT_HTM")
+        value=$(htm_get "$input" "$TEST_REPORT_HTM")
         echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
         ini_set "^$input" "$value" "$SETFILE"
       done
@@ -158,8 +152,8 @@ parse_results() {
 
   if [ -d "$BT_DEST" ]; then
     # Copy the test results if the destination directory has been specified.
-    echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
-    cp $VFLAG "$TEST_REPORT_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
+    echo "Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..." >&2
+    cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
 
@@ -189,7 +183,7 @@ while getopts $ARGS arg; do
       VFLAG="-v"
       VPRINT="-print"
       VDD="noxfer"
-#EXFLAG="-V1" # @see: https://github.com/vim/vim/issues/919
+      # EX_ARGS="-V1" # @see: https://github.com/vim/vim/issues/919
       type html2text sed >/dev/null
       ;;
 
@@ -426,7 +420,7 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   echo "Specified SET file via -f param does not exist ($SETFILE), exporting from EA ..." >&2
   exported_setfile=${TEST_EXPERT:-$EXPERT}
   exported_setfile=$(export_set "${exported_setfile##*/}" "$(basename "$SETFILE")")
-  [ ! -s "$TESTER_DIR/$exported_setfile" ] && { echo "ERROR: Export of SET file failed!" >&2; exit 1; }
+  [ ! -s "$TESTER_DIR/$exported_setfile" ] && { echo "ERROR: Export of SET file failed!" >&2; ls "$TESTER_DIR"/*.set; exit 1; }
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
 if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
@@ -546,6 +540,10 @@ while getopts $ARGS arg; do
       VISUAL_MODE=true
       ;;
 
+    _) # Dry run.
+      OPT_DRY_RUN=true
+      ;;
+
     # Placeholders for parameters used somewhere else.
     ( b | B | C | e | E | f | I | m | M | p | s | x | y ) ;;
 
@@ -612,9 +610,6 @@ fi
 # Adds SET file into Terminal INI Configuration file.
 if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
   echo "Configuring SET parameters ($EA_SETFILE)..." >&2
-  if [ -f "$SETFILE" ]; then
-    cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
-  fi
   if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     if [ -n "$TEST_EXPERT" ]; then
       ini_set "^TestExpertParameters" "$EA_SETFILE" "$TESTER_INI"
@@ -659,7 +654,7 @@ fi
 
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
-  TEST_REPORT_NAME=${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}
+  TEST_REPORT_NAME="${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}.htm"
   echo "Configuring test report ($TEST_REPORT_NAME)..." >&2
   ini_set "^TestReport" "$TEST_REPORT_NAME" "$TESTER_INI"
 fi
@@ -722,7 +717,6 @@ if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
 fi
-clean_files
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
@@ -739,9 +733,18 @@ elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   compile_script ${SCR_PATH##*/}
 fi
 
-# Kill on condition when running script.
+# Exit on dry run.
+if [ -n "$OPT_DRY_RUN" ]; then
+  echo "Dry run completed." >&2
+  exit $?
+fi
+
+# Clean files before run.
+clean_files
+
+# Kill on error condition when running script.
 if [ -n "$SCRIPT" ]; then
-  kill_on_match "uninit reason 0" &
+  kill_on_match &
 fi
 
 # Show live logs and stats when in verbose mode.
@@ -749,7 +752,6 @@ if [ -n "$OPT_VERBOSE" ]; then
   live_logs &
   live_stats &
 fi
-live_monitor_errors &
 
 # Run the test in the platform.
 echo "Starting..." >&2

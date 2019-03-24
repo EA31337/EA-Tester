@@ -95,10 +95,13 @@ Supported options:
     Run the script in trace/debug mode.
     Variable (bool): OPT_TRACE
   -X (file)
-    Invoke file on exit after the successful test.
+    Invoke script file n exit after the successful test.
   -y (year)
     Year to test. Default: 2017
     Variable (uint/string): BT_YEARS
+  -_
+    Dry run.
+    Variable (bool): OPT_DRY_RUN
   -?
     Display help.
 
@@ -114,7 +117,17 @@ Other supported variables (without options assigned):
   Run shell code on startup (before the test).
 - RUN_ON_SET (string)
   Run shell code on SET configuration (e.g. "file_get URL").
+- RUN_ON_SUCCESS (string)
+  Run shell code on success (after the test).
+- RUN_ON_FAIL (string)
+  Run shell code on failure (after the test).
 - RUN_ON_EXIT (string)
   Run shell code on exit (after the test).
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
+- EX_ARGS (string)
+  Arguments passed to Ex editor on in-place file editing.
+- OPT_DRY_RUN (bool)
+  Do not run test on dry run.
+- SET_PARAMS (string)
+  Parameters to set optimized values in SET file (SETFILE), separated by commas.

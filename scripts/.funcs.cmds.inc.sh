@@ -193,12 +193,12 @@ set_display() {
   export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
   export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
   xdpyinfo &>/dev/null && return
-  if which x11vnc &>/dev/null; then
+  if command -v x11vnc &>/dev/null; then
     ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
   fi
   ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &
   sleep 1
-  if which fluxbox &>/dev/null; then
+  if command -v fluxbox &>/dev/null; then
     ! pgrep -a fluxbox && fluxbox 2>/dev/null &
   fi
   echo "IP: $(hostname -I) ($(hostname))"
@@ -225,9 +225,10 @@ EOF
 }
 
 # Display recent logs.
-# Usage: show_logs
+# Usage: show_logs (lines_no/40)
 show_logs() {
-  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n20 "{}" +
+  local no_lines=${1:-40}
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n${no_lines} "{}" +
 }
 
 # Copy script file given the file path.
@@ -293,6 +294,11 @@ compile() {
     cd "$rel_path"
     target=.
     log_file=${log_file:-mql.log}
+  elif [ -s "$rel_path" ] && [ -d "$(dirname "$rel_path")" ]; then
+    # If path, enter the folder containing the file.
+    cd "$(dirname "$rel_path")"
+    target=.
+    log_file=${log_file:-mql.log}
   elif [ ! -s "$rel_path" ]; then
     # If file does not exist, find in the current folder.
     name=${name##*/} # Drop the path.
@@ -318,12 +324,12 @@ compile() {
   echo "Info: Number of files compiled: $compiled_no" >&2
   [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
   if [ -f "$log_file" ]; then
-    results=$(iconv -f utf-16 -t utf-8 "$log_file")
-    if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <<<$results; then
+    if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
       echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2;
-    elif grep -B10 "[1-9]\+[0-9]\? \(error\)" <<<$results; then
+    fi
+    if grep -B10 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
       echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
-      exit 1; # Fail on error.
+      false
     fi
   fi
 }
@@ -350,7 +356,7 @@ compile_script() {
   local name="${1:-$SCRIPT}"
   local log_file=${2:-${name%.*}.log}
   local scr_path=$(script_find "$name")
-  local scr_dir=$(dirname "$ea_path")
+  local scr_dir=$(dirname "$scr_path")
 
   # If path is absolute, enter that dir, otherwise go to Scripts dir.
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
@@ -387,11 +393,11 @@ export_set() {
   local ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
   [ ! -s "$name" ] && ea_path=$(ea_find "${name##/}")
   [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
-  compile_ea "$name" >&2
+  [[ "$ea_path" =~ 'mq' ]] && compile_ea "$name" >&2
   set_display >&2
   ini_set "^Expert" "$(basename ${ea_path/\//\\\\} .${ea_path##*.})" "$TERMINAL_INI"
-  WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Program Files\\AutoHotkey" \
-  timeout 20 \
+  WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
+  timeout 60 \
   wine AutoHotkey /ErrorStdOut "$ahk_path" "${dstfile}" ${@:3}
   [ -n "$OPT_VERBOSE" ] && times >&2
   echo "${dstfile}"
@@ -409,7 +415,7 @@ ini_copy() {
 }
 
 # Find the EA file.
-# Usage: ea_find [filename/url/pattern] [optional/dir]
+# Usage: ea_find [filename/url/pattern] (optional/dir)
 # Returns path relative to platform, or absolute otherwise.
 ea_find() {
   local file="${1:-$EA_FILE}"
@@ -422,26 +428,27 @@ ea_find() {
     file=${file##*/}
   fi
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" -o -name "${file%.*}.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
   [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
 }
 
 # Find the script file.
-# Usage: script_find [filename/url/pattern]
+# Usage: script_find [filename/url/pattern] (optional/dir)
 # Returns path relative to platform, or absolute otherwise.
 script_find() {
   local file="$1"
+  local dir="${2:-$SCRIPTS_DIR}"
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
-  cd "$SCRIPTS_DIR"
+  cd "$dir"
   if [[ "$file" =~ :// ]]; then
     # When URL is specified, download the file.
     wget $VFLAG -cP "$SCRIPTS_DIR" $file
     file=${file##*/}
   fi
   [ -f "$file" ] && { echo "$file"; return; }
-  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "$file.mq?" -o -name "$file.ex?" ')' -print -quit)
+  local exact=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
   local match=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "*${file%.*}*.mq?" -o -iname "*${file%.*}*.ex?" ')' -print -quit)
   [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
   cd - &>/dev/null
@@ -548,13 +555,20 @@ read_result_value() {
       pup -f "$file" 'body > div > div:nth-child(3) text{}' | grep -o "[0-9][^)]\+"
       ;;
     "Model")
-      pup -f "$file" 'td:contains("'$key'") + td text{}' | head -n1 | grep -o "^[^(]\+"
+      pup -f "$file" 'td:contains("'"$key"'") + td text{}' | head -n1 | grep -o "^[^(]\+"
       ;;
     "Image")
       basename "$(pup -f "$file" 'body > div > img attr{src}')"
       ;;
+    "Symbol"|"Period"|"Model"|"Initial deposit"|"Spread")
+      pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+      ;;
     *)
-      pup -f "$file" 'td:contains("'$key'") + td text{}' | paste -sd,
+      if [ -n "$OPT_OPTIMIZATION" ]; then
+        pup -f "$file" 'td:contains("'"$key"'") text{}' | head -n1
+      else
+        pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+      fi
   esac
 }
 
@@ -611,7 +625,6 @@ convert_html2txt() {
     html2text -nobs -width 150 | \
     sed "/\[Graph\]/q" \
     > "$file_out"
-  if [ $? -ne 0 ]; then exit 1; fi # Fail on error.
 }
 
 # Convert HTML to text format (full version).
@@ -632,40 +645,55 @@ convert_html2json() {
   local json_res
   local keys=()
   [ -f "$file_in" ] || exit 1
+  [ -n "$OPT_OPTIMIZATION" ] && ttype="Optimization" || ttype="Backtest"
   keys+=("Title")
   keys+=("EA Name")
   keys+=("Build")
   keys+=("Symbol")
   keys+=("Period")
-  keys+=("Modelling quality")
-  keys+=("Parameters")
-  keys+=("Bars in test")
-  keys+=("Ticks modelled")
-  keys+=("Modelling quality")
-  keys+=("Mismatched charts errors")
+  keys+=("Model")
   keys+=("Initial deposit")
   keys+=("Spread")
-  keys+=("Total net profit")
-  keys+=("Gross profit")
-  keys+=("Gross loss")
-  keys+=("Profit factor")
-  keys+=("Expected payoff")
-  keys+=("Absolute drawdown")
-  keys+=("Maximal drawdown")
-  keys+=("Relative drawdown")
-  keys+=("Total trades")
-  keys+=("Short positions")
-  keys+=("Long positions")
-  keys+=("Profit trades")
-  keys+=("Loss trades")
-  keys+=("profit trade")
-  keys+=("loss trade")
-  keys+=("consecutive wins (profit in money)")
-  keys+=("consecutive losses (loss in money)")
-  keys+=("consecutive profit")
-  keys+=("consecutive loss")
-  keys+=("consecutive wins")
-  keys+=("consecutive losses")
+  case "$ttype" in
+    "Backtest")
+      keys+=("Modelling quality")
+      keys+=("Parameters")
+      keys+=("Bars in test")
+      keys+=("Ticks modelled")
+      keys+=("Modelling quality")
+      keys+=("Mismatched charts errors")
+      keys+=("Total net profit")
+      keys+=("Gross profit")
+      keys+=("Gross loss")
+      keys+=("Profit factor")
+      keys+=("Expected payoff")
+      keys+=("Absolute drawdown")
+      keys+=("Maximal drawdown")
+      keys+=("Relative drawdown")
+      keys+=("Total trades")
+      keys+=("Short positions")
+      keys+=("Long positions")
+      keys+=("Profit trades")
+      keys+=("Loss trades")
+      keys+=("profit trade")
+      keys+=("loss trade")
+      keys+=("consecutive wins (profit in money)")
+      keys+=("consecutive losses (loss in money)")
+      keys+=("consecutive profit")
+      keys+=("consecutive loss")
+      keys+=("consecutive wins")
+      keys+=("consecutive losses")
+      ;;
+    "Optimization")
+      keys+=("Pass")
+      keys+=("Profit")
+      keys+=("Total trades")
+      keys+=("Profit factor")
+      keys+=("Expected Payoff")
+      keys+=("Drawdown $")
+      keys+=("Drawdown %")
+      ;;
+  esac
   json_res=$(
     printf "{\n"
     printf '"%s": "%s",' Time $(get_time)
@@ -686,8 +714,11 @@ convert_html2json() {
 # Usage: sort_opt_results [file/report.html]
 sort_opt_results() {
   local file="$1"
+  [ -s "$file" ]
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   # Note: {1} - Profit; {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
-  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq "$file"
+  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq! ${vargs[@]} "$file"
 }
 
 # Post results to gist.
@@ -792,7 +823,7 @@ quick_run() {
   ini_set "^Script" $scrname
   script_copy $scrname
   (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG"
-  show_logs
+  show_logs 40
 }
 
 # Set input value in the SET file.
@@ -801,12 +832,12 @@ input_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
-  local vargs="-u NONE"
   [ -s "$file" ]
-  vargs+=$EXFLAG
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/$key=\zs.*$/$value/" -scwq $vargs "$file" >&2 || exit 1
+    ex +"%s/$key=\zs.*$/$value/" -scwq! ${vargs[@]} "$file" >&2 || exit 1
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
@@ -817,10 +848,33 @@ input_set() {
 input_get() {
   local key="$1"
   local file="${2:-$TESTER_DIR/$EA_SETFILE}"
-  local vargs="-u NONE"
   [ -s "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\+" "$file" | cut -d= -f2-)"
   echo $value
+}
+
+# Copy input value from the SET file to MQL file.
+# Usage: input_copy [key] [src_file] [dst_file] (dst_file2...)
+input_copy() {
+  local key=$1
+  local file_src=$2
+  local retries=5
+  read -ra files <<<${@:3}
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
+  [ -s "$file_src" ]
+  for file_dst in "${files[@]}"; do
+    [ -s "$file_dst" ]
+    value=$(input_get "^$key" "$file_src")
+    echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
+    retries=5
+    while ! ex +"%s/\s${key}[^=]=[^0-9]\zs[^;]\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
+      sleep 1
+      ((retries-=1))
+      echo "Retrying ($retries left)..." >&2
+      [ $retries -le 0 ] && break
+    done
+  done
 }
 
 # Set value in the INI file.
@@ -829,14 +883,14 @@ ini_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$TESTER_INI}"
-  local vargs="-u NONE"
   [ ! -f "$file" ] && touch "$file"
   [ -f "$file" ]
-  vargs+=$EXFLAG
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if [ -n "$value" ]; then
     if grep -q "$key" "$file"; then
       echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-      ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq $vargs "$file" || exit 1
+      ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq! ${vargs[@]} "$file" || exit 1
     else
       echo "$key=$value" >> "$file"
     fi
@@ -850,13 +904,13 @@ ini_set() {
 ini_del() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
-  local vargs="-u NONE"
   [ ! -f "$file" ] && [ -f "$TESTER_INI" ] && file="$TESTER_INI"
   [ -f "$file" ]
-  vargs+=$EXFLAG
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if grep -q "$key" "$file"; then
     echo "Deleting '$key' from $(basename "$file")" >&2
-    ex +':g/'"$key"'=/d' -scwq $vargs "$file" || exit 1
+    ex +':g/'"$key"'=/d' -scwq! ${vargs[@]} "$file" || exit 1
   else
     echo "Value '$key' does not exist, ignoring." >&2
   fi
@@ -867,9 +921,11 @@ ini_del() {
 ini_set_ea() {
   local key=$1
   local value=$2
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   grep -q ^$key "$EA_INI" \
     && ini_set ^$key $value "$EA_INI" \
-    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq "$EA_INI"
+    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq! ${vargs[@]} "$EA_INI"
 }
 
 # Set inputs in the EA INI file.
@@ -877,36 +933,46 @@ ini_set_ea() {
 ini_set_inputs() {
   local sfile="${1:-$TESTER_DIR/$EA_SETFILE}"
   local dfile="${2:-$EA_INI}"
-  local vargs="-u NONE"
   [ -f "$sfile" ]
   [ -f "$dfile" ]
-  vargs+=$EXFLAG
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   echo "Setting values from set file ($EA_SETFILE) into in $(basename "$dfile")" >&2
-  ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq $vargs "$dfile"
+  ex +'%s#<inputs>\zs\_.\{-}\ze</inputs>#\=insert(readfile("'"$sfile"'"), "")#' -scwq! ${vargs[@]} "$dfile"
 }
 
-# Get value from the INI/HTM file.
-# Usage: ini_get [key] [file]
+# Get value from the INI file.
+# Usage: ini_get [key] (file)
 ini_get() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
+  local value="$(grep -om1 "$key=\S\+" "$file" | head -1 | cut -d= -f2-)"
+  echo "Getting '$key' from $(basename "$file"): $value" >&2
+  echo $value
+}
+
+# Get value from the HTM file.
+# Usage: htm_get [key] (file)
+htm_get() {
+  local key="$1"
+  local file="${2:-$TEST_REPORT_HTM}"
   local value="$(grep -om1 "$key=[ ./0-9a-zA-Z_-]\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }
 
 # Set tag value in the file.
-# tag_set [key] [value] [file]
+# tag_set [key] [value] (file)
 tag_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$INCLUDE}"
-  local vargs="-u NONE"
   [ -f "$file" ]
-  vargs+=$EXFLAG
+  read -ra vargs <<<$EX_ARGS
+  vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/\$$key:\zs.*\$$/ ${value}h$/" -scwq $vargs "$file"
+    timeout 10 ex +'%s/$'"$key"':\zs.*\$$/ '"${value}"'h$/' -scwq! ${vargs[@]} "$file"
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi

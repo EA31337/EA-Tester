@@ -6,7 +6,7 @@ CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 # Check dependencies.
 set -e
 type curl grep sed tr >/dev/null
-xargs=$(which gxargs || which xargs)
+xargs=$(command -v gxargs || command -v xargs)
 
 # Validate settings.
 [ -z "$GITHUB_API_TOKEN" ] && [ -f ~/.secrets ] && source ~/.secrets

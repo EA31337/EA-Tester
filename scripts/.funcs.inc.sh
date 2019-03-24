@@ -92,33 +92,38 @@ get_time() {
   fi
 }
 
-# Check logs in real-time for any errors.
-# Usage: live_monitor_errors (interval)
-live_monitor_errors() {
-  local interval=${1:-10}
-  local errors=("cannot open" "not initialized")
-  set +x
-  # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
-  {
-    while sleep $interval; do
-      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-      [ -f "$log_file" ] && break
-    done
-    while sleep $interval; do
-      # Check for each error.
-      if eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
-        # In case of error, kill the wine process.
-        kill_wine
-      fi
-    done &
-  }
+# Check logs for errors.
+# Usage: check_log_errors [filter] [args]
+check_log_errors() {
+  local log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+  local errors=()
+  errors+=("cannot open")
+  errors+=("not initialized")
+  errors+=("initialization failed")
+  errors+=("TestGenerator: .\+ not found")
+  errors+=(".\+ no history data")
+  errors+=(".\+ cannot start")
+  errors+=(".\+ cannot open")
+  errors+=(".\+ rate cannot")
+  errors+=(".\+ not initialized")
+  errors+=(".\+ file error")
+  errors+=(".\+ data error")
+  errors+=(".\+ deficient data")
+  errors+=("stop button .\+")
+  errors+=("incorrect casting .\+")
+  errors+=("Error: .\+")
+  errors+=("Configuration issue .\+")
+  errors+=("Assert fail on .\+")
+  errors+=("Testing pass stopped .\+")
+  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"
 }
 
 # Save time (in hours) and store in rule file if exists.
 save_time() {
   local htime=$(($(eval get_time) / 60))
   [ -n "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
-  [ -f "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
+  [ -w "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
 }
 
 # Read decimal value at given offset from the file.
@@ -276,6 +281,15 @@ hex2bin() {
   perl -ne 'print pack "H*", $_'
 }
 
+# Convert stream from one encoding into another.
+# Usage: conv from to <input
+# E.g.: conv utf-16 utf-8 <input
+function conv() {
+  local from=${1:-utf-16}
+  local to=${2:-utf-8}
+  iconv -f "$from" -t "$to" | tr -d \\r
+}
+
 # Restore IFS.
 restore_ifs() {
   IFS=$' \t\n'
@@ -286,21 +300,26 @@ show_trace() {
   while caller $((n++)); do :; done; >&2
 }
 
-# Kill platform on certain log match.
-# Usage: kill_on_match [pattern] [file] [args]
+# Check logs in real-time and kill platform on pattern match.
+# Usage: kill_on_match (interval)
 kill_on_match() {
-  local pattern=$1
-  local file=${2:-$(date +%Y%m%d)*.log}
-  local interval=10
-  set +x
-  # Prints MQL4 logs when available (e.g. MQL4/Logs/yyyymmdd.log).
-  while sleep $interval; do
-    log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-    [ -f "$log_file" ] && break
-  done
-  while sleep $interval; do
-    grep -w "$pattern" "$log_file" && { kill_wine && break; }
-  done
+  local interval=${1:-10}
+  local errors=("cannot open" "not initialized" "initialization failed" "uninit reason")
+  # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
+  {
+    set +x
+    while sleep $interval; do
+      log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      [ -f "$log_file" ] && break
+    done
+    while sleep $interval; do
+      # Check for each error.
+      if eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"; then
+        # In case of error, kill the wine process.
+        kill_wine
+      fi
+    done &
+  }
 }
 
 # Kill any remaining background jobs.
@@ -334,7 +353,6 @@ on_exit() {
   local exit_status=${1:-$?}
   kill_jobs
   kill_wine
-  kill_display
   [ -n "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
   exit $exit_status
 }
