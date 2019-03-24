@@ -52,7 +52,7 @@ on_failure() {
   # Sometimes MT4 fails on success, therefore double checking.
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
   if [ -n "$TEST_REPORT_BASE" ]; then
-    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "$TEST_REPORT_BASE.htm" -print -quit)
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*" -print -quit)
     test -f "$TEST_REPORT_HTM" && { on_success $@; return; }
   elif [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
@@ -86,7 +86,7 @@ parse_results() {
   [ -z "$TEST_REPORT_BASE" -o -z "$TEST_EXPERT" ] && return
 
   # Locate the report file.
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}.htm" -print -quit)
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*" -print -quit)
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
@@ -152,8 +152,8 @@ parse_results() {
 
   if [ -d "$BT_DEST" ]; then
     # Copy the test results if the destination directory has been specified.
-    echo "Copying report files ($TEST_REPORT_BASE.* into: $BT_DEST)..." >&2
-    cp $VFLAG "$TEST_REPORT_DIR/$TEST_REPORT_BASE".* "$BT_DEST"
+    echo "Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..." >&2
+    cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
 
@@ -654,7 +654,7 @@ fi
 
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
-  TEST_REPORT_NAME=${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}
+  TEST_REPORT_NAME="${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}.htm"
   echo "Configuring test report ($TEST_REPORT_NAME)..." >&2
   ini_set "^TestReport" "$TEST_REPORT_NAME" "$TESTER_INI"
 fi
