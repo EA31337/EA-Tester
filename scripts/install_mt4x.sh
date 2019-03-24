@@ -28,6 +28,7 @@ set_display
 live_stats &
 
 echo "Starting MT4 Setup in Wine..." >&2
+[ -f /.dockerenv ] && export WINEPREFIX="$HOME/.wine_mt4" # Fixes MT4 startup issue in Docker.
 wine "$HOME/$EXEFILE" &
 
 echo "Waiting for installer to initialize..." >&2
