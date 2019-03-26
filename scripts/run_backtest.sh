@@ -198,8 +198,9 @@ done
 
 # Invoke includes.
 . "$CWD"/.aliases.inc.sh
-. "$CWD"/.funcs.cmds.inc.sh
 . "$CWD"/.funcs.inc.sh
+. "$CWD"/.funcs.cmds.inc.sh
+. "$CWD"/.funcs.sets.inc.sh
 . "$CWD"/.vars.inc.sh
 
 # Initialize.
