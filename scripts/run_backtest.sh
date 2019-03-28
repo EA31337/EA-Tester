@@ -205,7 +205,6 @@ done
 
 # Initialize.
 initialize
-set_display
 
 [ -n "$NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
@@ -426,7 +425,7 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
 if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
-  echo "EA's SET file does not exist ($EA_SETFILE), copying from $SETFILE..." >&2
+  echo "EA's SET file is missing ($EA_SETFILE), copying from $SETFILE..." >&2
   cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
 fi
 
@@ -740,6 +739,9 @@ if [ -n "$OPT_DRY_RUN" ]; then
   echo "Dry run completed." >&2
   exit $?
 fi
+
+# Start X virtual framebuffer.
+set_display
 
 # Clean files before run.
 clean_files
