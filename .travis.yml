@@ -15,6 +15,7 @@ env:
     DOCKER_REPO=ea31337/$DOCKER_IMAGE:$DOCKER_TAG
     PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
     CWD="$TRAVIS_BUILD_DIR"
+    DOCKER_ARG="-e OPT_TRACE=$OPT_TRACE"
     DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo ${TRAVIS_BRANCH////-})
     WINETRICKS_DOWNLOADER_RETRIES=20
   - secure: "waZbxfpNTIp/etY6lwR8GB+aSWDIw73tu6HxFdwVYdDJ/25SlY+gkJMCPqlpkjA1Aenv1I3TDDd/3dQIMYUeNbgIKOx6AtWkddnfTykqYYFJ4j6MlWPxZKaxDLjehLvjj0ZqkfXcswgXDaIoNnunKbLKiVohprLhO9Yg6I/j1LfzmPPGmFez2Mg2K0jFmri1i8prxpL4cctH0cR9NEZ+Lw13nDjY4b7AMoY6mzt6TFe9/yEt1OzYVGAh36hWgI1AL8h86cyDlUYHMRrzZjMKUGZFyOkkz3BRA6wvyOtjRhNlh2SIY+Y+HiwQaLONeQGpZ9YjNCUb+f5GIxXyEry9RV1oaMNIUnXNSQstUvgzy3QO2muD468KhfvPafpPj0gDHmfGEH+2IMcrz/WYNobsdN9JOjvPWutnxgYAzd27jwDIQ4D2WewZ3COgrRXxCAgwsOQKvlzDaFAOvPObOnCmIVsbOpONE3nSRGnrQpxJl0aaspoHLnVyKAUeCTAMhtSZirhWO+Iob9mhicB+9xEMRpxFnRD/FBUcSY/SyVlZjXxK9zIqn9t5KBK0iVZ10l/O5nV6sM7YfpAz8d4MqJDAGT05tKn/o2uDJtVvnl6szCIP5iQwsMUsQqQCuNPbmfm1V/q2ipjxLwiwOx2NRbSjFx3/5NnyXiIqehmvlfnfUjQ="
@@ -23,21 +24,21 @@ env:
   - CMD="docker-compose run RunHelp; scripts/eval.sh help; scripts/run_backtest.sh -?"
   - CMD="sudo scripts/provision.sh"
   - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
-  - CMD="docker-compose run TestSyntaxVagrantfile; docker-compose run TestSyntaxBash; docker-compose run TestSyntaxShellcheck"
-  - CMD="docker-compose run RunCompileMql"
-  - CMD="docker-compose run ScriptPrintPaths"
-  - CMD="docker-compose run TestHSTHeader; docker-compose run TestFXTHeader"
-  - CMD="docker-compose run TestLotstep4"
+  - CMD="docker-compose run $DOCKER_ARG TestSyntaxVagrantfile; docker-compose run $DOCKER_ARG TestSyntaxBash; docker-compose run $DOCKER_ARG TestSyntaxShellcheck"
+  - CMD="docker-compose run $DOCKER_ARG RunCompileMql"
+  - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
+  - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"
+  - CMD="docker-compose run $DOCKER_ARG TestLotstep4"
 # @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1.
-# - CMD="docker-compose run TestLotstep5"
-  - CMD="docker-compose run TestTimeframes"
-  - CMD="docker-compose run TestBands"
-  - CMD="docker-compose run TestEnvelopes"
-  - CMD="docker-compose run TestModellingQuality"
-  - CMD="docker-compose run RunInstallMt4"
-  - CMD="docker-compose run RunInstallMt4x"
-  - CMD="docker-compose run RunInstallMt5"
-  - CMD="docker-compose run DockerLargeFiles"
+# - CMD="docker-compose run $DOCKER_ARG TestLotstep5"
+  - CMD="docker-compose run $DOCKER_ARG TestTimeframes"
+  - CMD="docker-compose run $DOCKER_ARG TestBands"
+  - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
+  - CMD="docker-compose run $DOCKER_ARG TestModellingQuality"
+  - CMD="docker-compose run $DOCKER_ARG RunInstallMt4"
+  - CMD="docker-compose run $DOCKER_ARG RunInstallMt4x"
+  - CMD="docker-compose run $DOCKER_ARG RunInstallMt5"
+  - CMD="docker-compose run $DOCKER_ARG DockerLargeFiles"
 
 # Tests which suppose to be working in older versions only.
 # - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1-12 -y 2015 -S 10 -b DS -D5 -e TestFXTHeader -M4.0.0.971 -R"
