@@ -22,10 +22,17 @@ usage() {
 
 # Invoke on test success.
 on_success() {
+
+  # Fail on error in the logs.
   echo "Checking logs..." >&2
-  show_logs
   check_log_errors
+  if [ $? -ne 0 ]; then
+    echo "ERROR: RUN failed." >&2
+    exit 1
+  fi
+
   echo "RUN succeeded." >&2
+  show_logs
   parse_results $@
   on_finish
   local OPTIND
@@ -68,7 +75,7 @@ on_failure() {
   fi
   echo "Printing logs..." >&2
   show_logs
-  echo "RUN failed." >&2
+  echo "ERROR: RUN failed." >&2
   on_finish
 }
 
