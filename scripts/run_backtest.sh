@@ -50,9 +50,10 @@ on_success() {
 on_failure() {
   echo "FAIL?!" >&2
   # Sometimes MT4 fails on success, therefore double checking.
-  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
+
   if [ -n "$TEST_REPORT_BASE" ]; then
-    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*" -print -quit)
+    TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*.htm" -print -quit)
     test -f "$TEST_REPORT_HTM" && { on_success $@; return; }
   elif [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
@@ -80,20 +81,19 @@ on_finish() {
 
 # Parse report files.
 parse_results() {
-  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)")"
+  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
+
+  echo "Checking the total time elapsed..." >&2
+  save_time
 
   # Ignore if no test results or test expert name is set (e.g. when running the script).
   [ -z "$TEST_REPORT_BASE" -o -z "$TEST_EXPERT" ] && return
 
   # Locate the report file.
-  TEST_REPORT_BASE=${TEST_REPORT_BASE%.*}
-  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*" -print -quit)
+  TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*.htm" -print -quit)
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
   test -d "$TEST_REPORT_DIR" || exit 1
   test -f "$TEST_REPORT_HTM" || exit 1
-
-  echo "Checking the total time elapsed..." >&2
-  save_time
 
   if [ -n "$OPT_FORMAT_JSON" ]; then
     # Convert test report file into JSON format.
