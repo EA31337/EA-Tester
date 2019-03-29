@@ -254,7 +254,6 @@ while getopts $ARGS arg; do
       ;;
 
     C) # Clear previous backtest data files.
-      clean_files
       clean_bt
       ;;
 
