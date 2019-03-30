@@ -124,7 +124,8 @@ case "$(uname -s)" in
     apt-get install -qq winehq-devel wine-gecko --install-recommends              # Install Wine.
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
-    # Setup display.
+    # Install Winetricks.
+    curl -sL https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks | install /dev/stdin /usr/local/bin/winetricks
 
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then

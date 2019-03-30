@@ -58,6 +58,7 @@ RUN find /var/lib/apt/lists -type f -delete
 RUN find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
 USER ubuntu
 RUN eval.sh clean_bt
+RUN eval.sh clean_ea
 RUN eval.sh clean_files
 
 # Expose SSH and VNC when installed.

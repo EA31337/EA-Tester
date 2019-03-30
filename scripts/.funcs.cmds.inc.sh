@@ -297,7 +297,7 @@ compile() {
   elif [ -s "$rel_path" ] && [ -d "$(dirname "$rel_path")" ]; then
     # If path, enter the folder containing the file.
     cd "$(dirname "$rel_path")"
-    target=.
+    target=$(basename "$rel_path")
     log_file=${log_file:-mql.log}
   elif [ ! -s "$rel_path" ]; then
     # If file does not exist, find in the current folder.

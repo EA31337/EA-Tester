@@ -93,9 +93,8 @@ get_time() {
 }
 
 # Check logs for errors.
-# Usage: check_log_errors [filter] [args]
+# Usage: check_log_errors
 check_log_errors() {
-  local log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
   local errors=()
   errors+=("cannot open")
   errors+=("not initialized")
@@ -115,8 +114,9 @@ check_log_errors() {
   errors+=("Configuration issue .\+")
   errors+=("Assert fail on .\+")
   errors+=("Testing pass stopped .\+")
+  cd "$TERMINAL_DIR"
   ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
-  ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" \"$log_file\"
+  ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
 }
 
 # Save time (in hours) and store in rule file if exists.
