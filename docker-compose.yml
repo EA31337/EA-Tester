@@ -25,7 +25,7 @@ services:
     - ./scripts:/opt/scripts
   RunInstallMt4:
     command: install_mt 4
-    image: ea31337/ea-tester
+    image: ea31337/ea-tester:dev
     volumes:
     - ./scripts:/opt/scripts
   RunInstallMt4x:
@@ -35,7 +35,7 @@ services:
     - ./scripts:/opt/scripts
   RunInstallMt5:
     command: install_mt 5
-    image: ea31337/ea-tester
+    image: ea31337/ea-tester:dev
     volumes:
     - ./scripts:/opt/scripts
   RunCompileMql:
@@ -180,6 +180,6 @@ services:
 # MQL Scripts.
   ScriptPrintPaths:
     command: run_backtest -s PrintPaths
-    image: ea31337/ea-tester
+    image: ea31337/ea-tester:dev
     volumes:
     - ./scripts:/opt/scripts
