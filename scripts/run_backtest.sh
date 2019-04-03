@@ -395,11 +395,20 @@ else
   fi
 fi
 
+# Configure symbol pair.
 if [ -n "$BT_SYMBOL" ]; then
   echo "Configuring symbol pair ($BT_SYMBOL)..." >&2
   ini_set "^TestSymbol" "$BT_SYMBOL" "$TESTER_INI"
 else
   BT_SYMBOL="$(ini_get TestSymbol)"
+fi
+
+# Configure testing mode.
+if [ -n "$BT_TESTMODEL" ]; then
+  echo "Configuring test model ($BT_TESTMODEL)..." >&2
+  ini_set "^TestModel" "$BT_TESTMODEL" "$TESTER_INI"
+else
+  BT_TESTMODEL="$(ini_get TestModel)"
 fi
 
 if [ -n "$TEST_OPTS" ]; then
@@ -708,7 +717,7 @@ if [ -n "$TEST_EXPERT" ]; then
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE \
-      $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE}
+      $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODEL}
     if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
@@ -719,7 +728,7 @@ if [ -n "$TEST_EXPERT" ]; then
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
 fi
 
-# Prepare before test run.
+# Final checks.
 if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
     || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
