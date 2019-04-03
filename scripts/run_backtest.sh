@@ -710,6 +710,7 @@ fi
 
 # Download backtest data if required.
 BT_PERIOD=$(ini_get ^TestPeriod)
+BT_TESTMODE=${BT_TESTMODE}
 if [ -n "$TEST_EXPERT" ]; then
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2017})-${BT_SRC:-DS}
@@ -717,7 +718,7 @@ if [ -n "$TEST_EXPERT" ]; then
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE \
-      $SHELL $SCR/get_bt_data.sh $BT_SYMBOL "$(join_by - ${BT_YEARS[@]:-2017})" ${BT_SRC:-DS} ${BT_PERIOD} ${BT_TESTMODE}
+      "$SHELL" "$SCR"/get_bt_data.sh "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2017}")" "${BT_SRC:-DS}" "${BT_PERIOD}" "${BT_TESTMODE}"
     if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
