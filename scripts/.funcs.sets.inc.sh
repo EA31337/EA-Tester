@@ -14,8 +14,14 @@ CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 # Usage: set_opt_params [param] [start] [end] (step)
 set_opt_params() {
   # Optimization settings (F-On, 1-Min, 2-Step, 3-Max).
-  input_set ^$1,F 1       # On.
-  input_set ^$1,1 $2      # Min.
-  input_set ^$1,2 ${4:-1} # Step.
-  input_set ^$1,3 $3      # Max.
+  input_set ^"$1",F 1         # On.
+  input_set ^"$1",1 "$2"      # Min.
+  input_set ^"$1",2 "${4:-1}" # Step.
+  input_set ^"$1",3 "$3"      # Max.
+}
+
+# Disables optimization params
+# Usage: dis_opt_params [param]
+dis_opt_params() {
+  input_set ^"$1",F 0       # Off.
 }
