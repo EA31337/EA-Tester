@@ -33,11 +33,11 @@ input_set() {
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   [ -s "$file" ]
-  read -ra vargs <<<"$EX_ARGS"
+  read -ra vargs <<<$EX_ARGS
   vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/$key=\\zs.*$/$value/" -scwq! "${vargs[@]}" "$file" >&2 || exit 1
+    ex +"%s/$key=\\zs.*$/$value/" -scwq! ${vargs[@]} "$file" >&2 || exit 1
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
@@ -59,8 +59,8 @@ input_copy() {
   local key=$1
   local file_src=$2
   local retries=5
-  read -ra files <<<"${@:3}"
-  read -ra vargs <<<"$EX_ARGS"
+  read -ra files <<<${@:3}
+  read -ra vargs <<<$EX_ARGS
   vargs+=("-u NONE")
   [ -s "$file_src" ]
   for file_dst in "${files[@]}"; do
@@ -68,7 +68,7 @@ input_copy() {
     value=$(input_get "^$key" "$file_src")
     echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
     retries=5
-    while ! ex +"%s/\\s${key}[^=]=[^0-9]\\zs[^;]\\+/${value}/" -scwq! "${vargs[@]}" "$file_dst" >&2; do
+    while ! ex +"%s/\\s${key}[^=]=[^0-9]\\zs[^;]\\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
       sleep 1
       ((retries-=1))
       echo "Retrying ($retries left)..." >&2
