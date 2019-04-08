@@ -57,11 +57,10 @@ join_by() {
 }
 
 # Check required files.
+# Usage: check_files
 check_files() {
-  if [ "$SERVER" != "default" ]; then
-    local symbols_raw_default="$HISTORY_DIR/default/symbols.raw"
-    local symbols_raw="$HISTORY_DIR/$SERVER/symbols.raw"
-    [ -s "$symbols_raw" ] || cp $VFLAG "$symbols_raw_default" "$symbols_raw"
+  if [ "$SERVER" != "default" ] && [ -w "$HISTORY_DIR/$SERVER" ]; then
+    [ -s "$symbols_raw" ] || cp $VFLAG "$HISTORY_DIR/default/symbols.raw" "$HISTORY_DIR/$SERVER/symbols.raw"
   fi
 }
 
