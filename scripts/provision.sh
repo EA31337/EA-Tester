@@ -156,7 +156,8 @@ case "$(uname -s)" in
     fi
 
     # Install other CLI tools.
-    apt-get install -qq less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
+    apt-get install -qq less binutils coreutils moreutils                         # Common CLI utils.
+    apt-get install -qq cabextract zip unzip p7zip-full                           # Compression tools.
     apt-get install -qq git realpath links tree pv bc                             # Required commands.
     apt-get install -qq html2text jq                                              # Required parsers.
     apt-get install -qq imagemagick                                               # ImageMagick.
