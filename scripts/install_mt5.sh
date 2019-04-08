@@ -3,21 +3,20 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null; pwd -P)"
-WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
+type winetricks >/dev/null
 
 # Load the shell functions.
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
 
-# Prints information of the window status in the background.
+# Activates display.
 set_display
-live_stats &
 
 echo "Installing winhttp..." >&2
-sh -s winhttp < <(wget -qO- $WURL)
+winetricks -q winhttp
 
 echo "Installing platform..." >&2
-sh -s "$CWD"/install_mt5.verb < <(wget -qO- $WURL)
+winetricks -q "$CWD"/install_mt5.verb
 
 echo "Installation successful." >&2
 echo "${BASH_SOURCE[0]} done." >&2
