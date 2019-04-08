@@ -26,7 +26,7 @@ MTEDITOR_EXE="$([ -d "$TERMINAL_DIR" ] && find "$TERMINAL_DIR" -name metaeditor.
 is_vm && set +x
 MQL_DIR="MQL4"
 if [ -n "$TERMINAL_DIR" ]; then
-  TERMINAL_ARG="/skipupdate /portable"
+  TERMINAL_ARG="${TERMINAL_ARG:-/skipupdate /portable}"
   TERMINAL_CNF="${TERMINAL_DIR}/config"
   TERMINAL_INI="${TERMINAL_INI:-$TERMINAL_CNF/$CONF_TERM}"
   TESTER_INI="${TESTER_INI:-$TERMINAL_CNF/$CONF_TEST}"
