@@ -32,6 +32,7 @@ input_set() {
   local key="$1"
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
+  file=${file:-$SETFILE}
   [ -s "$file" ]
   read -ra vargs <<<$EX_ARGS
   vargs+=("-u NONE")
@@ -48,6 +49,7 @@ input_set() {
 input_get() {
   local key="$1"
   local file="${2:-$TESTER_DIR/$EA_SETFILE}"
+  file=${file:-$SETFILE}
   [ -s "$file" ]
   value="$(grep -om1 "$key=[.0-9a-zA-Z-]\\+" "$file" | cut -d= -f2-)"
   echo "$value"
