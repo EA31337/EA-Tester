@@ -111,6 +111,9 @@ Other supported variables (without options assigned):
 - BT_TESTMODEL (uint)
   This controls type of backtest data being tested.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
+- BT_PERIOD_FXT (string)
+  Overrides FXT file to use for the test.
+  By default, it is the same as BT_PERIOD.
 - BT_TESTMODEL_FXT (uint)
   This controls type of backtest data being downloaded in FXT format.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
