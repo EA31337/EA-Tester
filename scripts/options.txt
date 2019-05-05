@@ -97,7 +97,7 @@ Supported options:
   -X (file)
     Invoke script file n exit after the successful test.
   -y (year)
-    Year to test. Default: 2017
+    Year to test. Default: 2018
     Variable (uint/string): BT_YEARS
   -_
     Dry run.
