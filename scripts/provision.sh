@@ -70,6 +70,7 @@ case "$(uname -s)" in
 
     # For Ubuntu/Debian.
     echo "Configuring APT..." >&2
+    apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/apt/apt.conf.d/99norecommend
     if command -v dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
