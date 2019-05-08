@@ -201,6 +201,9 @@ case "$(uname -s)" in
 esac
 set +x
 
+# Perform Wine initialization.
+WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -i &
+
 # Set-up git.
 (
   git config --system user.name $user
