@@ -101,7 +101,7 @@ case "$(uname -s)" in
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
-    apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
+    apt-key add < <(curl -S https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
     command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
     # Adds APT Wine repository.
