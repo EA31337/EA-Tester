@@ -134,12 +134,13 @@ case "$(uname -s)" in
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
       echo "Installing AutoHotkey..." >&2
-      su - $user -c "WINEDLLOVERRIDES=mscoree,mshtml= wineboot -i"
       su - $user -c "
         set -x
         export DISPLAY=:1.0
+        export WINEDLLOVERRIDES=mscoree,mshtml=
         echo \$DISPLAY
         xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
+        wineboot -i
         wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
         wine /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
         rm -v /tmp/AutoHotkey_*.exe && \
