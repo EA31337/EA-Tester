@@ -1,6 +1,6 @@
 language: generic
 sudo: required
-group: deprecated-2017Q4
+dist: trusty
 services:
   - docker
 addons:
