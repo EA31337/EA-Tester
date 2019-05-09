@@ -16,7 +16,7 @@ echo "Installing winhttp..." >&2
 winetricks -q winhttp
 
 echo "Installing platform..." >&2
-winetricks -q "$CWD"/install_mt4.verb
+winetricks -q -v mt4
 
 echo "Installation successful." >&2
 echo "${BASH_SOURCE[0]} done." >&2
