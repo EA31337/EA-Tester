@@ -5,6 +5,9 @@
 CWD="$( (cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P) || pwd -P)"
 type winetricks >/dev/null
 
+# Load variables.
+export WINETRICKS_DOWNLOADER_RETRIES=${WINETRICKS_DOWNLOADER_RETRIES:-10}
+
 # Load the shell functions.
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
