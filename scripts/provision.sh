@@ -98,6 +98,9 @@ case "$(uname -s)" in
     command -v curl &>/dev/null || apt-get install -qq curl
     command -v wget &>/dev/null || apt-get install -qq wget
 
+    # CA certificates to allow SSL-based applications to check for the authenticity of SSL connections.
+    echo "Installing CA certificates..." >&2
+    apt-get install -qq ca-certificates
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
@@ -117,7 +120,6 @@ case "$(uname -s)" in
     echo "Installing APT packages..." >&2
     apt-get install -qq build-essential                                           # Install C, C++ compilers and development (make).
     apt-get install -qq language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qq ca-certificates
     apt-get install -qq dbus                                                      # Required for Debian AMI on EC2.
 
     # Install wine and dependencies.
