@@ -10,7 +10,12 @@ type winetricks >/dev/null
 . "$CWD/.funcs.cmds.inc.sh"
 
 # Activates display.
+echo "Configuring display..." >&2
 set_display
+
+# Updates Wine configuration.
+echo "Updating configuration..." >&2
+wineboot -u
 
 echo "Installing winhttp..." >&2
 winetricks -q winhttp
