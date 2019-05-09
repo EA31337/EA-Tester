@@ -134,6 +134,7 @@ case "$(uname -s)" in
     # Install AHK.
     if [ -n "$PROVISION_AHK" ]; then
       echo "Installing AutoHotkey..." >&2
+      su - $user -c "WINEDLLOVERRIDES=mscoree,mshtml= wineboot -i"
       su - $user -c "
         set -x
         export DISPLAY=:1.0
@@ -203,9 +204,6 @@ case "$(uname -s)" in
   ;;
 esac
 set +x
-
-# Perform Wine initialization.
-WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -i &
 
 # Set-up git.
 (
