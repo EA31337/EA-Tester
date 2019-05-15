@@ -48,7 +48,7 @@ ENV MT_VER 4
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN eval.sh install_mt
+RUN install_mt4.sh
 RUN eval.sh install_mteditor
 RUN run_backtest.sh -s PrintPaths -v
 
