@@ -8,6 +8,10 @@ type winetricks >/dev/null
 # Load variables.
 export WINETRICKS_DOWNLOADER_RETRIES=${WINETRICKS_DOWNLOADER_RETRIES:-10}
 
+# Initializing
+echo "Initializing..." >&2
+curl -s ifconfig.me/all.json
+
 # Load the shell functions.
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
