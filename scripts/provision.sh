@@ -125,7 +125,7 @@ case "$(uname -s)" in
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qq winehq-devel wine-gecko --install-recommends              # Install Wine.
+    apt-get install -qq winehq-staging wine-gecko --install-recommends            # Install Wine.
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Install Winetricks.
