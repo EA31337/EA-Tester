@@ -5,8 +5,8 @@
 #
 
 # Initialize script.
-[ -n "$OPT_NOERR" ] || set -e
-[ -n "$OPT_TRACE" ] && set -x
+(( "$OPT_NOERR" )) || set -e
+(( "$OPT_TRACE" )) && set -x
 if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
@@ -90,7 +90,7 @@ case "$(uname -s)" in
     fi
 
     # Update APT index.
-    [ -z "$NO_APT_UPDATE" ] && (
+    ! (( "${NO_APT_UPDATE:-0}" )) && (
       echo "Updating APT packages..." >&2
       apt-get -qq update
     )
@@ -112,17 +112,17 @@ case "$(uname -s)" in
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
     # Install Charles proxy.
-    if [ -n "$PROVISION_CHARLES" ]; then
+    if (( "$PROVISION_CHARLES" )); then
       # Adds GPG release key.
       apt-key add < <(curl -S https://www.charlesproxy.com/packages/apt/PublicKey)
       # Adds APT Wine repository.
       add-apt-repository -y "deb https://www.charlesproxy.com/packages/apt/ charles-proxy main"
       # Install HTTPS transport driver.
-      apt-get install apt-transport-https
+      apt-get install -qq apt-transport-https
     fi
 
     # Update APT index.
-    [ -z "$NO_APT_UPDATE" ] && (
+    ! (( "${NO_APT_UPDATE:-0}" )) && (
       echo "Updating APT packages..." >&2
       apt-get -qq update
     )
@@ -144,7 +144,7 @@ case "$(uname -s)" in
     curl -sL ${winetricks_url} | install /dev/stdin /usr/local/bin/winetricks
 
     # Install AHK.
-    if [ -n "$PROVISION_AHK" ]; then
+    if (( "$PROVISION_AHK" )); then
       echo "Installing AutoHotkey..." >&2
       su - $user -c "
         set -x
@@ -168,12 +168,12 @@ case "$(uname -s)" in
     fi
 
     # Install Charles proxy.
-    if [ -n "$PROVISION_CHARLES" ]; then
-      apt-get install charles-proxy3
+    if (( "$PROVISION_CHARLES" )); then
+      apt-get install -qq charles-proxy3
     fi
 
     # Install Mono.
-    if [ -n "$PROVISION_MONO" ]; then
+    if (( "$PROVISION_MONO" )); then
       echo "Installing Wine Mono..." >&2
       apt-get install -qq wine-mono
       su - $user -c "
@@ -197,7 +197,7 @@ case "$(uname -s)" in
     fi
 
     # Setup VNC.
-    if [ -n "$PROVISION_VNC" ]; then
+    if (( "$PROVISION_VNC" )); then
       echo "Installing VNC..." >&2
       apt-get install -qq x11vnc fluxbox
     fi
@@ -219,14 +219,14 @@ case "$(uname -s)" in
     ) &
 
     # Setup SSH if requested.
-    if [ -n "$PROVISION_SSH" ]; then
+    if (( "$PROVISION_SSH" )); then
       apt-get install -qq openssh-server
       [ ! -d /var/run/sshd ] && mkdir -v /var/run/sshd
       sed -i'.bak' 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
     fi
 
     # Setup sudo if requested.
-    if [ -n "$PROVISION_SUDO" ]; then
+    if (( "$PROVISION_SUDO" )); then
       apt-get install -qq sudo
       sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
     fi
