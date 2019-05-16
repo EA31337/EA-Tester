@@ -111,6 +111,16 @@ case "$(uname -s)" in
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
+    # Install Charles proxy.
+    if [ -n "$PROVISION_CHARLES" ]; then
+      # Adds GPG release key.
+      apt-key add < <(curl -S https://www.charlesproxy.com/packages/apt/PublicKey)
+      # Adds APT Wine repository.
+      add-apt-repository -y "deb https://www.charlesproxy.com/packages/apt/ charles-proxy main"
+      # Install HTTPS transport driver.
+      apt-get install apt-transport-https
+    fi
+
     # Update APT index.
     [ -z "$NO_APT_UPDATE" ] && (
       echo "Updating APT packages..." >&2
@@ -155,6 +165,11 @@ case "$(uname -s)" in
         echo "Error: AutoHotkey installation failed!" >&2
         exit 1
       fi
+    fi
+
+    # Install Charles proxy.
+    if [ -n "$PROVISION_CHARLES" ]; then
+      apt-get install charles-proxy3
     fi
 
     # Setup VNC.
