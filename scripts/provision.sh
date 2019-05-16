@@ -136,7 +136,7 @@ case "$(uname -s)" in
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
     apt-get install -qq winehq-staging                                            # Install Wine.
-    apt-get install -qq wine-gecko wine-mono                                      # Install Wine recommended libraries.
+    apt-get install -qq wine-gecko                                                # Install Wine recommended libraries.
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Install Winetricks.
@@ -154,7 +154,7 @@ case "$(uname -s)" in
         xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
         wineboot -i
         wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
-        wine /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
+        wine64 /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
         rm -v /tmp/AutoHotkey_*.exe && \
         (pkill Xvfb || true)
       "
@@ -170,6 +170,30 @@ case "$(uname -s)" in
     # Install Charles proxy.
     if [ -n "$PROVISION_CHARLES" ]; then
       apt-get install charles-proxy3
+    fi
+
+    # Install Mono.
+    if [ -n "$PROVISION_MONO" ]; then
+      echo "Installing Wine Mono..." >&2
+      apt-get install -qq wine-mono
+      su - $user -c "
+        set -x
+        export DISPLAY=:1.0
+        export WINEDLLOVERRIDES=mscoree,mshtml=
+        echo \$DISPLAY
+        xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
+        wget -qP /tmp -nc 'http://dl.winehq.org/wine/wine-mono/4.8.3/wine-mono-4.8.3.msi' && \
+        wine64 msiexec /i /tmp/wine-mono-4.8.3.msi
+        rm -v /tmp/*.msi && \
+        (pkill Xvfb || true)
+      "
+      mono_path=$(su - $user -c 'winepath -u "C:\windows\mono"');
+      if [ -d "$mono_path" ]; then
+        echo "Mono installed successfully!" >&2
+      else
+        echo "Error: Mono installation failed!" >&2
+        exit 1
+      fi
     fi
 
     # Setup VNC.
