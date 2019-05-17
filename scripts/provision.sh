@@ -113,6 +113,8 @@ case "$(uname -s)" in
 
     # Install Charles proxy.
     if (( "$PROVISION_CHARLES" )); then
+      # Install Charles Root Certificate (if available).
+      (curl -L chls.pro/ssl | grep CERTIFICATE) && curl -L chls.pro/ssl | tee -a /etc/ssl/certs/ca-certificates.crt
       # Adds GPG release key.
       apt-key add < <(curl -S https://www.charlesproxy.com/packages/apt/PublicKey)
       # Adds APT Wine repository.
