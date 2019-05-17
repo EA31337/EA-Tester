@@ -27,6 +27,9 @@ wineboot -u
 echo "Installing winhttp..." >&2
 winetricks -q winhttp
 
+echo "Installing .NET..." >&2
+winetricks -q dotnet472
+
 echo "Installing platform..." >&2
 winetricks -q "$CWD"/install_mt5.verb
 
