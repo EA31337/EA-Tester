@@ -95,11 +95,6 @@ case "$(uname -s)" in
       apt-get -qq update
     )
 
-    # Install Squid proxy.
-    if (( "$PROVISION_SQUID" )); then
-      apt-get install -qq squid
-    fi
-
     # Install curl and wget if not present.
     command -v curl &>/dev/null || apt-get install -qq curl
     command -v wget &>/dev/null || apt-get install -qq wget
