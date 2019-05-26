@@ -46,7 +46,7 @@ RUN chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
 
 # Default backtest inputs.
-ENV MT_VER 4
+ENV MT_VER 4.0.0.1010
 
 # Run test.
 USER ubuntu
