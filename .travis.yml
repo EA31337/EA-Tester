@@ -28,9 +28,7 @@ env:
   - CMD="docker-compose run $DOCKER_ARG RunCompileMql"
   - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
   - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"
-  - CMD="docker-compose run $DOCKER_ARG TestLotstep4"
-# @fixme: Error: Expected lot step for 5 digits: 0.01, found: 0.1.
-# - CMD="docker-compose run $DOCKER_ARG TestLotstep5"
+  - CMD="docker-compose run $DOCKER_ARG TestLotstep4; docker-compose run $DOCKER_ARG TestLotstep5"
   - CMD="docker-compose run $DOCKER_ARG TestTimeframes"
   - CMD="docker-compose run $DOCKER_ARG TestBands"
   - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
