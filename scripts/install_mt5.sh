@@ -7,6 +7,7 @@ type winetricks >/dev/null
 
 # Load variables.
 export WINETRICKS_DOWNLOADER_RETRIES=${WINETRICKS_DOWNLOADER_RETRIES:-10}
+export WINETRICKS_DOWNLOADER=curl
 
 # Initializing
 echo "Initializing..." >&2
