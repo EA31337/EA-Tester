@@ -664,7 +664,7 @@ fi
 
 # Sets a lot step if present.
 if [ -n "$BT_LOTSTEP" ]; then
-  echo "Configuring lot step ($BT_LOTSTEP)..." >&2
+  echo "Setting lot step in FXT files ($BT_LOTSTEP)..." >&2
   set_lotstep $BT_LOTSTEP
 fi
 
