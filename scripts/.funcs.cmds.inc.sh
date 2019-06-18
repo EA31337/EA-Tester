@@ -970,7 +970,4 @@ set_digits() {
   set_symbol_value $digits $SRAW_OFF_DIGITS
   psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
   set_symbol_double $psize $SRAW_OFF_PSIZE
-  if [ -w "$TERMINAL_DIR"/config/accounts.ini ]; then
-    cp $VFLAG "$ROOT/conf/accounts-d${digits}.ini" "$TERMINAL_DIR"/config/accounts.ini
-  fi
 }
