@@ -79,6 +79,7 @@ cache:
   apt: true
   pip: true
   directories:
+  - /var/cache
   - /var/lib/docker
   - $HOME/.cache
   - $HOME/.docker
