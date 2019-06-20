@@ -31,7 +31,7 @@
 int OnInit() {
     long symbol_spread = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
     int real_spread = (int)MathRound((Ask - Bid) * MathPow(10, Digits));
-    double lot_step = SymbolInfoDouble(_symbol, SYMBOL_VOLUME_STEP); // Same as: MarketInfo(symbol, MODE_LOTSTEP);
+    double lot_step = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP); // Same as: MarketInfo(symbol, MODE_LOTSTEP);
     Print("Testing lot step...");
     PrintFormat("Symbol digits  : %g", Digits);
     PrintFormat("Lot step       : %g", lot_step);
