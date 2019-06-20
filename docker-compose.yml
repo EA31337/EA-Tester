@@ -62,7 +62,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
-#   - ../EA-Tester/scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -72,6 +73,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -81,6 +84,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -90,6 +95,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -100,6 +107,7 @@ services:
     volumes:
     - ./scripts:/opt/scripts
     - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -108,6 +116,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -116,6 +126,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -124,6 +136,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -132,6 +146,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -141,6 +157,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -149,6 +167,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -157,6 +177,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -165,6 +187,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -173,6 +197,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -181,6 +207,8 @@ services:
     image: ea31337/ea-tester:EURUSD-2018-DS
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
@@ -192,3 +220,5 @@ services:
     image: ea31337/ea-tester:dev
     volumes:
     - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
