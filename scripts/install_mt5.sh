@@ -34,5 +34,12 @@ winetricks -q dotnet472
 echo "Installing platform..." >&2
 winetricks -q "$CWD"/install_mt5.verb
 
-echo "Installation successful." >&2
+. "$CWD"/.vars.inc.sh
+if [ -n "$TERMINAL5_DIR" ]; then
+  echo "Terminal path: $TERMINAL5_DIR" >&2
+  echo "Installation successful." >&2
+else
+  echo "Installation failed!" >&2
+  exit 1
+fi
 echo "${BASH_SOURCE[0]} done." >&2
