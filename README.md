@@ -133,12 +133,6 @@ to list available commands. Here is the list:
 # Run platform and kill it.
 # Usage: quick_run
 --
-# Set input value in the SET file.
-# Usage: input_set [key] [value] [file]
---
-# Get input value from the SET file.
-# Usage: input_get [key] [file]
---
 # Set value in the INI file.
 # Usage: ini_set [key] [value] [file]
 --

@@ -130,9 +130,9 @@ case $bt_src in
     wait # Wait for the background tasks to finish.
     echo "Extracting..." >&2
     gunzip -kh >& /dev/null && keep="-k" || true # Check if gunzip supports -k parameter.
-    find "$dest_dir" -type f -name "*.gz" -print0 | while IFS= read -r -d '' file; do
-      gunzip $vflag $keep "$file"
-    done
+    cd "$dest_dir"
+    gunzip $vflag $keep ${fxt_files[@]} ${hst_files[@]}
+    cd - &> /dev/null
     echo "Moving..." >&2
     find "$dest_dir" -type f -name "*.fxt" -exec mv $vflag "{}" "$TICKDATA_DIR" ';'
     find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$HISTORY_DIR/${SERVER:-default}" ';'

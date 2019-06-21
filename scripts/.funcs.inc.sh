@@ -57,11 +57,10 @@ join_by() {
 }
 
 # Check required files.
+# Usage: check_files
 check_files() {
-  if [ "$SERVER" != "default" ]; then
-    local symbols_raw_default="$HISTORY_DIR/default/symbols.raw"
-    local symbols_raw="$HISTORY_DIR/$SERVER/symbols.raw"
-    [ -s "$symbols_raw" ] || cp $VFLAG "$symbols_raw_default" "$symbols_raw"
+  if [ "$SERVER" != "default" ] && [ -w "$HISTORY_DIR/$SERVER" ]; then
+    [ -s "$symbols_raw" ] || cp $VFLAG "$HISTORY_DIR/default/symbols.raw" "$HISTORY_DIR/$SERVER/symbols.raw"
   fi
 }
 
@@ -90,6 +89,18 @@ get_time() {
   else
     echo ?
   fi
+}
+
+# Get the max of two values.
+# Usage: get_min (int) (int)
+get_min() {
+  echo $(( $1 < ${2:-0} ? $1 : ${2:-0} ))
+}
+
+# Get the max of two values.
+# Usage: get_max (int) (int)
+get_max() {
+  echo $(( $1 > ${2:-0} ? $1 : ${2:-0} ))
 }
 
 # Check logs for errors.

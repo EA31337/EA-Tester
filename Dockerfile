@@ -23,8 +23,12 @@ WORKDIR /home/ubuntu
 
 # Build-time variables.
 ARG BT_DEST=/opt/results
-ARG MT_VER
+ARG HTTPS_PROXY
+ARG HTTP_PROXY
+ARG MT_VER=4.0.0.1010
 ARG PROVISION_AHK=1
+ARG PROVISION_CHARLES=1
+ARG PROVISION_MONO=0
 ARG PROVISION_SSH=0
 ARG PROVISION_SUDO=1
 ARG PROVISION_VNC=1
@@ -42,13 +46,13 @@ RUN chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
 
 # Default backtest inputs.
-ENV MT_VER 4.0.0.1010
+ENV MT_VER $MT_VER
 
 # Run test.
 USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
-RUN eval.sh install_mt
+RUN eval.sh install_mt $MT_VER
 RUN eval.sh install_mteditor
 RUN run_backtest.sh -s PrintPaths -v
 

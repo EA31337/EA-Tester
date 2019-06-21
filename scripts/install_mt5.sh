@@ -3,21 +3,43 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null; pwd -P)"
-WURL="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
+type winetricks >/dev/null
+
+# Load variables.
+export WINETRICKS_DOWNLOADER_RETRIES=${WINETRICKS_DOWNLOADER_RETRIES:-10}
+export WINETRICKS_DOWNLOADER=curl
+
+# Initializing
+echo "Initializing..." >&2
+curl -s ifconfig.me/all.json
 
 # Load the shell functions.
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
 
-# Prints information of the window status in the background.
+# Activates display.
+echo "Configuring display..." >&2
 set_display
-live_stats &
+
+# Updates Wine configuration.
+echo "Updating configuration..." >&2
+wineboot -u
 
 echo "Installing winhttp..." >&2
-sh -s winhttp < <(wget -qO- $WURL)
+winetricks -q winhttp
+
+echo "Installing .NET..." >&2
+winetricks -q dotnet472
 
 echo "Installing platform..." >&2
-sh -s "$CWD"/install_mt5.verb < <(wget -qO- $WURL)
+winetricks -q "$CWD"/install_mt5.verb
 
-echo "Installation successful." >&2
+. "$CWD"/.vars.inc.sh
+if [ -n "$TERMINAL5_DIR" ]; then
+  echo "Terminal path: $TERMINAL5_DIR" >&2
+  echo "Installation successful." >&2
+else
+  echo "Installation failed!" >&2
+  exit 1
+fi
 echo "${BASH_SOURCE[0]} done." >&2

@@ -8,7 +8,7 @@ DOCKER_CFG := ${HOME}/.docker/config.json
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 BUILD_VREF := $(shell git rev-parse --short HEAD)
 .PHONY: docker-load docker-build docker-login docker-tag docker-pull docker-push docker-run docker-save docker-clean
-docker-ci: docker-load docker-build docker-save
+docker-ci: docker-build
 docker-load:
 	if [[ -f $(DOCKER_TAR) ]]; then gzip -dc $(DOCKER_TAR) | docker load; fi
 docker-build:

@@ -5,8 +5,8 @@
 #
 
 # Initialize script.
-[ -n "$OPT_NOERR" ] || set -e
-[ -n "$OPT_TRACE" ] && set -x
+(( "$OPT_NOERR" )) || set -e
+(( "$OPT_TRACE" )) && set -x
 if [ ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
@@ -70,6 +70,8 @@ case "$(uname -s)" in
 
     # For Ubuntu/Debian.
     echo "Configuring APT..." >&2
+    apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/apt/apt.conf.d/99norecommend
+    apt-config dump | grep -we Recommends -e Suggests
     if command -v dpkg-reconfigure > /dev/null; then
 
         # Perform an unattended installation of a Debian packages.
@@ -88,7 +90,7 @@ case "$(uname -s)" in
     fi
 
     # Update APT index.
-    [ -z "$NO_APT_UPDATE" ] && (
+    ! (( "${NO_APT_UPDATE:-0}" )) && (
       echo "Updating APT packages..." >&2
       apt-get -qq update
     )
@@ -97,17 +99,32 @@ case "$(uname -s)" in
     command -v curl &>/dev/null || apt-get install -qq curl
     command -v wget &>/dev/null || apt-get install -qq wget
 
+    # CA certificates to allow SSL-based applications to check for the authenticity of SSL connections.
+    echo "Installing CA certificates..." >&2
+    apt-get install -qq ca-certificates
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
-    apt-key add < <(curl -sq https://dl.winehq.org/wine-builds/winehq.key)
+    apt-key add < <(curl -S https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
     command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
 
+    # Install Charles proxy.
+    if (( "$PROVISION_CHARLES" )); then
+      # Install Charles Root Certificate (if available).
+      curl -L chls.pro/ssl > /usr/local/share/ca-certificates/charles.crt && update-ca-certificates
+      # Adds GPG release key.
+      apt-key add < <(curl -S https://www.charlesproxy.com/packages/apt/PublicKey)
+      # Adds APT Wine repository.
+      add-apt-repository -y "deb https://www.charlesproxy.com/packages/apt/ charles-proxy main"
+      # Install HTTPS transport driver.
+      apt-get install -qq apt-transport-https
+    fi
+
     # Update APT index.
-    [ -z "$NO_APT_UPDATE" ] && (
+    ! (( "${NO_APT_UPDATE:-0}" )) && (
       echo "Updating APT packages..." >&2
       apt-get -qq update
     )
@@ -116,27 +133,30 @@ case "$(uname -s)" in
     echo "Installing APT packages..." >&2
     apt-get install -qq build-essential                                           # Install C, C++ compilers and development (make).
     apt-get install -qq language-pack-en                                          # Language pack to prevent an invalid locale.
-    apt-get install -qq ca-certificates
     apt-get install -qq dbus                                                      # Required for Debian AMI on EC2.
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qq winehq-devel wine-gecko --install-recommends              # Install Wine.
+    apt-get install -qq winehq-staging                                            # Install Wine.
+    apt-get install -qq wine-gecko winbind                                        # Install Wine recommended libraries.
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Install Winetricks.
-    curl -sL https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks | install /dev/stdin /usr/local/bin/winetricks
+    winetricks_url="https://raw.githubusercontent.com/kenorb-contrib/winetricks/mt4/src/winetricks"
+    curl -sL ${winetricks_url} | install /dev/stdin /usr/local/bin/winetricks
 
     # Install AHK.
-    if [ -n "$PROVISION_AHK" ]; then
+    if (( "$PROVISION_AHK" )); then
       echo "Installing AutoHotkey..." >&2
       su - $user -c "
         set -x
         export DISPLAY=:1.0
+        export WINEDLLOVERRIDES=mscoree,mshtml=
         echo \$DISPLAY
         xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
+        wineboot -i
         wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
-        wine /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
+        wine64 /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
         rm -v /tmp/AutoHotkey_*.exe && \
         (pkill Xvfb || true)
       "
@@ -149,14 +169,44 @@ case "$(uname -s)" in
       fi
     fi
 
+    # Install Charles proxy.
+    if (( "$PROVISION_CHARLES" )); then
+      apt-get install -qq charles-proxy3
+    fi
+
+    # Install Mono.
+    if (( "$PROVISION_MONO" )); then
+      echo "Installing Wine Mono..." >&2
+      apt-get install -qq wine-mono
+      su - $user -c "
+        set -x
+        export DISPLAY=:1.0
+        export WINEDLLOVERRIDES=mscoree,mshtml=
+        echo \$DISPLAY
+        xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
+        wget -qP /tmp -nc 'http://dl.winehq.org/wine/wine-mono/4.8.3/wine-mono-4.8.3.msi' && \
+        wine64 msiexec /i /tmp/wine-mono-4.8.3.msi
+        rm -v /tmp/*.msi && \
+        (pkill Xvfb || true)
+      "
+      mono_path=$(su - $user -c 'winepath -u "C:\windows\mono"');
+      if [ -d "$mono_path" ]; then
+        echo "Mono installed successfully!" >&2
+      else
+        echo "Error: Mono installation failed!" >&2
+        exit 1
+      fi
+    fi
+
     # Setup VNC.
-    if [ -n "$PROVISION_VNC" ]; then
+    if (( "$PROVISION_VNC" )); then
       echo "Installing VNC..." >&2
       apt-get install -qq x11vnc fluxbox
     fi
 
     # Install other CLI tools.
-    apt-get install -qq less binutils coreutils moreutils cabextract zip unzip    # Common CLI utils.
+    apt-get install -qq less binutils coreutils moreutils                         # Common CLI utils.
+    apt-get install -qq cabextract zip unzip p7zip-full                           # Compression tools.
     apt-get install -qq git realpath links tree pv bc                             # Required commands.
     apt-get install -qq html2text jq                                              # Required parsers.
     apt-get install -qq imagemagick                                               # ImageMagick.
@@ -171,14 +221,14 @@ case "$(uname -s)" in
     ) &
 
     # Setup SSH if requested.
-    if [ -n "$PROVISION_SSH" ]; then
+    if (( "$PROVISION_SSH" )); then
       apt-get install -qq openssh-server
       [ ! -d /var/run/sshd ] && mkdir -v /var/run/sshd
       sed -i'.bak' 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
     fi
 
     # Setup sudo if requested.
-    if [ -n "$PROVISION_SUDO" ]; then
+    if (( "$PROVISION_SUDO" )); then
       apt-get install -qq sudo
       sed -i'.bak' "s/^%sudo.*$/%sudo ALL=(ALL:ALL) NOPASSWD:ALL/g" /etc/sudoers
     fi
