@@ -40,6 +40,18 @@ get_bt_data() {
   $CWD/get_bt_data.sh "$@"
 }
 
+# Read MT file.
+# Usage: mt_read -i INPUTFILE -t INPUTTYPE
+mt_read() {
+  $CWD/py/mt_read.py "$@"
+}
+
+# Modify MT file.
+# Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
+mt_modify() {
+  $CWD/py/mt_modify.py "$@"
+}
+
 # Change the working directory.
 # Usage: chdir [dir]
 # E.g. chdir "$EXPERTS_DIR"

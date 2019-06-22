@@ -22,11 +22,20 @@ to list available commands. Here is the list:
 # Run backtest.
 # Usage: run_backtest [args]
 --
+# Run Terminal.
+# Usage: run_terminal
+--
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 --
 # Get the backtest data.
 # Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
+--
+# Read MT file.
+# Usage: mt_read -i INPUTFILE -t INPUTTYPE
+--
+# Modify MT file.
+# Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
 --
 # Change the working directory.
 # Usage: chdir [dir]
