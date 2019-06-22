@@ -32,7 +32,7 @@ echo "Installing .NET..." >&2
 winetricks -q dotnet472
 
 echo "Installing platform..." >&2
-winetricks -q "$CWD"/install_mt5.verb
+winetricks -q "$CWD"/verb/install_mt5.verb
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL5_DIR" ]; then
