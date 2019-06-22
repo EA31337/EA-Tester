@@ -55,6 +55,13 @@ services:
     image: ea31337/ea-tester
     volumes:
     - ./scripts:/opt/scripts
+  Shell:
+    entrypoint: /bin/bash
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
+    - ./tests:/opt/tests
+    - ./conf:/opt/conf
 
 # MQL EA tests.
   TestBands:
