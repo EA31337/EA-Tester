@@ -35,7 +35,7 @@ ARG PROVISION_VNC=1
 
 # Provision container image.
 ADD scripts /opt/scripts
-ENV PATH $PATH:/opt/scripts
+ENV PATH $PATH:/opt/scripts:/opt/scripts/py
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
