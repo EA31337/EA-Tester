@@ -19,56 +19,56 @@ help() {
 # Run backtest.
 # Usage: run_backtest [args]
 run_backtest() {
-  $CWD/run_backtest.sh "$@"
+  "$CWD"/run_backtest.sh "$@"
 }
 
 # Run Terminal.
 # Usage: run_terminal
 run_terminal() {
-  $CWD/run_terminal.sh "$@"
+  "$CWD"/run_terminal.sh "$@"
 }
 
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 clone_repo() {
-  $CWD/clone_repo.sh "$@"
+  "$CWD"/clone_repo.sh "$@"
 }
 
 # Download backtest data from GitHub
 # Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
 get_bt_data() {
-  $CWD/get_bt_data.sh "$@"
+  "$CWD"/get_bt_data.sh "$@"
 }
 
 # Generate backtest data.
 # Usage: gen_bt_data [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
 gen_bt_data() {
-  $CWD/py/gen_bt_data.py "$@"
+  "$CWD"/py/gen_bt_data.py "$@"
 }
 
 # Download backtest data.
 # Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
 dl_bt_data() {
-  $CWD/py/dl_bt_data.py "$@"
+  "$CWD"/py/dl_bt_data.py "$@"
 }
 
 
 # Read MT file.
 # Usage: mt_read -i INPUTFILE -t INPUTTYPE
 mt_read() {
-  $CWD/py/mt_read.py "$@"
+  "$CWD"/py/mt_read.py "$@"
 }
 
 # Modify MT file.
 # Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
 mt_modify() {
-  $CWD/py/mt_modify.py "$@"
+  "$CWD"/py/mt_modify.py "$@"
 }
 
 # Convert CSV files to FXT/HST formats.
 # Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
 conv_csv_to_mt() {
-  $CWD/py/conv_csv_to_mt.py "$@"
+  "$CWD"/py/conv_csv_to_mt.py "$@"
 }
 
 # Change the working directory.
