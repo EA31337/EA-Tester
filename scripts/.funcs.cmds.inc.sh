@@ -34,24 +34,23 @@ clone_repo() {
   "$CWD"/clone_repo.sh "$@"
 }
 
-# Download backtest data from GitHub
-# Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
-get_bt_data() {
-  "$CWD"/get_bt_data.sh "$@"
+# Download backtest data.
+# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+bt_data_dl() {
+  "$CWD"/py/bt_data_dl.py "$@"
 }
 
 # Generate backtest data.
-# Usage: gen_bt_data [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
-gen_bt_data() {
-  "$CWD"/py/gen_bt_data.py "$@"
+# Usage: bt_data_gen [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
+bt_data_gen() {
+  "$CWD"/py/bt_data_gen.py "$@"
 }
 
-# Download backtest data.
-# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
-dl_bt_data() {
-  "$CWD"/py/dl_bt_data.py "$@"
+# Download backtest data from GitHub
+# Usage: bt_data_get [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
+bt_data_get() {
+  "$CWD"/bt_data_get.sh "$@"
 }
-
 
 # Read MT file.
 # Usage: mt_read -i INPUTFILE -t INPUTTYPE
