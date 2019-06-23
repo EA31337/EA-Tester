@@ -24,7 +24,6 @@ bt_url=$(printf "https://github.com/FX-Data/FX-Data-%s-%s/archive/%s-%s.zip" $sy
 rel_url=$(printf "https://github.com/FX-Data/FX-Data-%s-%s/releases/download/%s" $symbol $bt_src $year)
 dl_dir="$TERMINAL_DIR/history/downloads"
 dest_dir="$dl_dir/${bt_key%.*}"
-scripts="https://github.com/FX31337/FX-BT-Scripts.git"
 fxt_files=()
 hst_files=()
 
@@ -35,12 +34,11 @@ csv2data() {
   conv_args="-v -i /dev/stdin -s $symbol -p 10 -S default"
   tmpfile=$(mktemp)
   find "$dest_dir" -name '*.csv' -print0 | sort -z | $xargs -r0 cat > "$tmpfile"
-  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
-  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
+  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN1 -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
+  conv_csv_to_mt $conv_args -i "$tmpfile" -t ${period:-M1,M5,M15,M30,H1,H4,D1,W1,MN1} -f fxt4 -d "$TICKDATA_DIR"
   rm $vflag "$tmpfile"
 }
 
-test ! -d "$dl_dir/scripts" && git clone "$scripts" "$dl_dir/scripts" # Download scripts.
 mkdir -p $vflag "$dest_dir" || true
 
 # Select tick data files based on the required timeframe.
@@ -101,7 +99,7 @@ case $period in
       *) fxt_files=( ${symbol}${mins}_0.fxt ${symbol}${mins}_1.fxt ${symbol}${mins}_2.fxt )
     esac
   ;;
-  "MN")
+  "MN1")
     mins=43200
     case $mode in
       0|1|2) fxt_files=( ${symbol}${mins}_${mode}.fxt ) ;;
