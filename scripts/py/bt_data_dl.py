@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Script to download Forex historical data and convert into CSV format.
 # Sample usage:
-#   ./dl_bt_data.py -p EURUSD -y 2017,2018
+#   ./bt_data_dl.py -p EURUSD -y 2017,2018
 
 import sys
 import os

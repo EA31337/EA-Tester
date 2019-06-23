@@ -35,7 +35,7 @@ clone_repo() {
 }
 
 # Download backtest data.
-# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+# Usage: bt_data_dl [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
 bt_data_dl() {
   "$CWD"/py/bt_data_dl.py "$@"
 }
