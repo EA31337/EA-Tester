@@ -32,12 +32,11 @@ csv2data() {
   if [ $convert -eq 0 ]; then return; fi
   echo "Converting data..."
   du -hs "$dest_dir" || { echo "ERROR: Missing backtest data."; exit 1; }
-  conv=$dl_dir/scripts/convert_csv_to_mt.py
   conv_args="-v -i /dev/stdin -s $symbol -p 10 -S default"
   tmpfile=$(mktemp)
   find "$dest_dir" -name '*.csv' -print0 | sort -z | $xargs -r0 cat > "$tmpfile"
-  "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
-  "$conv" $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
+  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
+  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN -f fxt4 -d "$TICKDATA_DIR"
   rm $vflag "$tmpfile"
 }
 
