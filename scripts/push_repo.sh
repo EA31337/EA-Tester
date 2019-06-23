@@ -6,7 +6,7 @@ set -e
 [ -n "$OPT_TRACE" ] && { GIT_TRACE=1; set -x; }
 GIT_EDITOR=true
 type git >/dev/null
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 read repo branch message <<<$@
 [ -z "$repo" ] && { echo "Usage: $0 (git@repo/url) (branch) (message) (author)"; exit 1; }
 dir="$(basename "$repo")"

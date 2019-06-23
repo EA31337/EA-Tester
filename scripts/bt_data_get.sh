@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Script to download or generate the backtest data in MT4 platform format.
 set -e
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # Check dependencies.
 type git wget zip unzip xargs tee >/dev/null

@@ -5,7 +5,7 @@
 # Initialize variables.
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
 
 # Check dependencies.

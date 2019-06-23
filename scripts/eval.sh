@@ -2,7 +2,7 @@
 # Script to invoke custom functions.
 # Usage: eval.sh code to invoke
 # For help, run: eval.sh help
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$CWD" || exit 1
 
 # Initialize settings.

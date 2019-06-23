@@ -2,7 +2,7 @@
 # Script to install MT platform using xdotool.
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
-CWD="$( (cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P) || pwd -P)"
+CWD="$( (cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P) || pwd -P)"
 EXEFILE=mt4setup.exe
 
 # Check the dependencies.

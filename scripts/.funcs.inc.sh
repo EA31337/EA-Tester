@@ -6,7 +6,7 @@
 
 ## Initialize.
 [ -n "$OPT_VERBOSE" ] && echo "Loading ${BASH_SOURCE[0]}... " >&2
-CWD="${CWD:-$(cd -P -- "$(dirname -- "$0")" && pwd -P)}"
+CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 
 #
 ## Define common functions. ##
