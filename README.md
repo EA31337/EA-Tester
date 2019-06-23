@@ -37,6 +37,9 @@ to list available commands. Here is the list:
 # Modify MT file.
 # Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
 --
+# Download backtest data.
+# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+--
 # Convert CSV files to FXT/HST formats.
 # Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
 --

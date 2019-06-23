@@ -52,6 +52,12 @@ mt_modify() {
   $CWD/py/mt_modify.py "$@"
 }
 
+# Download backtest data.
+# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+dl_bt_data() {
+  $CWD/py/dl_bt_data.py "$@"
+}
+
 # Convert CSV files to FXT/HST formats.
 # Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
 conv_csv_to_mt() {
