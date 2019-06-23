@@ -16,6 +16,13 @@ services:
     image: koalaman/shellcheck
     volumes:
     - ./scripts:/opt/scripts
+  TestSyntax:
+    command: "true"
+    image: bash
+    depends_on:
+    - TestSyntaxVagrantfile
+    - TestSyntaxBash
+    - TestSyntaxShellcheck
 
 # Shell script tests.
   RunHelp:
