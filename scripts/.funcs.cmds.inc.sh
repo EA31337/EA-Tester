@@ -34,11 +34,24 @@ clone_repo() {
   $CWD/clone_repo.sh "$@"
 }
 
-# Get the backtest data.
+# Download backtest data from GitHub
 # Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
 get_bt_data() {
   $CWD/get_bt_data.sh "$@"
 }
+
+# Generate backtest data.
+# Usage: gen_bt_data [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
+gen_bt_data() {
+  $CWD/py/gen_bt_data.py "$@"
+}
+
+# Download backtest data.
+# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+dl_bt_data() {
+  $CWD/py/dl_bt_data.py "$@"
+}
+
 
 # Read MT file.
 # Usage: mt_read -i INPUTFILE -t INPUTTYPE
@@ -50,12 +63,6 @@ mt_read() {
 # Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
 mt_modify() {
   $CWD/py/mt_modify.py "$@"
-}
-
-# Download backtest data.
-# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
-dl_bt_data() {
-  $CWD/py/dl_bt_data.py "$@"
 }
 
 # Convert CSV files to FXT/HST formats.

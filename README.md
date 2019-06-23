@@ -28,17 +28,20 @@ to list available commands. Here is the list:
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 --
-# Get the backtest data.
+# Download backtest data from GitHub
 # Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
+--
+# Generate backtest data.
+# Usage: gen_bt_data [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
+--
+# Download backtest data.
+# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
 --
 # Read MT file.
 # Usage: mt_read -i INPUTFILE -t INPUTTYPE
 --
 # Modify MT file.
 # Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
---
-# Download backtest data.
-# Usage: dl_bt_data [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
 --
 # Convert CSV files to FXT/HST formats.
 # Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
