@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Script to modify various MT formats.
+
 import argparse
 import sys
 import struct

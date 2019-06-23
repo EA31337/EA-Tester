@@ -52,6 +52,12 @@ mt_modify() {
   $CWD/py/mt_modify.py "$@"
 }
 
+# Convert CSV files to FXT/HST formats.
+# Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
+conv_csv_to_mt() {
+  $CWD/py/conv_csv_to_mt.py "$@"
+}
+
 # Change the working directory.
 # Usage: chdir [dir]
 # E.g. chdir "$EXPERTS_DIR"
