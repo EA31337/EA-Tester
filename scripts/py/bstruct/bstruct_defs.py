@@ -90,7 +90,7 @@ class SymbolsRaw(BStruct):
             ('marginInit', 'd'),                            # Margin init (0 = contractSize).
             ('marginMaintenance', 'd'),                     # Margin maintenance
             ('marginHedged', 'd'),                          # Margin hedged
-            ('marginDivider', 'd'),                         # leverage calculation: 0...5 - relative to account leverage, > 10  - absolute custom leverage.
+            ('marginDivider', 'd'),                         # Leverage calculation: 0...5 - relative to account leverage, > 10  - absolute custom leverage.
             ('pointSize', 'd'),                             # Point size in the quote currency.
             ('pointsPerUnit', 'd'),                         # Points per unit.
             ('unknown_12', '24s', pretty_print_compact),    # ???: Reserved.
@@ -103,11 +103,23 @@ class SymbolsRaw(BStruct):
     _size = get_fields_size(_fields)
     assert(_size == 1936)
 
+# FXT Header format
+# @see: https://www.metatrader4.com/en/trading-platform/help/autotrading/tester/tester_fxt
+#
+# Documentation on the format can be found in terminal Help (Client terminal - Auto Trading - Strategy Testing - History Files FXT).
+# However the obtained data shows that the data does not match the declared format.
+# In the eye catches the fact that the work is carried out over time in both formats: the new and the old MQL4.
+# So, members of fromdate and todate structure TestHistoryHeader , and ctm structure TestHistory use the old (4 hbaytny) date / time format, but a member of otm structure TestHistory written in the new (8-byte) date / time format.
+# It is unclear whether the correct type of selected members unknown.
+# The FXT as teak prices recorded only Bid, but its spread is written in the Volume field.
+# By breaking MT4 is obtained to ensure that the MT4-tester figured on each tick Ask, how the Bid + the Volume (that's the trick).
+# Source: https://forum.mql4.com/ru/64199/page3
+#
 class FxtHeader(BStruct):
     _endianness = '<'
     _fields = [
         # Header layout.
-        ('headerVersion', 'I'),                       # Version      uint32      0   4 Header version.
+        ('headerVersion', 'I'),                       # Version      uint32      0   4 Header version (default: 405).
         ('copyright', '64s', pretty_print_string),    # Description  [64]byte    4  64 Copyright/description (szchar).
         ('server', '128s', pretty_print_string),      # ServerName   [128]byte  68 128 Account server name (szchar).
         ('symbol', '12s', pretty_print_string),       # Symbol       [12]byte  196  12 Symbol (szchar).
@@ -182,6 +194,10 @@ class FxtHeader(BStruct):
     _size = get_fields_size(_fields)
     assert(_size == 728)
 
+# FXT Tick data.
+# The array of modeled bars.
+# @see: https://www.metatrader4.com/en/trading-platform/help/autotrading/tester/tester_fxt
+#
 class FxtTick(BStruct):
     _endianness = '<'
     _fields = [
@@ -191,11 +207,10 @@ class FxtTick(BStruct):
         ('low', 'd'),                              # Low           float64 24  8
         ('close', 'd'),                            # Close         float64 32  8
         ('volume', 'II'),                          # Volume        uint64  40  8 Volume (documentation says it's a double, though it's stored as a long int).
-        ('tickTimestamp', 'i', pretty_print_time), # TickTimestamp uint32  48  4 tick data timestamp in seconds.
+        ('tickTimestamp', 'i', pretty_print_time), # TickTimestamp uint32  48  4 Tick data timestamp in seconds (the current time within a bar).
         ('launchExpert', 'i', pretty_print_time),  # LaunchExpert  uint32  52  4 Flag to launch an expert (0 - bar will be modified, but the expert will not be launched).
         ]
     _size = get_fields_size(_fields)
-    print(_size)
     assert(_size == 56)
 
 class HccHeader(BStruct):
@@ -246,21 +261,39 @@ class HccRecord(BStruct):
     _size = get_fields_size(_fields)
     assert(_size == 40)
 
+# Header structure for HST version 401.
 class HstHeader(BStruct):
     _endianness = '<'
     _fields = [
-            # Build header
-            ('headerVersion', 'I'),                     # Version   uint32     //   0    4   HST version (default 401)
-            ('copyright', '64s', pretty_print_string),  # Copyright [64]byte   //   4   64   Copyright info
-            ('symbol', '12s', pretty_print_string),     # Symbol    [12]byte   //  68   12   Forex symbol
-            ('timeframe', 'i'),                         # Period    uint32     //  80    4   Symbol timeframe
-            ('digits', 'I'),                            # Digits    uint32     //  84    4   The amount of digits after decimal point in the symbol
-            ('timeSign', 'I', pretty_print_time),       # TimeSign  uint32     //  88    4   Time of sign (database creation)
-            ('lastSync', 'I', pretty_print_time),       # LastSync  uint32     //  92    4   Time of last synchronization
-            ('unused', '13s', pretty_print_bstring),    # _         [13]uint32 //  96   52   unused
-            ]
+        # Build header
+        ('headerVersion', 'I'),                     # Version   uint32     //   0    4 HST version (default 401).
+        ('copyright', '64s', pretty_print_string),  # Copyright [64]byte   //   4   64 Copyright info.
+        ('symbol', '12s', pretty_print_string),     # Symbol    [12]byte   //  68   12 Forex symbol.
+        ('timeframe', 'i'),                         # Period    uint32     //  80    4 Symbol timeframe.
+        ('digits', 'I'),                            # Digits    uint32     //  84    4 The amount of digits after decimal point in the symbol.
+        ('timeSign', 'I', pretty_print_time),       # TimeSign  uint32     //  88    4 Time of sign (database creation).
+        ('lastSync', 'I', pretty_print_time),       # LastSync  uint32     //  92    4 Time of last synchronization.
+        ('unused', '13s', pretty_print_bstring),    # _         [13]uint32 //  96   52 Unused.
+        ]
     _size = get_fields_size(_fields)
     assert(_size == 109)
+
+# HST bar data.
+# @see: https://www.metatrader4.com/en/trading-platform/help/autotrading/tester/tester_fxt
+class HstBar(BStruct):
+    _endianness = '<'
+    _fields = [
+        ('barTimestamp', 'II', pretty_print_time), # CTM           uint64  0   8 Current time in seconds aligned with timeframe (MQL4 datetime).
+        ('open', 'd'),                             # Open          float64 8   8
+        ('high', 'd'),                             # High          float64 16  8
+        ('low', 'd'),                              # Low           float64 24  8
+        ('close', 'd'),                            # Close         float64 32  8
+        ('volume', 'II'),                          # Volume        uint64  40  8 Volume (documentation says it's a double, though it's stored as a long int).
+        ('spread', 'I'),                           # Spread        uint32  48  8 Spread in points, 0 for current online spread (variable).
+        ('realVolume', 'II'),                      # Real volume   uint64  52  8
+        ]
+    _size = get_fields_size(_fields)
+    assert(_size == 60)
 
 class SrvHeader(BStruct):
     _endianness = '<'
