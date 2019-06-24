@@ -128,61 +128,77 @@ class SymbolsRawBundle():
 if __name__ == '__main__':
     # Parse the arguments.
     argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-i', '--input-file', action='store'     , dest='inputFile', help='input file'            , required=True)
-    argumentParser.add_argument('-t', '--input-type', action='store'     , dest='inputType', help='input type'            , required=True)
-    argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='group key'             , required=True)
+    argumentParser.add_argument('-i', '--input-file', action='store'     , dest='inputFile', help='Input file'            , required=True)
+    argumentParser.add_argument('-t', '--input-type', action='store',
+        dest='inputType', help='Input type (fxt-header, hcc-header, sel, srv, symbols-raw, symgroups, ticks-raw)'         , required=True)
+    argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
     argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')
     argumentParser.add_argument('-a', '--add'       , action='store'     , dest='doAdd'    , help='Add a new record'      , default=None)
     argumentParser.add_argument('-m', '--modify'    , action='append'    , dest='doModify' , help='Modify the record data')
     argumentParser.add_argument('-h', '--help'      , action='help'      , help='Show this help message and exit')
     args = argumentParser.parse_args()
 
-    if args.inputType != 'symbolsraw':
-        print('Invalid input type')
-        sys.exit(1)
+    if   args.inputType == 'fxt-header':  modify_content(args.inputFile, 0, FxtHeader)
+#   elif args.inputType == 'hcc-header':  modify_content(args.inputFile)
+#   elif args.inputType == 'hst-header':  modify_content(args.inputFile, 0, HstHeader)
+#   elif args.inputType == 'sel':         modify_content(args.inputFile, 4, SymbolSel)
+#   elif args.inputType == 'srv':         modify_content(args.inputFile)
+    elif args.inputType == 'symbols-raw':
 
-    # A bundle keeps track of various options that are filetype-specific.
-    bundle = SymbolsRawBundle
-
-    cont = parse_file(args.inputFile, SymbolsRaw)
-
-    # Find the key group first.
-    try:
-        key_group = find_in_content(cont, bundle.name_field, args.keyGroup)
-    except InvalidArgument as e:
-        print('Could not find the -k group \'{}\''.format(args.keyGroup))
-        sys.exit(1)
-
-    if not args.doAdd is None:
-        # We can't have two symbols with the same name.
-        try:
-            is_present = find_in_content(cont, bundle.name_field, args.doAdd)
-        except InvalidArgument as e:
-            pass
-        else:
-            print('The symbol {} is already in the file, cannot overwrite it'.format(e))
+        if args.keyGroup is None:
+            print('You need to specify the group by -k param!')
             sys.exit(1)
 
-        # Clone the old object and modify its name.
-        new_group = copy(key_group)
-        modify_field(new_group, bundle.name_field, args.doAdd)
-        cont.append(new_group)
-    elif not args.doModify is None:
-        for opt in args.doModify:
-            # Options are in the 'name=value' format.
-            val = opt.split('=')
+        # A bundle keeps track of various options that are filetype-specific.
+        bundle = SymbolsRawBundle
 
-            val_name  = val[0].strip()
-            val_value = val[1].strip()
+        cont = parse_file(args.inputFile, SymbolsRaw)
 
-            # Perform the modification in place.
-            modify_field(key_group, val_name, val_value)
-    elif not args.doDelete is None:
-        cont.remove(key_group)
+        # Find the key group first.
+        try:
+            key_group = find_in_content(cont, bundle.name_field, args.keyGroup)
+        except InvalidArgument as e:
+            print('Could not find the -k group \'{}\''.format(args.keyGroup))
+            sys.exit(1)
 
-    # Sort the file content if needed.
-    if bundle.need_sort:
-        cont.sort(key = lambda x: getattr(x, bundle.sort_field))
+        if not args.doAdd is None:
 
-    # Serialize the file.
-    write_file(args.inputFile, cont)
+            # We can't have two symbols with the same name.
+            try:
+                is_present = find_in_content(cont, bundle.name_field, args.doAdd)
+            except InvalidArgument as e:
+                pass
+            else:
+                print('The symbol {} is already in the file, cannot overwrite it'.format(e))
+                sys.exit(1)
+
+            # Clone the old object and modify its name.
+            new_group = copy(key_group)
+            modify_field(new_group, bundle.name_field, args.doAdd)
+            cont.append(new_group)
+
+        elif not args.doModify is None:
+            for opt in args.doModify:
+                # Options are in the 'name=value' format.
+                val = opt.split('=')
+
+                val_name  = val[0].strip()
+                val_value = val[1].strip()
+
+                # Perform the modification in place.
+                modify_field(key_group, val_name, val_value)
+
+        elif not args.doDelete is None:
+            cont.remove(key_group)
+
+        # Sort the file content if needed.
+        if bundle.need_sort:
+            cont.sort(key = lambda x: getattr(x, bundle.sort_field))
+
+        # Serialize the file.
+        write_file(args.inputFile, cont)
+
+#   elif args.inputType == 'symgroups':   modify_content(args.inputFile, 0, Symgroups)
+#   elif args.inputType == 'ticks-raw':   modify_content(args.inputFile, 0, TicksRaw)
+    else:
+        print('Not supported type: {}!'.format(args.inputType))
