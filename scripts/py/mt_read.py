@@ -78,7 +78,7 @@ def dump_srv_content(filename):
         obj = SrvRecord(buf)
         print(obj)
 
-def dump_content(filename, offset, strucc):
+def dump_content(filename, offset, count, strucc):
     """
     Dump the content of the file "filename" starting from offset and using the
     BStruct subclass pointed by strucc
@@ -91,13 +91,15 @@ def dump_content(filename, offset, strucc):
 
     fp.seek(offset)
 
-    while True:
+    i = 0
+    while i < count or count == 0:
         buf = fp.read(strucc._size)
 
         if len(buf) != strucc._size:
             break
 
         obj = strucc(buf)
+        i += 1
         print(obj)
 
 if __name__ == '__main__':
@@ -105,16 +107,17 @@ if __name__ == '__main__':
     argumentParser = argparse.ArgumentParser(add_help=False)
     argumentParser.add_argument('-i', '--input-file', action='store', dest='inputFile', help='Input file', required=True)
     argumentParser.add_argument('-t', '--input-type', action='store', dest='inputType',
-        help='Input type (fxt-header, hcc-header, sel, srv, symbolsraw, symgroups, ticksraw)', required=True)
+        help='Input type (fxt-header, hcc-header, sel, srv, symbols-raw, symgroups, ticks-raw)', required=True)
     argumentParser.add_argument('-h', '--help', action='help', help='Show this help message and exit')
     args = argumentParser.parse_args()
 
-    if   args.inputType == 'fxt-header': dump_content(args.inputFile, 0, FxtHeader)
-    elif args.inputType == 'hcc-header': dump_hcc_content(args.inputFile)
-    elif args.inputType == 'sel':        dump_content(args.inputFile, 4, SymbolSel) # There's a 4-byte magic preceding the data
-    elif args.inputType == 'srv':        dump_srv_content(args.inputFile)
-    elif args.inputType == 'symbolsraw': dump_content(args.inputFile, 0, SymbolsRaw)
-    elif args.inputType == 'symgroups':  dump_content(args.inputFile, 0, Symgroups)
-    elif args.inputType == 'ticksraw':   dump_content(args.inputFile, 0, TicksRaw)
+    if   args.inputType == 'fxt-header':  dump_content(args.inputFile, 0, 1, FxtHeader)
+    elif args.inputType == 'hcc-header':  dump_hcc_content(args.inputFile)
+    elif args.inputType == 'hst-header':  dump_content(args.inputFile, 0, 1, HstHeader)
+    elif args.inputType == 'sel':         dump_content(args.inputFile, 4, 0, SymbolSel) # There's a 4-byte magic preceding the data
+    elif args.inputType == 'srv':         dump_srv_content(args.inputFile)
+    elif args.inputType == 'symbols-raw': dump_content(args.inputFile, 0, 0, SymbolsRaw)
+    elif args.inputType == 'symgroups':   dump_content(args.inputFile, 0, 0, Symgroups)
+    elif args.inputType == 'ticks-raw':   dump_content(args.inputFile, 0, 0, TicksRaw)
     else:
-        print('Invalid type {}!'.format(args.inputType))
+        print('Not supported type: {}!'.format(args.inputType))

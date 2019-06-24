@@ -228,6 +228,22 @@ class HccRecord(BStruct):
     _size = get_fields_size(_fields)
     assert(_size == 40)
 
+class HstHeader(BStruct):
+    _endianness = '<'
+    _fields = [
+            # Build header
+            ('headerVersion', 'I'),
+            ('copyright', '64s', pretty_print_string),
+            ('symbol', '12s', pretty_print_string),
+            ('timeframe', 'i'),
+            ('digits', 'I'),
+            ('timeSign', 'I', pretty_print_time),
+            ('lastSync', 'I', pretty_print_time),
+            ('unused', '13s', pretty_print_bstring),
+            ]
+    _size = get_fields_size(_fields)
+    assert(_size == 109)
+
 class SrvHeader(BStruct):
     _endianness = '<'
     _fields = [
