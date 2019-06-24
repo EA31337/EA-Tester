@@ -25,7 +25,7 @@ env:
   - CMD="sudo scripts/provision.sh"
   - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
 # - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG && docker run ea-tester:$DOCKER_TAG install_mt 5" # @fixme
-  - CMD="docker-compose run $DOCKER_ARG TestSyntaxVagrantfile; docker-compose run $DOCKER_ARG TestSyntaxBash; docker-compose run $DOCKER_ARG TestSyntaxShellcheck"
+  - CMD="for task in TestSyntaxVagrantfile TestSyntaxBash TestSyntaxShellcheck; do docker-compose run $DOCKER_ARG \$task; done"
   - CMD="docker-compose run $DOCKER_ARG RunCompileMql"
   - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
   - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"

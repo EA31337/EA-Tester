@@ -16,13 +16,20 @@ services:
     image: koalaman/shellcheck
     volumes:
     - ./scripts:/opt/scripts
+  TestSyntaxPython:
+    entrypoint: /bin/bash
+    command: -c 'find /opt/scripts/py -name "*.py" -exec python3 -B -m py_compile {} +'
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts:rw
   TestSyntax:
     command: "true"
     image: bash
     depends_on:
-    - TestSyntaxVagrantfile
     - TestSyntaxBash
+    - TestSyntaxPython
     - TestSyntaxShellcheck
+    - TestSyntaxVagrantfile
 
 # Shell script tests.
   RunHelp:
