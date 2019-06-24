@@ -24,7 +24,7 @@ def dump_hcc_content(filename):
         buf = fp.read(HccTable._size)
         obj = HccTable(buf)
 
-        # Quite crude, but seems to work
+        # Quite crude, but seems to work.
         if obj.off == obj.size == 0:
             break
 
@@ -48,7 +48,7 @@ def dump_hcc_content(filename):
 
             print(obj)
 
-            # Skip the eventual trailing bytes
+            # Skip the eventual trailing bytes.
             extra1 = (obj.separator >> 28) & 15
             extra2 = (obj.separator >> 24) & 15
             extra3 = (obj.separator >> 20) & 15
@@ -103,7 +103,7 @@ def dump_content(filename, offset, count, strucc):
         print(obj)
 
 if __name__ == '__main__':
-    # Parse the arguments
+    # Parse the arguments.
     argumentParser = argparse.ArgumentParser(add_help=False)
     argumentParser.add_argument('-i', '--input-file', action='store', dest='inputFile', help='Input file', required=True)
     argumentParser.add_argument('-t', '--input-type', action='store', dest='inputType',
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     if   args.inputType == 'fxt-header':  dump_content(args.inputFile, 0, 1, FxtHeader)
     elif args.inputType == 'hcc-header':  dump_hcc_content(args.inputFile)
     elif args.inputType == 'hst-header':  dump_content(args.inputFile, 0, 1, HstHeader)
-    elif args.inputType == 'sel':         dump_content(args.inputFile, 4, 0, SymbolSel) # There's a 4-byte magic preceding the data
+    elif args.inputType == 'sel':         dump_content(args.inputFile, 4, 0, SymbolSel) # There's a 4-byte magic preceding the data.
     elif args.inputType == 'srv':         dump_srv_content(args.inputFile)
     elif args.inputType == 'symbols-raw': dump_content(args.inputFile, 0, 0, SymbolsRaw)
     elif args.inputType == 'symgroups':   dump_content(args.inputFile, 0, 0, Symgroups)

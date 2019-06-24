@@ -106,79 +106,97 @@ class SymbolsRaw(BStruct):
 class FxtHeader(BStruct):
     _endianness = '<'
     _fields = [
-            # Build header
-            ('headerVersion', 'I'),
-            ('copyright', '64s', pretty_print_string),
-            ('server', '128s', pretty_print_string),
-            ('symbol', '12s', pretty_print_string),
-            ('timeframe', 'i'),
-            ('modelType', 'i'),
-            ('totalBars', 'I'),
-            ('modelStart', 'I', pretty_print_time),
-            ('modelEnd', 'I', pretty_print_time),
-            ('padding1', '4s', pretty_print_ignore),
+        # Header layout.
+        ('headerVersion', 'I'),                       # Version      uint32      0   4 Header version.
+        ('copyright', '64s', pretty_print_string),    # Description  [64]byte    4  64 Copyright/description (szchar).
+        ('server', '128s', pretty_print_string),      # ServerName   [128]byte  68 128 Account server name (szchar).
+        ('symbol', '12s', pretty_print_string),       # Symbol       [12]byte  196  12 Symbol (szchar).
+        ('timeframe', 'i'),                           # Period       uint32    208   4 Timeframe in minutes.
+        ('modelType', 'i'),                           # ModelType    uint32    212   4 0=EveryTick|1=ControlPoints|2=BarOpen
+        ('totalBars', 'I'),                           # ModeledBars  uint32    216   4 Number of modeled bars      (w/o prolog)
+        ('firstBarTime', 'I', pretty_print_time),     # FirstBarTime uint32    220   4 Bar open time of first tick (w/o prolog)
+        ('lastBarTime', 'I', pretty_print_time),      # LastBarTime  uint32    224   4 Bar open time of last tick  (w/o prolog)
+        ('padding1', '4s', pretty_print_ignore),      # _            [4]byte   228   4 (alignment to the next double)
 
-            # General parameters
-            ('modelQuality', 'd'),
-            ('baseCurrency', '12s', pretty_print_string),
-            ('spread', 'I'),
-            ('digits', 'I'),
-            ('padding2', '4s', pretty_print_ignore),
-            ('pointSize', 'd'),
-            ('minLotSize', 'i'),
-            ('maxLotSize', 'i'),
-            ('lotStep', 'i'),
-            ('stopLevel', 'i'),
-            ('GTC', 'i'),
-            ('padding3', '4s', pretty_print_ignore),
+        # Common parameters.
+        ('modelQuality', 'd'),                        # ModelQuality float64   232   8 Max. 99.9
+        ('baseCurrency', '12s', pretty_print_string), # BaseCurrency [12]byte  240  12 Base currency (szchar) = StringLeft(symbol, 3)
+        ('spread', 'I'),                              # Spread       uint32    252   4 Spread in points: 0=zero spread = MarketInfo(MODE_SPREAD)
+        ('digits', 'I'),                              # Digits       uint32    256   4 Symbol digits = MarketInfo(MODE_DIGITS)
+        ('padding2', '4s', pretty_print_ignore),      # _            [4]byte   260   4 (alignment to the next double)
+        ('pointSize', 'd'),                           # PointSize    float64   264   8 Resolution, ie. 0.0000'1 = MarketInfo(MODE_POINT)
+        ('minLotSize', 'i'),                          # MinLotsize   uint32    272   4 Min lot size in centi lots (hundredths) = MarketInfo(MODE_MINLOT)  * 100
+        ('maxLotSize', 'i'),                          # MaxLotsize   uint32    276   4 Max lot size in centi lots (hundredths) = MarketInfo(MODE_MAXLOT)  * 100
+        ('lotStep', 'i'),                             # LotStepsize  uint32    280   4 Lot stepsize in centi lots (hundredths) = MarketInfo(MODE_LOTSTEP) * 100
+        ('stopLevel', 'i'),                           # StopsLevel   uint32    284   4 Orders stop distance in points          = MarketInfo(MODE_STOPLEVEL)
+        ('pendingGTC', 'i'),                          # PendingsGTC  uint32    288   4 Close pending orders at end of day or GTC
+        ('padding3', '4s', pretty_print_ignore),      # _            [4]byte   292   4 (alignment to the next double)
 
-            # Profit Calculation parameters
-            ('contractSize', 'd'),
-            ('tickValue', 'd'),
-            ('tickSize', 'd'),
-            ('profitMode', 'i'),
-            ('swapEnabled', 'i'),
-            ('swapMethod', 'i'),
-            ('padding4', '4s', pretty_print_ignore),
-            ('swapLong', 'd'),
-            ('swapShort', 'd'),
-            ('swapRollover', 'i'),
+        # Profit Calculation parameters.
+        ('contractSize', 'd'),                        # ContractSize          float64   296   8 ie. 100000 = MarketInfo(MODE_LOTSIZE)
+        ('tickValue', 'd'),                           # TickValue             float64   304   8 tick value in quote currency (empty) = MarketInfo(MODE_TICKVALUE)
+        ('tickSize', 'd'),                            # TickSize              float64   312   8 tick size (empty) = MarketInfo(MODE_TICKSIZE)
+        ('profitCalcMode', 'i'),                      # ProfitCalculationMode uint32    320   4 0=Forex|1=CFD|2=Futures = MarketInfo(MODE_PROFITCALCMODE)
 
-            # Margin calculation
-            ('accountLeverage', 'i'), # Default: 100
-            ('freeMarginMode', 'i'),
-            ('marginCalcMode', 'i'),
-            ('marginStopoutLevel', 'i'),
-            ('marginStopoutMode', 'i'),
-            ('marginRequirements', 'd'),
-            ('marginMaintenanceReq', 'd'),
-            ('marginHedgedPosReq', 'd'),
-            ('marginLeverageDivider', 'd'),
-            ('marginCurrency', '12s', pretty_print_string),
-            ('padding5', '4s', pretty_print_ignore),
+        # Swap calculation parameters.
+        ('swapEnabled', 'i'),                         # SwapEnabled         uint32  324   4 if swaps are to be applied
+        ('swapCalcMode', 'i'),                        # SwapCalculationMode int32   328   4 0=Points|1=BaseCurrency|2=Interest|3=MarginCurrency = MarketInfo(MODE_SWAPTYPE)
+        ('padding4', '4s', pretty_print_ignore),      # _                   [4]byte 332   4 (alignment to the next double)
+        ('swapLong', 'd'),                            # SwapLongValue       float64 336   8 long overnight swap value   = MarketInfo(MODE_SWAPLONG)
+        ('swapShort', 'd'),                           # SwapShortValue      float64 344   8 short overnight swap values = MarketInfo(MODE_SWAPSHORT)
+        ('swapRollover', 'i'),                        # TripleRolloverDay   uint32  352   4 weekday of triple swaps     = WEDNESDAY (3)
 
-            # Commission calculation
-            ('commission', 'd'),
-            ('commissionType', 'i'),
-            ('commissionPerEntry', 'i'),
+        # Margin calculation parameters.
+        ('accountLeverage', 'i'),                       # AccountLeverage           uint32   356    4 Account leverage = AccountLeverage(); (default: 100)
+        ('freeMarginMode', 'i'),                        # FreeMarginCalculationType uint32   360    4 Free margin calculation type = AccountFreeMarginMode()
+        ('marginCalcMode', 'i'),                        # MarginCalculationMode     uint32   364    4 Margin calculation mode = MarketInfo(MODE_MARGINCALCMODE)
+        ('marginStopoutLevel', 'i'),                    # MarginStopoutLevel        uint32   368    4 Margin stopout level                       = AccountStopoutLevel()
+        ('marginStopoutMode', 'i'),                     # MarginStopoutType         uint32   372    4 Margin stopout type                        = AccountStopoutMode()
+        ('marginRequirements', 'd'),                    # MarginInit                float64  376    8 Initial margin requirement (in units)      = MarketInfo(MODE_MARGININIT)
+        ('marginMaintenanceReq', 'd'),                  # MarginMaintenance         float64  384    8 Maintainance margin requirement (in units) = MarketInfo(MODE_MARGINMAINTENANCE)
+        ('marginHedgedPosReq', 'd'),                    # MarginHedged              float64  392    8 Hedged margin requirement (in units)       = MarketInfo(MODE_MARGINHEDGED)
+        ('marginLeverageDivider', 'd'),                 # MarginDivider             float64  400    8 Leverage calculation                         @see example in struct SYMBOL
+        ('marginCurrency', '12s', pretty_print_string), # MarginCurrency            [12]byte 408   12                                            = AccountCurrency()
+        ('padding5', '4s', pretty_print_ignore),        # _                         [4]byte  420    4 (alignment to the next double)
 
-            # For internal use
-            ('indexOfFirstBar', 'i'),
-            ('indexOfLastBar', 'i'),
-            ('indexOfM1Bar', 'i'),
-            ('indexOfM5Bar', 'i'),
-            ('indexOfM15Bar', 'i'),
-            ('indexOfM30Bar', 'i'),
-            ('indexOfH1Bar', 'i'),
-            ('indexOfH4Bar', 'i'),
-            ('beginDate', 'I', pretty_print_time),
-            ('endDate', 'I', pretty_print_time),
-            ('freezeLevel', 'i'),
-            ('numberOfErrors', 'I'),
-            ('reserved', '240s', pretty_print_ignore),
-            ]
+        # Commission calculation parameters.
+        ('commissionValue', 'd'),                     # CommissionValue           float64 424   8 commission rate
+        ('commissionCalcMode', 'i'),                  # CommissionCalculationMode int32   432   4 0=Money|1=Pips|2=Percent @see COMMISSION_MODE_*
+        ('commissionType', 'i'),                      # CommissionType            int32   436   4 0=RoundTurn|1=PerDeal    @see COMMISSION_TYPE_*
+
+        # Later additions.
+        ('indexOfFirstBar', 'i'),                     # FirstBar          uint32    440   4  Bar number/index??? of first bar (w/o prolog) or 0 for first bar.
+        ('indexOfLastBar', 'i'),                      # LastBar           uint32    444   4  Bar number/index??? of last bar (w/o prolog) or 0 for last bar.
+        ('indexOfM1Bar', 'i'),                        # StartPeriodM1     uint32    448   4  Bar index where modeling started using M1 bars.
+        ('indexOfM5Bar', 'i'),                        # StartPeriodM5     uint32    452   4  Bar index where modeling started using M5 bars.
+        ('indexOfM15Bar', 'i'),                       # StartPeriodM15    uint32    456   4  Bar index where modeling started using M15 bars.
+        ('indexOfM30Bar', 'i'),                       # StartPeriodM30    uint32    460   4  Bar index where modeling started using M30 bars.
+        ('indexOfH1Bar', 'i'),                        # StartPeriodH1     uint32    464   4  Bar index where modeling started using H1 bars.
+        ('indexOfH4Bar', 'i'),                        # StartPeriodH4     uint32    468   4  Bar index where modeling started using H4 bars.
+        ('testBeginDate', 'I', pretty_print_time),    # TesterSettingFrom uint32    472   4  Begin date from tester settings.
+        ('testEndDate', 'I', pretty_print_time),      # TesterSettingTo   uint32    476   4  End date from tester settings.
+        ('freezeLevel', 'i'),                         # FreezeDistance    uint32    480   4  Order freeze level in points = MarketInfo(MODE_FREEZELEVEL).
+        ('numberOfErrors', 'I'),                      # ModelErrors       uint32    484   4  Number of errors during model generation (fix errors showing up here before testing).
+        ('reserved', '240s', pretty_print_ignore),    # _                 [240]byte 488 240  Unused.
+        ]
     _size = get_fields_size(_fields)
     assert(_size == 728)
+
+class FxtTick(BStruct):
+    _endianness = '<'
+    _fields = [
+        ('barTimestamp', 'II', pretty_print_time), # BarTimestamp  uint64  0   8 Bar datetime, align with timeframe, unit seconds.
+        ('open', 'd'),                             # Open          float64 8   8
+        ('high', 'd'),                             # High          float64 16  8
+        ('low', 'd'),                              # Low           float64 24  8
+        ('close', 'd'),                            # Close         float64 32  8
+        ('volume', 'II'),                          # Volume        uint64  40  8 Volume (documentation says it's a double, though it's stored as a long int).
+        ('tickTimestamp', 'i', pretty_print_time), # TickTimestamp uint32  48  4 tick data timestamp in seconds.
+        ('launchExpert', 'i', pretty_print_time),  # LaunchExpert  uint32  52  4 Flag to launch an expert (0 - bar will be modified, but the expert will not be launched).
+        ]
+    _size = get_fields_size(_fields)
+    print(_size)
+    assert(_size == 56)
 
 class HccHeader(BStruct):
     _endianness = '<'
@@ -232,14 +250,14 @@ class HstHeader(BStruct):
     _endianness = '<'
     _fields = [
             # Build header
-            ('headerVersion', 'I'),
-            ('copyright', '64s', pretty_print_string),
-            ('symbol', '12s', pretty_print_string),
-            ('timeframe', 'i'),
-            ('digits', 'I'),
-            ('timeSign', 'I', pretty_print_time),
-            ('lastSync', 'I', pretty_print_time),
-            ('unused', '13s', pretty_print_bstring),
+            ('headerVersion', 'I'),                     # Version   uint32     //   0    4   HST version (default 401)
+            ('copyright', '64s', pretty_print_string),  # Copyright [64]byte   //   4   64   Copyright info
+            ('symbol', '12s', pretty_print_string),     # Symbol    [12]byte   //  68   12   Forex symbol
+            ('timeframe', 'i'),                         # Period    uint32     //  80    4   Symbol timeframe
+            ('digits', 'I'),                            # Digits    uint32     //  84    4   The amount of digits after decimal point in the symbol
+            ('timeSign', 'I', pretty_print_time),       # TimeSign  uint32     //  88    4   Time of sign (database creation)
+            ('lastSync', 'I', pretty_print_time),       # LastSync  uint32     //  92    4   Time of last synchronization
+            ('unused', '13s', pretty_print_bstring),    # _         [13]uint32 //  96   52   unused
             ]
     _size = get_fields_size(_fields)
     assert(_size == 109)
