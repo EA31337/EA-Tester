@@ -103,25 +103,18 @@ def dump_content(filename, offset, strucc):
 if __name__ == '__main__':
     # Parse the arguments
     argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-i', '--input-file', action='store', dest='inputFile', help='input file', required=True)
-    argumentParser.add_argument('-t', '--input-type', action='store', dest='inputType', help='input type', required=True)
+    argumentParser.add_argument('-i', '--input-file', action='store', dest='inputFile', help='Input file', required=True)
+    argumentParser.add_argument('-t', '--input-type', action='store', dest='inputType',
+        help='Input type (fxt-header, hcc-header, sel, srv, symbolsraw, symgroups, ticksraw)', required=True)
     argumentParser.add_argument('-h', '--help', action='help', help='Show this help message and exit')
     args = argumentParser.parse_args()
 
-    if args.inputType == 'sel':
-        # There's a 4-byte magic preceding the data
-        dump_content(args.inputFile, 4, SymbolSel)
-    elif args.inputType == 'ticksraw':
-        dump_content(args.inputFile, 0, TicksRaw)
-    elif args.inputType == 'symbolsraw':
-        dump_content(args.inputFile, 0, SymbolsRaw)
-    elif args.inputType == 'symgroups':
-        dump_content(args.inputFile, 0, Symgroups)
-    elif args.inputType == 'fxt-header':
-        dump_content(args.inputFile, 0, FxtHeader)
-    elif args.inputType == 'srv':
-        dump_srv_content(args.inputFile)
-    elif args.inputType == 'hcc-header':
-        dump_hcc_content(args.inputFile)
+    if   args.inputType == 'fxt-header': dump_content(args.inputFile, 0, FxtHeader)
+    elif args.inputType == 'hcc-header': dump_hcc_content(args.inputFile)
+    elif args.inputType == 'sel':        dump_content(args.inputFile, 4, SymbolSel) # There's a 4-byte magic preceding the data
+    elif args.inputType == 'srv':        dump_srv_content(args.inputFile)
+    elif args.inputType == 'symbolsraw': dump_content(args.inputFile, 0, SymbolsRaw)
+    elif args.inputType == 'symgroups':  dump_content(args.inputFile, 0, Symgroups)
+    elif args.inputType == 'ticksraw':   dump_content(args.inputFile, 0, TicksRaw)
     else:
         print('Invalid type {}!'.format(args.inputType))
