@@ -53,7 +53,14 @@ services:
     - ./tests:/opt/tests:rw
     environment:
       OPT_TRACE: $OPT_TRACE
-  BtDataGet:
+  BtDataGet_EURUSD_2018:
+    command: bt_data_get EURUSD 2018 DS
+    image: ea31337/ea-tester
+    volumes:
+    - ./scripts:/opt/scripts
+    environment:
+      OPT_TRACE: $OPT_TRACE
+  BtDataGet_N0:
     command: bt_data_get XXXYYY 2010 N0 M1
     image: ea31337/ea-tester
     volumes:
