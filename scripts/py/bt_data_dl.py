@@ -8,8 +8,9 @@ import os
 import argparse
 import datetime
 import time
-import urllib.request, socket
-from urllib.error import HTTPError,ContentTooShortError
+import urllib.request
+import socket
+from urllib.error import HTTPError, ContentTooShortError
 try:
     import lzma
 except ImportError:
@@ -276,7 +277,7 @@ class Dukascopy:
     def download(self):
         print("Downloading %s into: %s..." % (self.url, self.path))
         if os.path.isfile(self.path):
-            print("File (%s) exists, so skipping." % (self.path));
+            print("File (%s) exists, so skipping." % self.path)
             return True
         else:
             if not os.path.exists(os.path.dirname(self.path)):
@@ -287,16 +288,16 @@ class Dukascopy:
                     urllib.request.urlretrieve(self.url, filename=self.path)
                     break
                 except HTTPError as err:
-                    print("Error: %s, reason: %s. Retrying (%i).." % (err.code, err.reason, i));
+                    print("Error: %s, reason: %s. Retrying (%i).." % (err.code, err.reason, i))
                     i += 1
                 except IOError as err:
-                    print("Error: %s, reason: %s. Retrying (%i).." % (err.errno, err.strerror, i));
+                    print("Error: %s, reason: %s. Retrying (%i).." % (err.errno, err.strerror, i))
                     i += 1
                 except socket.timeout as err:
-                    print("Network error: %s. Retrying (%i).." % (err.strerror, i));
+                    print("Network error: %s. Retrying (%i).." % (err.strerror, i))
                     i += 1
                 except socket.error as err:
-                    print("Network error: %s. Retrying (%i).." % (err.strerror, i));
+                    print("Network error: %s. Retrying (%i).." % (err.strerror, i))
                     i += 1
                 except ContentTooShortError as err:
                     print("Error: The downloaded data is less than the expected amount, so skipping.")
@@ -311,18 +312,18 @@ class Dukascopy:
         try:
             fileSize = os.stat(self.path).st_size
             if fileSize == 0:
-                print("File (%s) is empty" % (self.path))
+                print("File (%s) is empty" % self.path)
                 return
         except FileNotFoundError:
             return False
 
         new_path = self.path.replace("bi5", "csv")
         if os.path.isfile(new_path):
-            print("CSV file (%s) exists, so skipping." % (new_path));
+            print("CSV file (%s) exists, so skipping." % new_path)
 
-        print("Converting into CSV (%s)..." % (new_path))
+        print("Converting into CSV (%s)..." % new_path)
 
-        # Opening, uncompressing & reading raw data
+        # Opening, uncompress & reading raw data
         try:
             with lzma.open(self.path) as f:
                 data = f.read()
@@ -338,12 +339,21 @@ class Dukascopy:
 
         # Opening output CSV file for write
         f = open(new_path, 'w', newline='')
-        w = csv.writer(f, quoting = csv.QUOTE_NONE)
+        w = csv.writer(f, quoting=csv.QUOTE_NONE)
 
-        for i in range(0, len(data)//20):
+        normSymbols = ["USDRUB", "XAGUSD", "XAUUSD"]
+        point = 100000
+
+        for sym in normSymbols:
+            if pair == sym:
+                point = 1000
+                break
+
+        TICK_BYTES = 20
+        for i in range(0, len(data)//TICK_BYTES):
             row = bytearray()
-            for j in range(0, 20):
-                row.append(data[i*20 + j])
+            for j in range(0, TICK_BYTES):
+                row.append(data[i*TICK_BYTES + j])
 
             # Big-endian to Little-endian conversion
             row = unpack('>iiiff', row)
@@ -352,10 +362,10 @@ class Dukascopy:
             minute = row[0]/1000//60
             second = row[0]/1000 - minute*60
             timestamp = "%d.%02d.%02d %02d:%02d:%06.3f" % (self.year, self.month, self.day, self.hour, minute, second)
-            bidPrice = row[2]/1e5
-            askPrice = row[1]/1e5
-            bidVolume = "%.2f" % (row[4])
-            askVolume = "%.2f" % (row[3])
+            askPrice = row[1]/point
+            bidPrice = row[2]/point
+            bidVolume = round(row[3] * 1000000)
+            askVolume = round(row[4] * 1000000)
 
             # Writing one row in CSV format
             w.writerow([timestamp, bidPrice, askPrice, bidVolume, askVolume])
@@ -393,12 +403,14 @@ if __name__ == '__main__':
                             try:
                                 dt = datetime.datetime(year=year, month=month, day=day, hour=hour)
                                 unix = time.mktime(dt.timetuple())
-                                if unix > all_currencies.get(pair) and unix < time.time(): # Validate dates.
+
+                                # Validate dates
+                                if unix > all_currencies.get(pair) and unix < time.time():
                                     ds = Dukascopy(pair, year, month, day, hour, dest=args.dest + "/" + pair)
                                     ds.download()
                                     if args.csv:
                                         ds.bt5_to_csv()
-                                    #raise KeyboardInterrupt # perform one record for testing
+                                    # raise KeyboardInterrupt # perform one record for testing
                             except ValueError: # Ignore invalid dates.
                                 continue
     except KeyboardInterrupt:
