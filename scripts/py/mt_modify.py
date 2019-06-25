@@ -7,7 +7,7 @@ import struct
 from copy import copy
 
 from bstruct.bstruct import BStruct
-from bstruct.bstruct_defs import SymbolsRaw
+from bstruct.bstruct_defs import *
 
 #
 # Exceptions for internal use.
@@ -125,40 +125,37 @@ class SymbolsRawBundle():
     sort_field = 'name'
     need_sort = True
 
-if __name__ == '__main__':
-    # Parse the arguments.
-    argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-i', '--input-file', action='store'     , dest='inputFile', help='Input file'            , required=True)
-    argumentParser.add_argument('-t', '--input-type', action='store',
-        dest='inputType', help='Input type (fxt-header, hcc-header, sel, srv, symbols-raw, symgroups, ticks-raw)'         , required=True)
-    argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
-    argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')
-    argumentParser.add_argument('-a', '--add'       , action='store'     , dest='doAdd'    , help='Add a new record'      , default=None)
-    argumentParser.add_argument('-m', '--modify'    , action='append'    , dest='doModify' , help='Modify the record data')
-    argumentParser.add_argument('-h', '--help'      , action='help'      , help='Show this help message and exit')
-    args = argumentParser.parse_args()
+#
+# Modify the content of the file.
+#
+def modify_content(strucc, args, bundle=None):
+    """
+    @param
+    strucc BStruct Subclass pointed by strucc.
+    args   Object  Command-line arguments.
+    bundle Object  A bundle keeps track of various options that are filetype-specific.
+    """
+    try:
+        fp = open(args.inputFile, 'rb')
+    except OSError as e:
+        print("[ERROR] '%s' raised when tried to read the file '%s'" % (e.strerror, args.inputFile))
+        sys.exit(1)
 
-    if   args.inputType == 'fxt-header':  modify_content(args.inputFile, 0, FxtHeader)
-#   elif args.inputType == 'hcc-header':  modify_content(args.inputFile)
-#   elif args.inputType == 'hst-header':  modify_content(args.inputFile, 0, HstHeader)
-#   elif args.inputType == 'sel':         modify_content(args.inputFile, 4, SymbolSel)
-#   elif args.inputType == 'srv':         modify_content(args.inputFile)
-    elif args.inputType == 'symbols-raw':
+    cont = parse_file(args.inputFile, strucc)
 
+    if bundle is not None:
+
+        # Check required -k param for bundle-based types.
         if args.keyGroup is None:
-            print('You need to specify the group by -k param!')
+            print('[ERROR] You need to specify the group by -k param!')
             sys.exit(1)
-
-        # A bundle keeps track of various options that are filetype-specific.
-        bundle = SymbolsRawBundle
-
-        cont = parse_file(args.inputFile, SymbolsRaw)
 
         # Find the key group first.
         try:
             key_group = find_in_content(cont, bundle.name_field, args.keyGroup)
+
         except InvalidArgument as e:
-            print('Could not find the -k group \'{}\''.format(args.keyGroup))
+            print('[ERROR] Could not find the -k group %s!' % args.keyGroup)
             sys.exit(1)
 
         if not args.doAdd is None:
@@ -169,13 +166,18 @@ if __name__ == '__main__':
             except InvalidArgument as e:
                 pass
             else:
-                print('The symbol {} is already in the file, cannot overwrite it'.format(e))
+                print("[ERROR] The symbol '%s' is already in the file, cannot overwrite it!" % args.doAdd)
                 sys.exit(1)
 
             # Clone the old object and modify its name.
             new_group = copy(key_group)
             modify_field(new_group, bundle.name_field, args.doAdd)
             cont.append(new_group)
+            print("The group '%s' has been added!" % args.doAdd)
+
+        elif not args.doDelete is None:
+            cont.remove(key_group)
+            print("The group '%s' has been removed!" % args.keyGroup)
 
         elif not args.doModify is None:
             for opt in args.doModify:
@@ -188,17 +190,33 @@ if __name__ == '__main__':
                 # Perform the modification in place.
                 modify_field(key_group, val_name, val_value)
 
-        elif not args.doDelete is None:
-            cont.remove(key_group)
-
         # Sort the file content if needed.
         if bundle.need_sort:
             cont.sort(key = lambda x: getattr(x, bundle.sort_field))
 
-        # Serialize the file.
-        write_file(args.inputFile, cont)
+    # Serialize the file.
+    write_file(args.inputFile, cont)
 
-#   elif args.inputType == 'symgroups':   modify_content(args.inputFile, 0, Symgroups)
-#   elif args.inputType == 'ticks-raw':   modify_content(args.inputFile, 0, TicksRaw)
+if __name__ == '__main__':
+    # Parse the arguments.
+    argumentParser = argparse.ArgumentParser(add_help=False)
+    argumentParser.add_argument('-i', '--input-file', action='store'     , dest='inputFile', help='Input file'            , required=True)
+    argumentParser.add_argument('-t', '--input-type', action='store',
+        dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)'         , required=True)
+    argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
+    argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')
+    argumentParser.add_argument('-a', '--add'       , action='store'     , dest='doAdd'    , help='Add a new record'      , default=None)
+    argumentParser.add_argument('-m', '--modify'    , action='append'    , dest='doModify' , help='Modify the record data')
+    argumentParser.add_argument('-h', '--help'      , action='help'      , help='Show this help message and exit')
+    args = argumentParser.parse_args()
+
+    if   args.inputType == 'fxt-header':  modify_content(FxtHeader, args)
+    elif args.inputType == 'hcc-header':  modify_content(HccHeader, args)
+    elif args.inputType == 'hst-header':  modify_content(HstHeader, args)
+    elif args.inputType == 'sel':         modify_content(SymbolSel, args)
+    elif args.inputType == 'srv':         modify_content(SrvHeader, args)
+    elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, SymbolsRawBundle)
+    elif args.inputType == 'symgroups':   modify_content(Symgroups, args)
+    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args)
     else:
-        print('Not supported type: {}!'.format(args.inputType))
+        print('Not supported type: %s!' % args.inputType)

@@ -107,7 +107,7 @@ if __name__ == '__main__':
     argumentParser = argparse.ArgumentParser(add_help=False)
     argumentParser.add_argument('-i', '--input-file', action='store', dest='inputFile', help='Input file', required=True)
     argumentParser.add_argument('-t', '--input-type', action='store',
-        dest='inputType', help='Input type (fxt-header, hcc-header, sel, srv, symbols-raw, symgroups, ticks-raw)', required=True)
+        dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)', required=True)
     argumentParser.add_argument('-h', '--help', action='help', help='Show this help message and exit')
     args = argumentParser.parse_args()
 
