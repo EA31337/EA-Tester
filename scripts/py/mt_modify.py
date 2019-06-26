@@ -65,22 +65,30 @@ def modify_field(ss, field_name, value):
 
     setattr(ss, field_name, value)
 
-def parse_file(name, strucc):
+def parse_file(name, strucc, offset, count):
+    """
+    Parse the content of the file starting from offset.
+    BStruct subclass pointed by strucc.
+    """
     try:
         fp = open(name, 'rb')
     except OSError as e:
         print('Cannot open file \'{}\' for reading'.format(name))
         sys.exit(1)
 
+    fp.seek(offset)
+
     content = []
 
-    while True:
+    i = 0
+    while i < count or count == 0:
         buf = fp.read(strucc._size)
 
         if len(buf) != strucc._size:
             break
 
         content.append(strucc(buf))
+        i += 1
 
     fp.close()
 
@@ -128,7 +136,7 @@ class SymbolsRawBundle():
 #
 # Modify the content of the file.
 #
-def modify_content(strucc, args, bundle=None):
+def modify_content(strucc, args, offset, count, bundle=None):
     """
     @param
     strucc BStruct Subclass pointed by strucc.
@@ -141,9 +149,26 @@ def modify_content(strucc, args, bundle=None):
         print("[ERROR] '%s' raised when tried to read the file '%s'" % (e.strerror, args.inputFile))
         sys.exit(1)
 
-    cont = parse_file(args.inputFile, strucc)
+    cont = parse_file(args.inputFile, strucc, offset, count)
 
-    if bundle is not None:
+    if bundle is None:
+
+
+        if not args.doModify is None:
+            for opt in args.doModify:
+                # Options are in the 'name=value' format.
+                val = opt.split('=')
+
+                val_name  = val[0].strip()
+                val_value = val[1].strip()
+
+                # Perform the modification in place.
+                modify_field(key_group, val_name, val_value)
+        else:
+            print('[ERROR] You need to specify the key=value by -m param!')
+            sys.exit(1)
+
+    else:
 
         # Check required -k param for bundle-based types.
         if args.keyGroup is None:
@@ -210,13 +235,13 @@ if __name__ == '__main__':
     argumentParser.add_argument('-h', '--help'      , action='help'      , help='Show this help message and exit')
     args = argumentParser.parse_args()
 
-    if   args.inputType == 'fxt-header':  modify_content(FxtHeader, args)
-    elif args.inputType == 'hcc-header':  modify_content(HccHeader, args)
-    elif args.inputType == 'hst-header':  modify_content(HstHeader, args)
-    elif args.inputType == 'sel':         modify_content(SymbolSel, args)
+    if   args.inputType == 'fxt-header':  modify_content(FxtHeader, args, 0, 1)
+    elif args.inputType == 'hcc-header':  modify_content(HccHeader, args, 0, 1, None)
+    elif args.inputType == 'hst-header':  modify_content(HstHeader, args, 0, 1)
+    elif args.inputType == 'sel':         modify_content(SymbolSel, args, 4, 0)
     elif args.inputType == 'srv':         modify_content(SrvHeader, args)
-    elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, SymbolsRawBundle)
-    elif args.inputType == 'symgroups':   modify_content(Symgroups, args)
-    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args)
+    elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
+    elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 0)
+    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 0)
     else:
         print('Not supported type: %s!' % args.inputType)
