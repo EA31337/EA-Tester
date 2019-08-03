@@ -87,7 +87,7 @@ get_time() {
   if [ -f "$TERMINAL_LOG" ]; then
     echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
   else
-    echo ?
+    echo 0
   fi
 }
 
@@ -132,9 +132,10 @@ check_log_errors() {
 
 # Save time (in hours) and store in rule file if exists.
 save_time() {
-  local htime=$(($(eval get_time) / 60))
-  [ -n "$OPT_VERBOSE" ] && echo "ETA: $((get_time / 60))h" >&2
-  [ -w "$INCLUDE" ] && tag_set ETA $htime "$INCLUDE" || true
+  mtime=$(eval get_time)
+  htime=$(( $mtime > 0 ? $(($mtime / 60)) : 0))
+  [ -n "$OPT_VERBOSE" ] && echo "ETA: ${htime}h" >&2
+  [ -w "$INCLUDE" ] && tag_set ETA ${htime} "$INCLUDE" || true
 }
 
 # Read decimal value at given offset from the file.
