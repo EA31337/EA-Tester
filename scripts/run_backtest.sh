@@ -162,6 +162,7 @@ parse_results() {
     # Copy the test results if the destination directory has been specified.
     echo "Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..." >&2
     cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
+    cp $VFLAG "$TESTER_LOGS"/*.log "$BT_DEST"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
 
