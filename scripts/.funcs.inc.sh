@@ -133,7 +133,7 @@ check_log_errors() {
 # Save time (in hours) and store in rule file if exists.
 save_time() {
   mtime=$(eval get_time)
-  htime=$(( $mtime > 0 ? $(($mtime / 60)) : 0))
+  htime=$((${mtime:-1} / 60))
   [ -n "$OPT_VERBOSE" ] && echo "ETA: ${htime}h" >&2
   [ -w "$INCLUDE" ] && tag_set ETA ${htime} "$INCLUDE" || true
 }
