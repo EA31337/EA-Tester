@@ -438,16 +438,13 @@ ea_find() {
     wget $VFLAG -cP "$EXPERTS_DIR" $file
     file=${file##*/}
   fi
-  [ -f "$file" ] && { echo "$file"; return; }
-  exact=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit
-  )
-  [ -z "$exact" ] && match=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit
-  )
-  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -f "$file" ] \
+    && { echo "$file"; return; } \
+    || result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+  echo ${result#./}
   cd - &>/dev/null
 }
 
@@ -464,16 +461,13 @@ script_find() {
     wget $VFLAG -cP "$SCRIPTS_DIR" $file
     file=${file##*/}
   fi
-  [ -f "$file" ] && { echo "$file"; return; }
-  exact=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.ex?" ')' -print -quit
-  )
-  [ -z "$exact" ] && match=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit
-  )
-  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -f "$file" ] \
+    && { echo "$file"; return; } \
+    || result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+  echo ${result#./}
   cd - &>/dev/null
 }
 
