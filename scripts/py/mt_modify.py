@@ -50,7 +50,10 @@ def modify_field(ss, field_name, value):
     if fmts[-1] == 'c':
         raise InvalidArgument('c fields aren\'t supported yet')
     elif fmts[-1] == 's':
-        value = value.encode('utf-8')
+        if len(_) >= 1 and _[0].__name__ == 'pretty_print_wstring':
+            value = value.encode('utf-16')
+        else:
+            value = value.encode('utf-8')
     elif fmts[-1] == 'I':
         value = int(datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp())
     elif fmts[-1] == 'd':
@@ -101,7 +104,7 @@ def parse_file(name, strucc, offset, count):
 
 def write_file(name, content):
     try:
-        fp = open(name, 'wb')
+        fp = open(name, 'r+b')
     except OSError as e:
         print('Cannot open file \'{}\' for writing'.format(name))
         sys.exit(1)
