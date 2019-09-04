@@ -249,7 +249,7 @@ if __name__ == '__main__':
     elif args.inputType == 'hcc-header':  modify_content(HccHeader, args, 0, 1, None)
     elif args.inputType == 'hst-header':  modify_content(HstHeader, args, 0, 1)
     elif args.inputType == 'sel':         modify_content(SymbolSel, args, 4, 0)
-    elif args.inputType == 'srv':         modify_content(SrvHeader, args)
+    elif args.inputType == 'srv':         modify_content(SrvHeader, args, 0, 1)
     elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
     elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 0)
     elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 0)
