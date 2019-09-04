@@ -3,6 +3,7 @@
 
 import argparse
 import datetime
+import os
 import sys
 import struct
 from copy import copy
@@ -103,13 +104,19 @@ def parse_file(name, strucc, offset, count):
     return content
 
 def write_file(name, content):
-    try:
-        fp = open(name, 'r+b')
-    except OSError as e:
-        print('Cannot open file \'{}\' for writing'.format(name))
-        sys.exit(1)
-
+    fp = None
     for r in content:
+        try:
+            start_from_end = fp is not None
+            fp = open(name, 'r+b')
+            if (start_from_end):
+                fp.seek(0, os.SEEK_END)
+            if (r._truncate):
+                fp.truncate()
+        except OSError as e:
+            print('Cannot open file \'{}\' for writing'.format(name))
+            sys.exit(1)
+
         fp.write(r.repack())
 
     fp.close()
@@ -210,7 +217,7 @@ def modify_content(strucc, args, offset, count, bundle=None):
             cont.append(new_group)
             print("The group '%s' has been added!" % args.doAdd)
 
-        elif not args.doDelete is None:
+        elif args.doDelete is True:
             cont.remove(key_group)
             print("The group '%s' has been removed!" % args.keyGroup)
 
@@ -251,7 +258,7 @@ if __name__ == '__main__':
     elif args.inputType == 'sel':         modify_content(SymbolSel, args, 4, 0)
     elif args.inputType == 'srv':         modify_content(SrvHeader, args, 0, 1)
     elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
-    elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 0)
-    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 0)
+    elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 1)
+    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 1)
     else:
         print('Not supported type: %s!' % args.inputType)

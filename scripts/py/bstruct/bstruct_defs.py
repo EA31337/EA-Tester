@@ -13,6 +13,7 @@ class TicksRaw(BStruct):
             ('counter', 'I'),
             ('unknown', 'I'),
             ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 40)
 
@@ -41,6 +42,7 @@ class SymbolSel(BStruct):
             ('bid_2', 'd'),
             ('ask_2', 'd')
             ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 128)
 
@@ -51,6 +53,7 @@ class Symgroups(BStruct):
             ('description', '60s', pretty_print_string),
             ('backgroundColor', 'I')
             ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 80)
 
@@ -100,6 +103,7 @@ class SymbolsRaw(BStruct):
             ('unknown_15', '96s', pretty_print_compact),    # ???: Reserved.
             ('unknown_16', 'I'),                            # ???: E.g. 0, 3, 4, 6, 7, 8, 9, 10, 12, 200.
             ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 1936)
 
@@ -191,6 +195,7 @@ class FxtHeader(BStruct):
         ('numberOfErrors', 'I'),                      # ModelErrors       uint32    484   4  Number of errors during model generation (fix errors showing up here before testing).
         ('reserved', '240s', pretty_print_ignore),    # _                 [240]byte 488 240  Unused.
         ]
+    _truncate = False
     _size = get_fields_size(_fields)
     assert(_size == 728)
 
@@ -210,6 +215,7 @@ class FxtTick(BStruct):
         ('tickTimestamp', 'i', pretty_print_time), # TickTimestamp uint32  48  4 Tick data timestamp in seconds (the current time within a bar).
         ('launchExpert', 'i', pretty_print_time),  # LaunchExpert  uint32  52  4 Flag to launch an expert (0 - bar will be modified, but the expert will not be launched).
         ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 56)
 
@@ -221,6 +227,7 @@ class HccHeader(BStruct):
             ('name', '32s', pretty_print_wstring),
             ('title', '64s', pretty_print_wstring)
             ]
+    _truncate = False
     _size = get_fields_size(_fields)
     assert(_size == 228)
 
@@ -233,6 +240,7 @@ class HccTable(BStruct):
             ('size', 'I'),
             ('off',  'I', pretty_print_hex),
             ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 18)
 
@@ -245,6 +253,7 @@ class HccRecordHeader(BStruct):
             ('rows', 'I'),
             ('unknown_1', '101s', pretty_print_ignore),
             ]
+    _truncate = True
     _size = get_fields_size(_fields)
     assert(_size == 189)
 
@@ -259,6 +268,7 @@ class HccRecord(BStruct):
             ('close', 'd'),
             ]
     _size = get_fields_size(_fields)
+    _truncate = True
     assert(_size == 40)
 
 # Header structure for HST version 401.
@@ -276,6 +286,7 @@ class HstHeader(BStruct):
         ('unused', '13s', pretty_print_bstring),    # _         [13]uint32 //  96   52 Unused.
         ]
     _size = get_fields_size(_fields)
+    _truncate = False
     assert(_size == 109)
 
 # HST bar data.
@@ -293,6 +304,7 @@ class HstBar(BStruct):
         ('realVolume', 'II'),                      # Real volume   uint64  52  8
         ]
     _size = get_fields_size(_fields)
+    _truncate = True
     assert(_size == 60)
 
 class SrvHeader(BStruct):
@@ -305,6 +317,7 @@ class SrvHeader(BStruct):
             ('unknown_1', '72s', pretty_print_bstring),
             ]
     _size = get_fields_size(_fields)
+    _truncate = False
     assert(_size == 352)
 
 class SrvRecord(BStruct):
@@ -316,4 +329,5 @@ class SrvRecord(BStruct):
             ('unknown_3', '40s', pretty_print_bstring),
             ]
     _size = get_fields_size(_fields)
+    _truncate = True
     assert(_size == 160)
