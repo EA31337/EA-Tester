@@ -25,7 +25,7 @@ class SymbolSel(BStruct):
             ('unknown_1', 'I'),
             ('group', 'I'),
             ('unknown_2', 'I'),
-            ('pointSize', 'd'),
+            ('pointSize', 'd', pretty_print_decimal_p5),
             ('spread', 'I'),
             ('unknown_3', 'I'),
             ('tickType', 'I'),
@@ -91,7 +91,7 @@ class SymbolsRaw(BStruct):
             ('marginMaintenance', 'd'),                     # Margin maintenance
             ('marginHedged', 'd'),                          # Margin hedged
             ('marginDivider', 'd'),                         # Leverage calculation: 0...5 - relative to account leverage, > 10  - absolute custom leverage.
-            ('pointSize', 'd'),                             # Point size in the quote currency.
+            ('pointSize', 'd', pretty_print_decimal_p5),    # Point size in the quote currency.
             ('pointsPerUnit', 'd'),                         # Points per unit.
             ('unknown_12', '24s', pretty_print_compact),    # ???: Reserved.
             ('marginCurrency', '12s', pretty_print_string), # Margin currency.
@@ -136,7 +136,7 @@ class FxtHeader(BStruct):
         ('spread', 'I'),                              # Spread       uint32    252   4 Spread in points: 0=zero spread = MarketInfo(MODE_SPREAD)
         ('digits', 'I'),                              # Digits       uint32    256   4 Symbol digits = MarketInfo(MODE_DIGITS)
         ('padding2', '4s', pretty_print_ignore),      # _            [4]byte   260   4 (alignment to the next double)
-        ('pointSize', 'd'),                           # PointSize    float64   264   8 Resolution, ie. 0.0000'1 = MarketInfo(MODE_POINT)
+        ('pointSize', 'd', pretty_print_decimal_p5),  # PointSize    float64   264   8 Resolution, ie. 0.0000'1 = MarketInfo(MODE_POINT)
         ('minLotSize', 'i'),                          # MinLotsize   uint32    272   4 Min lot size in centi lots (hundredths) = MarketInfo(MODE_MINLOT)  * 100
         ('maxLotSize', 'i'),                          # MaxLotsize   uint32    276   4 Max lot size in centi lots (hundredths) = MarketInfo(MODE_MAXLOT)  * 100
         ('lotStep', 'i'),                             # LotStepsize  uint32    280   4 Lot stepsize in centi lots (hundredths) = MarketInfo(MODE_LOTSTEP) * 100

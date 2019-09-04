@@ -2,6 +2,7 @@
 # Script to modify various MT formats.
 
 import argparse
+import datetime
 import sys
 import struct
 from copy import copy
@@ -50,10 +51,14 @@ def modify_field(ss, field_name, value):
         raise InvalidArgument('c fields aren\'t supported yet')
     elif fmts[-1] == 's':
         value = value.encode('utf-8')
-    elif fmts[-1] in ['f', 'd']:
+    elif fmts[-1] == 'I':
+        value = int(datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp())
+    elif fmts[-1] == 'd':
         value = float(value)
-    else:
+    elif fmts[-1] == 'i':
         value = int(value, 0)
+    else:
+        raise InvalidDataFormat('Parser for value format "{}" for field {} is not yet implemented'.format(fmts[-1], field_name))
 
     # Validate the data first.
     try:
@@ -163,7 +168,9 @@ def modify_content(strucc, args, offset, count, bundle=None):
                 val_value = val[1].strip()
 
                 # Perform the modification in place.
-                modify_field(key_group, val_name, val_value)
+                for struc in cont:
+                    modify_field(struc, val_name, val_value)
+
         else:
             print('[ERROR] You need to specify the key=value by -m param!')
             sys.exit(1)
