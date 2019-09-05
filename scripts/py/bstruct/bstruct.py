@@ -79,3 +79,6 @@ def pretty_print_hex(obj, x):
 def pretty_print_compact(obj, x):
     if any(x): return x
     return '[\\x00] * {}'.format(len(x))
+
+def pretty_print_decimal_p5(obj, x):
+    return '{0:.5f}'.format(x)

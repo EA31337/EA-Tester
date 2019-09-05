@@ -2,6 +2,8 @@
 # Script to modify various MT formats.
 
 import argparse
+import datetime
+import os
 import sys
 import struct
 from copy import copy
@@ -49,11 +51,18 @@ def modify_field(ss, field_name, value):
     if fmts[-1] == 'c':
         raise InvalidArgument('c fields aren\'t supported yet')
     elif fmts[-1] == 's':
-        value = value.encode('utf-8')
-    elif fmts[-1] in ['f', 'd']:
+        if len(_) >= 1 and _[0].__name__ == 'pretty_print_wstring':
+            value = value.encode('utf-16')
+        else:
+            value = value.encode('utf-8')
+    elif fmts[-1] == 'I':
+        value = int(datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp())
+    elif fmts[-1] == 'd':
         value = float(value)
-    else:
+    elif fmts[-1] == 'i':
         value = int(value, 0)
+    else:
+        raise InvalidDataFormat('Parser for value format "{}" for field {} is not yet implemented'.format(fmts[-1], field_name))
 
     # Validate the data first.
     try:
@@ -95,13 +104,19 @@ def parse_file(name, strucc, offset, count):
     return content
 
 def write_file(name, content):
-    try:
-        fp = open(name, 'wb')
-    except OSError as e:
-        print('Cannot open file \'{}\' for writing'.format(name))
-        sys.exit(1)
-
+    fp = None
     for r in content:
+        try:
+            start_from_end = fp is not None
+            fp = open(name, 'r+b')
+            if (start_from_end):
+                fp.seek(0, os.SEEK_END)
+            if (r._truncate):
+                fp.truncate()
+        except OSError as e:
+            print('Cannot open file \'{}\' for writing'.format(name))
+            sys.exit(1)
+
         fp.write(r.repack())
 
     fp.close()
@@ -163,7 +178,9 @@ def modify_content(strucc, args, offset, count, bundle=None):
                 val_value = val[1].strip()
 
                 # Perform the modification in place.
-                modify_field(key_group, val_name, val_value)
+                for struc in cont:
+                    modify_field(struc, val_name, val_value)
+
         else:
             print('[ERROR] You need to specify the key=value by -m param!')
             sys.exit(1)
@@ -200,7 +217,7 @@ def modify_content(strucc, args, offset, count, bundle=None):
             cont.append(new_group)
             print("The group '%s' has been added!" % args.doAdd)
 
-        elif not args.doDelete is None:
+        elif args.doDelete is True:
             cont.remove(key_group)
             print("The group '%s' has been removed!" % args.keyGroup)
 
@@ -239,9 +256,9 @@ if __name__ == '__main__':
     elif args.inputType == 'hcc-header':  modify_content(HccHeader, args, 0, 1, None)
     elif args.inputType == 'hst-header':  modify_content(HstHeader, args, 0, 1)
     elif args.inputType == 'sel':         modify_content(SymbolSel, args, 4, 0)
-    elif args.inputType == 'srv':         modify_content(SrvHeader, args)
+    elif args.inputType == 'srv':         modify_content(SrvHeader, args, 0, 1)
     elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
-    elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 0)
-    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 0)
+    elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 1)
+    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 1)
     else:
         print('Not supported type: %s!' % args.inputType)
