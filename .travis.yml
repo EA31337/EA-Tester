@@ -35,9 +35,9 @@ env:
   - CMD="docker-compose run $DOCKER_ARG TestBands"
   - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
   - CMD="docker-compose run $DOCKER_ARG TestModellingQuality"
-# - CMD="docker-compose run $DOCKER_ARG RunInstallMt4" # @fixme
-# - CMD="docker-compose run $DOCKER_ARG RunInstallMt4x" # @fixme
-# - CMD="docker-compose run $DOCKER_ARG RunInstallMt5" # @fixme
+  - CMD="docker-compose run $DOCKER_ARG RunInstallMt4" # @fixme
+  - CMD="docker-compose run $DOCKER_ARG RunInstallMt4x" # @fixme
+  - CMD="docker-compose run $DOCKER_ARG RunInstallMt5" # @fixme
   - CMD="docker-compose run $DOCKER_ARG BtDataGet_N0"
   - CMD="docker-compose run $DOCKER_ARG DockerLargeFiles"
 
