@@ -142,7 +142,7 @@ case "$(uname -s)" in
     apt-get install -qq xvfb xdotool x11-utils xterm                              # Virtual frame buffer and X11 utils.
 
     # Install Winetricks.
-    winetricks_url="https://raw.githubusercontent.com/kenorb-contrib/winetricks/mt4/src/winetricks"
+    winetricks_url="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
     curl -sL ${winetricks_url} | install /dev/stdin /usr/local/bin/winetricks
 
     # Install AHK.
