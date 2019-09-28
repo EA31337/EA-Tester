@@ -53,7 +53,6 @@ USER ubuntu
 ADD conf /opt/conf
 ADD tests /opt/tests
 RUN eval.sh install_mt $MT_VER
-RUN eval.sh install_mteditor
 RUN run_backtest.sh -s PrintPaths -v
 
 # Clean up.
