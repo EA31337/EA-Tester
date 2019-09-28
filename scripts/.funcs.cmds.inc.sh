@@ -173,7 +173,7 @@ filever() {
 # Install platform.
 # Usage: install_mt [ver/4/5/4.0.0.1010]
 install_mt() {
-  type wget unzip >/dev/null
+  type jq wget unzip >/dev/null
   local mt_ver=${1:-$MT_VER}
   set_display
   case $mt_ver in
@@ -189,12 +189,19 @@ install_mt() {
     4.0.0.*|5.0.0.*)
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
       cd "$WINE_PATH"
-      wget -nv -c "$REPO_URL/releases/download/${mt_ver:0:1}.x/mt-$mt_ver.zip"
-      unzip -ou "mt-$mt_ver.zip"
+      mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
+      mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<<"$mt_releases_json")
+      if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
+        mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
+        wget -nv -c "$mt_release_url"
+        unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip"
+      else
+        echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
+      fi
       cd - &> /dev/null
     ;;
     *)
-      echo "Error: Unknown platform version, try either 4 or 5." >&2
+      echo "Error: Not supported platform version. Supported: 4, 4x, 4.0.0.x, 5 or 5.0.0.x." >&2
       exit 1
   esac
 }
