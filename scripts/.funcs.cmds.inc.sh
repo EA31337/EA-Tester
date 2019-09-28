@@ -194,7 +194,7 @@ install_mt() {
       if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
         mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
         wget -nv -c "$mt_release_url"
-        unzip -ou "mt-$mt_ver.zip"
+        unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip"
       else
         echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
       fi
