@@ -190,7 +190,7 @@ install_mt() {
       [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
       cd "$WINE_PATH"
       mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
-      mt_releases_list=($(jq -r '.[]["tag_name"]' <<<"$mt_releases_json"))
+      mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<<"$mt_releases_json")
       if [[ " ${mt_releases_list[@]} " =~ " ${mt_ver} " ]]; then
         mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
         wget -nv -c "$mt_release_url"
