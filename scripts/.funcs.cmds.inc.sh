@@ -19,25 +19,56 @@ help() {
 # Run backtest.
 # Usage: run_backtest [args]
 run_backtest() {
-  $CWD/run_backtest.sh "$@"
+  "$CWD"/run_backtest.sh "$@"
 }
 
 # Run Terminal.
 # Usage: run_terminal
 run_terminal() {
-  $CWD/run_terminal.sh "$@"
+  "$CWD"/run_terminal.sh "$@"
 }
 
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 clone_repo() {
-  $CWD/clone_repo.sh "$@"
+  "$CWD"/clone_repo.sh "$@"
 }
 
-# Get the backtest data.
-# Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
-get_bt_data() {
-  $CWD/get_bt_data.sh "$@"
+# Download backtest data.
+# Usage: bt_data_dl [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+bt_data_dl() {
+  "$CWD"/py/bt_data_dl.py "$@"
+}
+
+# Generate backtest data.
+# Usage: bt_data_gen [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
+bt_data_gen() {
+  "$CWD"/py/bt_data_gen.py "$@"
+}
+
+# Download backtest data from GitHub
+# Usage: bt_data_get [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
+bt_data_get() {
+  export SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE
+  "$CWD"/bt_data_get.sh "$@"
+}
+
+# Read MT file.
+# Usage: mt_read -i INPUTFILE -t INPUTTYPE
+mt_read() {
+  "$CWD"/py/mt_read.py "$@"
+}
+
+# Modify MT file.
+# Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
+mt_modify() {
+  "$CWD"/py/mt_modify.py "$@"
+}
+
+# Convert CSV files to FXT/HST formats.
+# Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
+conv_csv_to_mt() {
+  "$CWD"/py/conv_csv_to_mt.py "$@"
 }
 
 # Change the working directory.
@@ -408,16 +439,13 @@ ea_find() {
     wget $VFLAG -cP "$EXPERTS_DIR" $file
     file=${file##*/}
   fi
-  [ -f "$file" ] && { echo "$file"; return; }
-  exact=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit
-  )
-  [ -z "$exact" ] && match=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit
-  )
-  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -f "$file" ] \
+    && { echo "$file"; return; } \
+    || result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+  echo ${result#./}
   cd - &>/dev/null
 }
 
@@ -434,16 +462,13 @@ script_find() {
     wget $VFLAG -cP "$SCRIPTS_DIR" $file
     file=${file##*/}
   fi
-  [ -f "$file" ] && { echo "$file"; return; }
-  exact=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.ex?" ')' -print -quit
-  )
-  [ -z "$exact" ] && match=$(
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit || \
-    find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit
-  )
-  [ -n "$exact" ] && echo ${exact#./} || echo ${match#./}
+  [ -f "$file" ] \
+    && { echo "$file"; return; } \
+    || result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+  echo ${result#./}
   cd - &>/dev/null
 }
 

@@ -2,7 +2,7 @@
 # Script to install MT5 platform using winetricks.
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
-CWD="$(cd -P -- "$(dirname -- "$0")" 2>/dev/null; pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2>/dev/null; pwd -P)"
 type winetricks >/dev/null
 
 # Load variables.
@@ -32,7 +32,7 @@ echo "Installing .NET..." >&2
 winetricks -q dotnet472
 
 echo "Installing platform..." >&2
-winetricks -q "$CWD"/install_mt5.verb
+winetricks -q "$CWD"/verb/install_mt5.verb
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL5_DIR" ]; then

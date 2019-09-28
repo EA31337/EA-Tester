@@ -22,11 +22,29 @@ to list available commands. Here is the list:
 # Run backtest.
 # Usage: run_backtest [args]
 --
+# Run Terminal.
+# Usage: run_terminal
+--
 # Clone git repository.
 # Usage: clone_repo [url] [args...]
 --
-# Get the backtest data.
-# Usage: get_bt_data [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
+# Download backtest data.
+# Usage: bt_data_dl [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
+--
+# Generate backtest data.
+# Usage: bt_data_gen [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
+--
+# Download backtest data from GitHub
+# Usage: bt_data_get [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
+--
+# Read MT file.
+# Usage: mt_read -i INPUTFILE -t INPUTTYPE
+--
+# Modify MT file.
+# Usage: mt_modify -i INPUTFILE -t INPUTTYPE -k KEYGROUP [-d] [-a DOADD] [-m DOMODIFY]
+--
+# Convert CSV files to FXT/HST formats.
+# Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
 --
 # Change the working directory.
 # Usage: chdir [dir]
@@ -82,29 +100,38 @@ to list available commands. Here is the list:
 # Download the file.
 # Usage: file_get [url]
 --
-# Compile the given EA name.
-# Usage: compile_ea [pattern] [log_file]
+# Compile the source code file.
+# Usage: compile [file/dir] (log_file) (...args)
+--
+# Compile specified EA file.
+# Usage: compile_ea [EA/pattern] (log_file) (...args)
+--
+# Compile specified script file.
+# Usage: compile_script [Script/pattern] (log_file) (...args)
+--
+# Compile all in MQL4 folder.
+# Usage: compile_all (log_file/CON)
 --
 # Compile and test the given EA.
-# Usage: compile_and_test [pattern] [args...]
+# Usage: compile_and_test [EA/pattern] (args...)
 --
 # Copy ini settings from templates.
 # Usage: ini_copy
 --
 # Find the EA file.
-# Usage: ea_find [filename/url/pattern]
+# Usage: ea_find [filename/url/pattern] (optional/dir)
 --
 # Find the script file.
-# Usage: script_find [filename/url/pattern]
+# Usage: script_find [filename/url/pattern] (optional/dir)
 --
 # Copy EA file to the platform experts dir.
-# Usage: ea_copy [file]
+# Usage: ea_copy [file] [optional/dir-dst]
 --
 # Copy script file to the platform scripts dir.
-# Usage: script_copy [file]
+# Usage: script_copy [file] [optional/dir-dst]
 --
 # Copy library file (e.g. dll) to the platform lib dir.
-# Usage: lib_copy [file]
+# Usage: lib_copy [file] [optional/dir-dst]
 --
 # Copy a file to the platform files dir.
 # Usage: file_copy [file]
@@ -117,9 +144,6 @@ to list available commands. Here is the list:
 --
 # Convert HTML to JSON format
 # Usage: convert_html2json [file_src] [file_dst]
---
-# Compile given script name.
-# Usage: compile_script
 --
 # Sort optimization test result values by profit factor.
 # Usage: sort_opt_results [file/report.html]
@@ -145,8 +169,11 @@ to list available commands. Here is the list:
 # Set inputs in the EA INI file.
 # Usage: ini_set_inputs [set_file] [ini_file]
 --
-# Get value from the INI/HTM file.
-# Usage: ini_get [key] [file]
+# Get value from the INI file.
+# Usage: ini_get [key] (file)
+--
+# Get value from the HTM file.
+# Usage: htm_get [key] (file)
 --
 # Get all values from the INI/HTM file.
 # Usage: value_get_all [file]

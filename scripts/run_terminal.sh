@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform dependencies..." >&2

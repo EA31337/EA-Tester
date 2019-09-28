@@ -5,7 +5,7 @@
 # Initialize variables.
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
 
 # Check dependencies.
@@ -162,6 +162,7 @@ parse_results() {
     # Copy the test results if the destination directory has been specified.
     echo "Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..." >&2
     cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
+    [ -f "$TESTER_LOGS/$(date +%Y%m%d).log" ] && cp $VFLAG "$TESTER_LOGS/$(date +%Y%m%d).log" "$BT_DEST/${TEST_REPORT_BASE}.log"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
   fi
 
@@ -718,8 +719,7 @@ if [ -n "$TEST_EXPERT" ]; then
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Generate backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
-    env SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE \
-      "$SHELL" "$SCR"/get_bt_data.sh "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2018}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
+    bt_data_get "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2018}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
     if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls

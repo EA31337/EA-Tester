@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Script to download asset file from tag release using GitHub API v3.
 # Specify ASSET_OVERRIDE=1 to download even when the previous file exist.
-CWD="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
+CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # Check dependencies.
 set -e

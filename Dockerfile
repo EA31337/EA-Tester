@@ -35,7 +35,7 @@ ARG PROVISION_VNC=1
 
 # Provision container image.
 ADD scripts /opt/scripts
-ENV PATH $PATH:/opt/scripts
+ENV PATH $PATH:/opt/scripts:/opt/scripts/py
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
@@ -67,6 +67,9 @@ RUN eval.sh clean_files
 
 # Expose SSH and VNC when installed.
 EXPOSE 22 5900
+
+# Modify shell startup scripts.
+RUN echo source /opt/scripts/.funcs.cmds.inc.sh >> ~/.bashrc
 
 # Configure a container as an executable.
 ENTRYPOINT ["eval.sh"]
