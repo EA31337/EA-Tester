@@ -49,6 +49,7 @@ bt_data_gen() {
 # Download backtest data from GitHub
 # Usage: bt_data_get [currency] [year] [DS/MQ/N1-5/W1-5/C1-5/Z1-5/R1-5] [period]
 bt_data_get() {
+  export SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE
   "$CWD"/bt_data_get.sh "$@"
 }
 
