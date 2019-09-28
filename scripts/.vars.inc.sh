@@ -50,7 +50,7 @@ if [ -n "$TERMINAL_DIR" ]; then
   LOG_DIR="$TERMINAL_DIR/logs"
   TERMINAL_LOG="$LOG_DIR/terminal.log.txt"
 fi
-REPO_URL="https://github.com/EA31337/EA-Tester"
+REPO_MT="EA31337/MT-Platforms"
 
 # Set constants.
 TRUE=0
