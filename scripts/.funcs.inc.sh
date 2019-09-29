@@ -219,58 +219,6 @@ set_write_perms() {
   done
 }
 
-# Get value from symbols file (in hex format).
-# Usage: get_symbol_value (hex-offset) (len)
-get_symbol_value() {
-  local rel_offset=$((16#$1))
-  local length=${2:-1}
-  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  [ -n "$symbol_offset" ]
-  echo $(read_data "$file" $abs_offset $length)
-}
-
-# Get double value from symbols file (in hex format)
-# Usage: get_symbol_double (hex-offset) (len)
-get_symbol_double() {
-  local rel_offset=$((16#$1))
-  local length=${2:-8}
-  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  [ -n "$symbol_offset" ]
-  echo $(read_double "$file" $abs_offset $length)
-}
-
-# Change values in symbols file.
-# Usage: set_symbol_value (dec-value) (hex-offset)
-set_symbol_value() {
-  [ -n "$1" ]
-  local value=$(printf "%02x" $1)
-  local rel_offset=$((16#$2))
-  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  [ -n "$symbol_offset" ]
-  write_data "$file" $value "$(printf "%02x" $abs_offset)"
-  return $TRUE
-}
-
-# Change double in symbols file.
-# Usage: set_symbol_double (double) (hex-offset)
-set_symbol_double() {
-  [ -n "$1" ]
-  local value=$1
-  local rel_offset=$((16#$2))
-  local file="$HISTORY_DIR/${SERVER:-default}/symbols.raw"
-  local symbol_offset=$(xxd -g1 -c 121 "$file" | grep -w ${BT_SYMBOL:-EURUSD} | grep -o "^[^:]\+")
-  local abs_offset="$(( $((16#$symbol_offset)) + $rel_offset))"
-  [ -n "$symbol_offset" ]
-  write_double "$file" $value $abs_offset
-  return $TRUE
-}
-
 # Returns substring.
 # Usage: substr start end <input
 # e.g. substr 2 2 <<<$"12345"
