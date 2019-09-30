@@ -969,11 +969,11 @@ set_spread() {
   # Change spread in all FXT files at offset 0xFC.
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")
-      prev_spread=$(read_value "$file" $FXT_OFF_SPREAD)
-      write_data "$file" $(printf "%02x\n" $spread) $FXT_OFF_SPREAD
-      next_spread=$(read_value "$file" $FXT_OFF_SPREAD)
-      echo "Changed spread in $base from $prev_spread into $next_spread" >&2
-      [ $spread != $next_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
+      read _ _ prev_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread)
+      mt_modify -f "$file" -t fxt-header -m "spread=$spread"
+      read _ _ new_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread)
+      echo "Changed spread in $base from $prev_spread into $new_spread" >&2
+      [ $spread != $new_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
   done || true
 }
 
