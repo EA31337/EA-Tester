@@ -108,6 +108,8 @@ Supported options:
 Other supported variables (without options assigned):
 - BT_DAYS (uint/string)
   Specify days to test. Default: 1-31.
+- BT_LEVERAGE (uint)
+  Specify account leverage to test. Default: 100.
 - BT_TESTMODEL (uint)
   This controls type of backtest data being tested.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
