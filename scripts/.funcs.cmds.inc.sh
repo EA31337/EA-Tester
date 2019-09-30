@@ -982,14 +982,14 @@ set_spread() {
 set_lotstep() {
   local lotstep=$1
   [ -n "$lotstep" ]
-  # Change lotstep in all FXT files at given offset.
+  # Change lot step in all FXT files at given offset.
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")
-      prev_lotstep=$(read_value "$file" $FXT_OFF_LOTSTEP)
-      write_data "$file" $(printf "%02x\n" $lotstep) $FXT_OFF_LOTSTEP
-      next_lotstep=$(read_value "$file" $FXT_OFF_LOTSTEP)
-      echo "Changed lot step in $base from $prev_lotstep into $next_lotstep" >&2
-      [ $lotstep != $next_lotstep ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
+      read _ _ prev_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep)
+      mt_modify -f "$file" -t fxt-header -m "lotStep=$lotstep"
+      read _ _ new_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep)
+      echo "Changed lot step in $base from $prev_lotstep into $new_lotstep" >&2
+      [ $lotstep != $new_lotstep ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
   done || true
 }
 
