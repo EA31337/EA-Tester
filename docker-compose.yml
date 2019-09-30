@@ -124,6 +124,7 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_DIGITS: 5
       RUN_ON_START: clean_ea
   TestHSTHeader:
     command: for tf in M1 M30; do run_backtest -e TestHSTHeader -T $$tf; done
@@ -135,6 +136,7 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_DIGITS: 5
       RUN_ON_START: clean_ea
   TestLeverage:
     command: run_backtest -e TestLeverage
