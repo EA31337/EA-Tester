@@ -973,8 +973,8 @@ set_spread() {
       mt_modify -f "$file" -t fxt-header -m "spread=$spread"
       read _ _ new_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread)
       echo "Changed spread in $base from $prev_spread into $new_spread" >&2
-      [ $spread != $new_spread ] && { echo "Failed to set the correct spread." >&2; exit 1; }
-  done || true
+      [ $spread != $new_spread ] && { echo "Error: Failed to set the correct spread for $base." >&2; exit 1; }
+  done
 }
 
 # Set lot step in FXT files.
@@ -989,8 +989,8 @@ set_lotstep() {
       mt_modify -f "$file" -t fxt-header -m "lotStep=$lotstep"
       read _ _ new_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep)
       echo "Changed lot step in $base from $prev_lotstep into $new_lotstep" >&2
-      [ $lotstep != $new_lotstep ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
-  done || true
+      [ $lotstep != $new_lotstep ] && { echo "Error: Failed to set the correct lot step for $base." >&2; exit 1; }
+  done
 }
 
 # Set digits in symbol raw and FXT files.
@@ -1005,6 +1005,15 @@ set_digits() {
     psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
     mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
   fi
+  # Change digits in all HST files.
+  find "$HISTORY_DIR/${SERVER:-"default"}" -type f -iname "*.hst" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      read _ _ prev_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits)
+      mt_modify -f "$file" -t hst-header -m "digits=$digits"
+      read _ _ new_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits)
+      echo "Changed digits in $base from $prev_digits into $new_digits" >&2
+      [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
+  done
   # Change digits in all FXT files.
   find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
       base=$(basename "$file")
@@ -1012,8 +1021,8 @@ set_digits() {
       mt_modify -f "$file" -t fxt-header -m "digits=$digits"
       read _ _ new_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits)
       echo "Changed digits in $base from $prev_digits into $new_digits" >&2
-      [ $digits != $new_digits ] && { echo "Failed to set the correct digits." >&2; exit 1; }
-  done || true
+      [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
+  done
 }
 
 # Set account leverage in FXT files.
@@ -1029,5 +1038,5 @@ set_leverage() {
       read _ _ new_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage)
       echo "Changed lot step in $base from $prev_leverage into $new_leverage" >&2
       [ $leverage != $new_leverage ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
-  done || true
+  done
 }
