@@ -993,7 +993,7 @@ set_lotstep() {
   done || true
 }
 
-# Set digits in symbol raw file.
+# Set digits in symbol raw and FXT files.
 # Usage: set_digits [value/5]
 set_digits() {
   local digits=$1
@@ -1005,4 +1005,13 @@ set_digits() {
     psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
     mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
   fi
+  # Change digits in all FXT files.
+  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      read _ _ prev_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits)
+      mt_modify -f "$file" -t fxt-header -m "digits=$digits"
+      read _ _ new_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits)
+      echo "Changed digits in $base from $prev_digits into $new_digits" >&2
+      [ $digits != $new_digits ] && { echo "Failed to set the correct digits." >&2; exit 1; }
+  done || true
 }
