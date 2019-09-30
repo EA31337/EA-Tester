@@ -730,6 +730,12 @@ if [ -n "$BT_LOTSTEP" ]; then
   set_lotstep $BT_LOTSTEP
 fi
 
+# Sets an account leverage in FXT files (if specified).
+if [ -n "$BT_LEVERAGE" ]; then
+  echo "Setting account leverage in FXT files ($BT_LEVERAGE)..." >&2
+  set_leverage $BT_LEVERAGE
+fi
+
 # Final checks.
 if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \

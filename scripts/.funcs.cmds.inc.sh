@@ -1015,3 +1015,19 @@ set_digits() {
       [ $digits != $new_digits ] && { echo "Failed to set the correct digits." >&2; exit 1; }
   done || true
 }
+
+# Set account leverage in FXT files.
+# Usage: set_leverage [value]
+set_leverage() {
+  local leverage=$1
+  [ -n "$leverage" ]
+  # Change lot step in all FXT files at given offset.
+  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
+      base=$(basename "$file")
+      read _ _ prev_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage)
+      mt_modify -f "$file" -t fxt-header -m "accountLeverage=$leverage"
+      read _ _ new_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage)
+      echo "Changed lot step in $base from $prev_leverage into $new_leverage" >&2
+      [ $leverage != $new_leverage ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
+  done || true
+}
