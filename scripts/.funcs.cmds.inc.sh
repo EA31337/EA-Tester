@@ -971,10 +971,11 @@ set_spread() {
     (
       base=$(basename "$file")
       read _ _ prev_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread)
-      mt_modify -f "$file" -t fxt-header -m "spread=$spread"
-      read _ _ new_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread)
-      echo "Changed spread in $base from $prev_spread into $new_spread" >&2
-      [ $spread != $new_spread ] && { echo "Error: Failed to set the correct spread for $base." >&2; exit 1; }
+      [ $prev_spread != $spread ] \
+        && mt_modify -f "$file" -t fxt-header -m "spread=$spread" \
+        && read _ _ new_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread) \
+        && echo "Changed spread in $base from $prev_spread into $new_spread" >&2 \
+        && [ $spread != $new_spread ] && { echo "Error: Failed to set the correct spread for $base." >&2; exit 1; }
     ) &
   done
   wait
@@ -990,10 +991,11 @@ set_lotstep() {
     (
       base=$(basename "$file")
       read _ _ prev_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep)
-      mt_modify -f "$file" -t fxt-header -m "lotStep=$lotstep"
-      read _ _ new_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep)
-      echo "Changed lot step in $base from $prev_lotstep into $new_lotstep" >&2
-      [ $lotstep != $new_lotstep ] && { echo "Error: Failed to set the correct lot step for $base." >&2; exit 1; }
+      [ $prev_lotstep != $lotstep ] \
+        && mt_modify -f "$file" -t fxt-header -m "lotStep=$lotstep" \
+        && read _ _ new_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep) \
+        && echo "Changed lot step in $base from $prev_lotstep into $new_lotstep" >&2 \
+        && [ $lotstep != $new_lotstep ] && { echo "Error: Failed to set the correct lot step for $base." >&2; exit 1; }
     ) &
   done
   wait
@@ -1016,10 +1018,11 @@ set_digits() {
     (
       base=$(basename "$file")
       read _ _ prev_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits)
-      mt_modify -f "$file" -t hst-header -m "digits=$digits"
-      read _ _ new_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits)
-      echo "Changed digits in $base from $prev_digits into $new_digits" >&2
-      [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
+      [ $prev_digits != $digits ] \
+        && mt_modify -f "$file" -t hst-header -m "digits=$digits" \
+        && read _ _ new_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits) \
+        && echo "Changed digits in $base from $prev_digits into $new_digits" >&2 \
+        && [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
     ) &
   done
   wait
@@ -1028,10 +1031,11 @@ set_digits() {
     (
       base=$(basename "$file")
       read _ _ prev_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits)
-      mt_modify -f "$file" -t fxt-header -m "digits=$digits"
-      read _ _ new_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits)
-      echo "Changed digits in $base from $prev_digits into $new_digits" >&2
-      [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
+      [ $prev_digits != $digits ] \
+        && mt_modify -f "$file" -t fxt-header -m "digits=$digits" \
+        && read _ _ new_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits) \
+        && echo "Changed digits in $base from $prev_digits into $new_digits" >&2 \
+        && [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
     ) &
   done
   wait
@@ -1047,10 +1051,11 @@ set_leverage() {
     (
       base=$(basename "$file")
       read _ _ prev_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage)
-      mt_modify -f "$file" -t fxt-header -m "accountLeverage=$leverage"
-      read _ _ new_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage)
-      echo "Changed lot step in $base from $prev_leverage into $new_leverage" >&2
-      [ $leverage != $new_leverage ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
+      [ $prev_leverage != $leverage ] \
+        && mt_modify -f "$file" -t fxt-header -m "accountLeverage=$leverage" \
+        && read _ _ new_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage) \
+        && echo "Changed lot step in $base from $prev_leverage into $new_leverage" >&2 \
+        && [ $leverage != $new_leverage ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
     ) &
   done
   wait
