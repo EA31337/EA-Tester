@@ -55,5 +55,3 @@ REPO_MT="EA31337/MT-Platforms"
 # Set constants.
 TRUE=0
 FALSE=1
-SRAW_OFF_DIGITS=$(printf "%02x" 104)
-SRAW_OFF_PSIZE=$(printf "%02x" 1776)
