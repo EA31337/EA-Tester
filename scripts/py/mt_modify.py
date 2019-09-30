@@ -249,8 +249,9 @@ def modify_content(strucc, args, offset, count, bundle=None):
 if __name__ == '__main__':
     # Parse the arguments.
     argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-i', '--input-file', action='store'     , dest='inputFile', help='Input file'            , required=True)
-    argumentParser.add_argument('-t', '--input-type', action='store',
+    argumentParser.add_argument('-f', '--file', action='store',
+        dest='inputFile', help='Input file', required=True)
+    argumentParser.add_argument('-t', '--type', action='store',
         dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)'         , required=True)
     argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
     argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')

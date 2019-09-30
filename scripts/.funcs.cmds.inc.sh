@@ -1001,8 +1001,8 @@ set_digits() {
   echo "Setting digits to $digits..." >&2
   symbols_raw_file="$HISTORY_DIR/${SERVER:-"default"}/symbols.raw"
   if [ -w "$symbols_raw_file" ]; then
-    mt_modify -m "digits=$digits" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -i "$symbols_raw_file"
+    mt_modify -m "digits=$digits" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
     psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
-    mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -i "$symbols_raw_file"
+    mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
   fi
 }
