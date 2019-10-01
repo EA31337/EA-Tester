@@ -430,7 +430,7 @@ SCRIPT="$(ini_get ^Script)"
 SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
 EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
 EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
-SERVER="${SERVER:-$(ini_get Server)}"
+SERVER="${SERVER:-$(ini_get ^Server)}"
 
 # Export SET file when SETFILE does not exist.
 if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
