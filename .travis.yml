@@ -30,7 +30,7 @@ env:
   - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
   - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"
   - CMD="docker-compose run $DOCKER_ARG TestLotstep4"
-  - CMD="docker-compose run $DOCKER_ARG TestLotstep5"
+# - CMD="docker-compose run $DOCKER_ARG TestLotstep5" # @fixme: GH-164
   - CMD="docker-compose run $DOCKER_ARG TestTimeframes"
   - CMD="docker-compose run $DOCKER_ARG TestBands"
   - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
