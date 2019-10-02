@@ -959,7 +959,7 @@ value_get_all() {
   grep -o '\S\+[^_]=[^;]\+' "$file"
 }
 
-# Updates data in FXT/HST files.
+# Updates value in FXT/HST files.
 # Usage: set_data_value [key] [value] [fxt/hst]
 set_data_value() {
   local key=$1
