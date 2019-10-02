@@ -959,6 +959,28 @@ value_get_all() {
   grep -o '\S\+[^_]=[^;]\+' "$file"
 }
 
+# Updates data in FXT/HST files.
+# Usage: set_data_value [key] [value] [fxt/hst]
+set_data_value() {
+  local key=$1
+  local value=$2
+  local type=${3:-"fxt"}
+  [ -n "$key" ]
+  [ -n "$value" ]
+  find "$TICKDATA_DIR" "$HISTORY_DIR/${SERVER:-"default"}" -type f -iname "*.${type}" -print0 | while IFS= read -r -d $'\0' file; do
+    (
+      base=$(basename "$file")
+      read _ _ prev_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key)
+      [ $prev_value != $value ] \
+        && mt_modify -f "$file" -t ${type}-header -m "$key=$value" \
+        && read _ _ new_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key) \
+        && echo "Changed $key in $base from $prev_value into $new_value" >&2 \
+        && [ $value != $new_value ] && { echo "Error: Failed to set the correct $key for $base." >&2; exit 1; }
+    ) &
+  done
+  wait
+}
+
 # Set spread in ini and FXT files.
 # Usage: set_spread [points/10]
 set_spread() {
@@ -967,18 +989,7 @@ set_spread() {
   ini_set "^Spread" "$spread" "$TERMINAL_INI"
   ini_set "^TestSpread" "$spread" "$TESTER_INI"
   # Change spread in all FXT files at offset 0xFC.
-  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
-    (
-      base=$(basename "$file")
-      read _ _ prev_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread)
-      [ $prev_spread != $spread ] \
-        && mt_modify -f "$file" -t fxt-header -m "spread=$spread" \
-        && read _ _ new_spread < <(mt_read -f "$file" -t fxt-header | grep -w ^spread) \
-        && echo "Changed spread in $base from $prev_spread into $new_spread" >&2 \
-        && [ $spread != $new_spread ] && { echo "Error: Failed to set the correct spread for $base." >&2; exit 1; }
-    ) &
-  done
-  wait
+  set_data_value spread $spread fxt
 }
 
 # Set lot step in FXT files.
@@ -987,18 +998,7 @@ set_lotstep() {
   local lotstep=$1
   [ -n "$lotstep" ]
   # Change lot step in all FXT files at given offset.
-  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
-    (
-      base=$(basename "$file")
-      read _ _ prev_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep)
-      [ $prev_lotstep != $lotstep ] \
-        && mt_modify -f "$file" -t fxt-header -m "lotStep=$lotstep" \
-        && read _ _ new_lotstep < <(mt_read -f "$file" -t fxt-header | grep -w ^lotStep) \
-        && echo "Changed lot step in $base from $prev_lotstep into $new_lotstep" >&2 \
-        && [ $lotstep != $new_lotstep ] && { echo "Error: Failed to set the correct lot step for $base." >&2; exit 1; }
-    ) &
-  done
-  wait
+  set_data_value lotStep $lotstep fxt
 }
 
 # Set digits in symbol raw and FXT files.
@@ -1014,31 +1014,9 @@ set_digits() {
     mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
   fi
   # Change digits in all HST files.
-  find "$HISTORY_DIR/${SERVER:-"default"}" -type f -iname "*.hst" -print0 | while IFS= read -r -d $'\0' file; do
-    (
-      base=$(basename "$file")
-      read _ _ prev_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits)
-      [ $prev_digits != $digits ] \
-        && mt_modify -f "$file" -t hst-header -m "digits=$digits" \
-        && read _ _ new_digits < <(mt_read -f "$file" -t hst-header | grep -w ^digits) \
-        && echo "Changed digits in $base from $prev_digits into $new_digits" >&2 \
-        && [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
-    ) &
-  done
-  wait
+  set_data_value digits $digits hst
   # Change digits in all FXT files.
-  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
-    (
-      base=$(basename "$file")
-      read _ _ prev_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits)
-      [ $prev_digits != $digits ] \
-        && mt_modify -f "$file" -t fxt-header -m "digits=$digits" \
-        && read _ _ new_digits < <(mt_read -f "$file" -t fxt-header | grep -w ^digits) \
-        && echo "Changed digits in $base from $prev_digits into $new_digits" >&2 \
-        && [ $digits != $new_digits ] && { echo "Error: Failed to set the correct digits for $base." >&2; exit 1; }
-    ) &
-  done
-  wait
+  set_data_value digits $digits fxt
 }
 
 # Set account leverage in FXT files.
@@ -1047,16 +1025,5 @@ set_leverage() {
   local leverage=$1
   [ -n "$leverage" ]
   # Change lot step in all FXT files at given offset.
-  find "$TICKDATA_DIR" -type f -iname "*.fxt" -print0 | while IFS= read -r -d $'\0' file; do
-    (
-      base=$(basename "$file")
-      read _ _ prev_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage)
-      [ $prev_leverage != $leverage ] \
-        && mt_modify -f "$file" -t fxt-header -m "accountLeverage=$leverage" \
-        && read _ _ new_leverage < <(mt_read -f "$file" -t fxt-header | grep -w ^accountLeverage) \
-        && echo "Changed lot step in $base from $prev_leverage into $new_leverage" >&2 \
-        && [ $leverage != $new_leverage ] && { echo "Failed to set the correct lot step." >&2; exit 1; }
-    ) &
-  done
-  wait
+  set_data_value accountLeverage $leverage fxt
 }
