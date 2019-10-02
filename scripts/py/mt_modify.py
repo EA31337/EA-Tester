@@ -4,6 +4,7 @@
 import argparse
 import datetime
 import os
+import re
 import sys
 import struct
 from copy import copy
@@ -56,7 +57,13 @@ def modify_field(ss, field_name, value):
         else:
             value = value.encode('utf-8')
     elif fmts[-1] == 'I':
-        value = int(datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp())
+        # That could be integer or date time which must be converted to timestamp.
+        if value.isdigit():
+            value = int(value, 0)
+        elif re.match(r"""\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}""", value):
+            value = int(datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp())
+        else:
+            raise InvalidArgument('Invalid value for field "{}". Valid types are: int or date time (Y-m-d H:i:s)'.format(field_name))
     elif fmts[-1] == 'd':
         value = float(value)
     elif fmts[-1] == 'i':
@@ -242,8 +249,9 @@ def modify_content(strucc, args, offset, count, bundle=None):
 if __name__ == '__main__':
     # Parse the arguments.
     argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-i', '--input-file', action='store'     , dest='inputFile', help='Input file'            , required=True)
-    argumentParser.add_argument('-t', '--input-type', action='store',
+    argumentParser.add_argument('-f', '--file', action='store',
+        dest='inputFile', help='Input file', required=True)
+    argumentParser.add_argument('-t', '--type', action='store',
         dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)'         , required=True)
     argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
     argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')

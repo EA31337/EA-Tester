@@ -430,7 +430,7 @@ SCRIPT="$(ini_get ^Script)"
 SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
 EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
 EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
-SERVER="${SERVER:-$(ini_get Server)}"
+SERVER="${SERVER:-$(ini_get ^Server)}"
 
 # Export SET file when SETFILE does not exist.
 if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
@@ -657,29 +657,11 @@ if [ -n "$BT_DEPOSIT" ]; then
   ini_set "^deposit" "$BT_DEPOSIT" "$EA_INI"
 fi
 
-# Sets currency/volume digits if present.
-if [ -n "$BT_DIGITS" ]; then
-  echo "Configuring digits ($BT_DIGITS)..." >&2
-  set_digits $BT_DIGITS
-fi
-
-# Sets a lot step if present.
-if [ -n "$BT_LOTSTEP" ]; then
-  echo "Setting lot step in FXT files ($BT_LOTSTEP)..." >&2
-  set_lotstep $BT_LOTSTEP
-fi
-
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
   TEST_REPORT_NAME="${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}.htm"
   echo "Configuring test report ($TEST_REPORT_NAME)..." >&2
   ini_set "^TestReport" "$TEST_REPORT_NAME" "$TESTER_INI"
-fi
-
-# Sets a spread if present.
-if [ -n "$BT_SPREAD" ]; then
-  echo "Configuring spread ($BT_SPREAD)..." >&2
-  set_spread $BT_SPREAD
 fi
 
 # Sets the optimization mode if present.
@@ -709,7 +691,7 @@ if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   }
 fi
 
-# Download backtest data if required.
+# Check backtest data if required.
 BT_PERIOD=$(ini_get ^TestPeriod)
 BT_PERIOD_FXT=${BT_PERIOD_FXT:-$BT_PERIOD}
 BT_TESTMODEL_FXT=${BT_TESTMODEL_FXT:-0}
@@ -717,7 +699,7 @@ if [ -n "$TEST_EXPERT" ]; then
   echo "Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2018})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
-  # Generate backtest files if not present.
+  # Download backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
     bt_data_get "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2018}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
     if [ -n "$OPT_VERBOSE" ]; then
@@ -728,6 +710,30 @@ if [ -n "$TEST_EXPERT" ]; then
   fi
   # Assign variables.
   FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
+fi
+
+# Sets a spread in FXT files (if specified).
+if [ -n "$BT_SPREAD" ]; then
+  echo "Configuring spread ($BT_SPREAD)..." >&2
+  set_spread $BT_SPREAD
+fi
+
+# Sets currency/volume digits and point size in symbol raw and FXT files (if specified).
+if [ -n "$BT_DIGITS" ]; then
+  echo "Configuring digits ($BT_DIGITS)..." >&2
+  set_digits $BT_DIGITS
+fi
+
+# Sets a lot step in FXT files (if specified).
+if [ -n "$BT_LOTSTEP" ]; then
+  echo "Setting lot step in FXT files ($BT_LOTSTEP)..." >&2
+  set_lotstep $BT_LOTSTEP
+fi
+
+# Sets an account leverage in FXT files (if specified).
+if [ -n "$BT_LEVERAGE" ]; then
+  echo "Setting account leverage in FXT files ($BT_LEVERAGE)..." >&2
+  set_leverage $BT_LEVERAGE
 fi
 
 # Final checks.
