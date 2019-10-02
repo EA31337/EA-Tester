@@ -303,7 +303,7 @@ file_copy() {
 # Copy srv files into terminal dir.
 # Usage: srv_copy [file]
 srv_copy() {
-  local server="$(ini_get ^Server)"
+  local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ -n "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
@@ -555,7 +555,7 @@ file_copy() {
 # Copy server files into terminal dir.
 # srv_copy
 srv_copy() {
-  local server="$(ini_get ^Server)"
+  local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ -n "$srv_file" ]; then
     cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
@@ -920,7 +920,7 @@ ini_set_inputs() {
 ini_get() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
-  local value="$(grep -om1 "$key=\S\+" "$file" | head -1 | cut -d= -f2-)"
+  local value="$(grep -om1 "^$key=\S\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
 }

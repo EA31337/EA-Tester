@@ -409,7 +409,7 @@ if [ -n "$BT_TESTMODEL" ]; then
   echo "Configuring test model ($BT_TESTMODEL)..." >&2
   ini_set "^TestModel" "$BT_TESTMODEL" "$TESTER_INI"
 else
-  BT_TESTMODEL="$(ini_get ^TestModel)"
+  BT_TESTMODEL="$(ini_get TestModel)"
 fi
 
 if [ -n "$TEST_OPTS" ]; then
@@ -422,15 +422,15 @@ if [ -n "$TEST_OPTS" ]; then
 fi
 
 # Configure EA.
-TEST_EXPERT="$(ini_get ^TestExpert)"
-EXPERT="$(ini_get ^Expert)"
+TEST_EXPERT="$(ini_get TestExpert)"
+EXPERT="$(ini_get Expert)"
 EA_FILE="${TEST_EXPERT:-$EXPERT}"
 EA_INI="$TESTER_DIR/${EA_FILE##*/}.ini"
-SCRIPT="$(ini_get ^Script)"
+SCRIPT="$(ini_get Script)"
 SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
 EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
 EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
-SERVER="${SERVER:-$(ini_get ^Server)}"
+SERVER="${SERVER:-$(ini_get Server)}"
 
 # Export SET file when SETFILE does not exist.
 if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
@@ -692,7 +692,7 @@ if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
 fi
 
 # Check backtest data if required.
-BT_PERIOD=$(ini_get ^TestPeriod)
+BT_PERIOD=$(ini_get TestPeriod)
 BT_PERIOD_FXT=${BT_PERIOD_FXT:-$BT_PERIOD}
 BT_TESTMODEL_FXT=${BT_TESTMODEL_FXT:-0}
 if [ -n "$TEST_EXPERT" ]; then
