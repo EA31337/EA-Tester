@@ -409,7 +409,7 @@ if [ -n "$BT_TESTMODEL" ]; then
   echo "Configuring test model ($BT_TESTMODEL)..." >&2
   ini_set "^TestModel" "$BT_TESTMODEL" "$TESTER_INI"
 else
-  BT_TESTMODEL="$(ini_get TestModel)"
+  BT_TESTMODEL="$(ini_get ^TestModel)"
 fi
 
 if [ -n "$TEST_OPTS" ]; then
