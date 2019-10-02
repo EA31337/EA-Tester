@@ -178,6 +178,9 @@ to list available commands. Here is the list:
 # Get all values from the INI/HTM file.
 # Usage: value_get_all [file]
 --
+# Updates value in FXT/HST files.
+# Usage: set_data_value [key] [value] [fxt/hst]
+--
 # Set spread in ini and FXT files.
 # Usage: set_spread [points/10]
 --
@@ -186,6 +189,9 @@ to list available commands. Here is the list:
 --
 # Set digits in symbol raw file.
 # Usage: set_digits [value/5]
+--
+# Set account leverage in FXT files.
+# Usage: set_leverage [value]
 ```
 
 ### Backtesting
