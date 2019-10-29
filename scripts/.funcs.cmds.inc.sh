@@ -355,7 +355,7 @@ compile() {
   shopt -qo errexit; local errexit=$?; set +e
 
   # Run compiler.
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3}
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
@@ -370,6 +370,7 @@ compile() {
       false
     fi
   fi
+  echo "${compiled_no}"
 }
 
 # Compile specified EA file.
@@ -384,8 +385,9 @@ compile_ea() {
   [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
   [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
   ea_path=$(ea_find "$name" .)
-  compile "$ea_path" "$log_file" ${@:3}
+  compiled_no="$(compile "$ea_path" "$log_file" ${@:3})"
   cd - &> /dev/null
+  echo "${compiled_no}"
 }
 
 # Compile specified script file.
@@ -400,8 +402,9 @@ compile_script() {
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
   [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
   scr_path=$(script_find "$name" .)
-  compile "$scr_path" "$log_file" ${@:3}
+  compiled_no="$(compile "$scr_path" "$log_file" ${@:3})"
   cd - &> /dev/null
+  echo "${compiled_no}"
 }
 
 # Compile all in MQL4 folder.
@@ -418,7 +421,8 @@ compile_all() {
 # Usage: compile_and_test [EA/pattern] (args...)
 compile_and_test() {
   local name=${1:-$TEST_EXPERT}
-  compile_ea "$name"
+  compiled_no="$(compile_ea "$name")"
+  [ ${compiled_no} -gt 0 ]
   $CWD/run_backtest.sh -e "$@"
 }
 
