@@ -126,6 +126,7 @@ check_log_errors() {
   errors+=("Assert fail on .\+")
   errors+=("Testing pass stopped .\+")
   errors+=("leaked memory")
+  errors+=("undeleted objects left")
   cd "$TERMINAL_DIR"
   ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
   ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
