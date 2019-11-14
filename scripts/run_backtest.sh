@@ -736,6 +736,12 @@ if [ -n "$BT_LEVERAGE" ]; then
   set_leverage $BT_LEVERAGE
 fi
 
+# Sets white-listed web-request URLs (if specified).
+if [ -n "$EA_WHITELIST_URLS" ]; then
+  echo "Setting white-listed URLs ($EA_WHITELIST_URLS)..." >&2
+  add_url $EA_WHITELIST_URLS
+fi
+
 # Final checks.
 if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
