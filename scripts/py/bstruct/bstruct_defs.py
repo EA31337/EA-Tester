@@ -331,3 +331,16 @@ class SrvRecord(BStruct):
     _size = get_fields_size(_fields)
     _truncate = True
     assert(_size == 160)
+
+# Experts.ini file (binary). MT4-only.
+class ExpertsIni(BStruct):
+    _endianness = '<'
+    _fields = [
+        # Header layout.
+        ('headerVersion', 'I'),                            # Version              uint32     0    4 Header version (default: 400).
+        ('unknown_0', '286s'),                             # Unknown data      [286]byte     4  293 Unknown data.
+        ('webRequestUrl', '4098s', pretty_print_wstring),  # Web Request URL  [2080]byte   294 4387 Account server name (szchar).
+        ]
+    _truncate = True
+    _size = get_fields_size(_fields)
+    assert(_size == 4388)

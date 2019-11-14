@@ -120,5 +120,6 @@ if __name__ == '__main__':
     elif args.inputType == 'symbols-raw': dump_content(args.inputFile, 0, 0, SymbolsRaw)
     elif args.inputType == 'symgroups':   dump_content(args.inputFile, 0, 0, Symgroups)
     elif args.inputType == 'ticks-raw':   dump_content(args.inputFile, 0, 0, TicksRaw)
+    elif args.inputType == 'experts-ini':   dump_content(args.inputFile, 0, 0, ExpertsIni)
     else:
         print('Not supported type: {}!'.format(args.inputType))
