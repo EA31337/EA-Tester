@@ -1028,7 +1028,6 @@ set_digits() {
 add_url() {
   local url=$1
   [ -n "$url" ]
-  echo "$TERMINAL_INI"
   mt_modify -m "webRequestUrl=$url" -t "experts-ini" -f "$EXPERTS_INI"
 }
 
