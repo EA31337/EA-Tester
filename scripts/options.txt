@@ -119,6 +119,8 @@ Other supported variables (without options assigned):
 - BT_TESTMODEL_FXT (uint)
   This controls type of backtest data being downloaded in FXT format.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
+- EA_WHITELIST_URLS (string)
+  Adds URLs to whitelist. Separate by a semicolon. Required for WebRequest().
 - OPT_NOERR (bool)
   Disables errexit flag to prevent exiting script on failure.
 - RUN_ON_START (string)
