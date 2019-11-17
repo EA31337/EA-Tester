@@ -322,6 +322,7 @@ file_get() {
 # Usage: compile [file/dir] (log_file) (...args)
 compile() {
   local name=$1
+  [ -n "$name" ]
   local log_file=${2:-${name##*/}.log}
   type iconv >/dev/null
 
@@ -377,6 +378,7 @@ compile() {
 # Usage: compile_ea [EA/pattern] (log_file) (...args)
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
+  [ -n "$name" ]
   local log_file=${2:-${name%.*}.log}
   local ea_path=$(ea_find "$name")
   local ea_dir=$(dirname "$ea_path")
@@ -394,6 +396,7 @@ compile_ea() {
 # Usage: compile_script [Script/pattern] (log_file) (...args)
 compile_script() {
   local name="${1:-$SCRIPT}"
+  [ -n "$name" ]
   local log_file=${2:-${name%.*}.log}
   local scr_path=$(script_find "$name")
   local scr_dir=$(dirname "$scr_path")
