@@ -252,7 +252,7 @@ if __name__ == '__main__':
     argumentParser.add_argument('-f', '--file', action='store',
         dest='inputFile', help='Input file', required=True)
     argumentParser.add_argument('-t', '--type', action='store',
-        dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)'         , required=True)
+        dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw, experts-ini)'         , required=True)
     argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
     argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')
     argumentParser.add_argument('-a', '--add'       , action='store'     , dest='doAdd'    , help='Add a new record'      , default=None)
@@ -268,5 +268,6 @@ if __name__ == '__main__':
     elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
     elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 1)
     elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 1)
+    elif args.inputType == 'experts-ini':   modify_content(ExpertsIni, args, 0, 1)
     else:
         print('Not supported type: %s!' % args.inputType)
