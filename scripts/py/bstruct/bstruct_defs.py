@@ -336,10 +336,11 @@ class SrvRecord(BStruct):
 class ExpertsIni(BStruct):
     _endianness = '<'
     _fields = [
-        # Header layout.
-        ('headerVersion', 'I'),                            # Version              uint32     0    4 Header version (default: 400).
-        ('unknown_0', '286s'),                             # Unknown data      [286]byte     4  293 Unknown data.
-        ('webRequestUrl', '4098s', pretty_print_wstring),  # Web Request URL  [2080]byte   294 4387 Account server name (szchar).
+        ('headerVersion', 'I'),                            # Version                       uint32               0    4 Header version (default: 400).
+        ('unknown_0', '44s'),                              # Unknown data                  [44]byte             4   47 Unknown data.
+        ('webRequestUrlEnabled', 'B'),                     # Enable URL white-listing      [1]unsigned char    48   48 Boolean: 0/1.
+        ('unknown_1', '243s'),                             # Unknown data                  [245]byte           49  293 Unknown data.
+        ('webRequestUrl', '4096s', pretty_print_wstring),  # Web Request URL               [2080]byte         294 4387 Account server name (szchar).
         ]
     _truncate = True
     _size = get_fields_size(_fields)
