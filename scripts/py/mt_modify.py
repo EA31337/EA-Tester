@@ -68,6 +68,11 @@ def modify_field(ss, field_name, value):
         value = float(value)
     elif fmts[-1] == 'i':
         value = int(value, 0)
+    elif fmts[-1] == 'B':
+        # Unsigned 8-bit integer.
+        if not value.isdigit() or int(value) < 0 or int(value) > 255:
+            raise InvalidArgument('Invalid value for field "{}". Valid value is from 0 to 255'.format(field_name))
+        value = int(value)
     else:
         raise InvalidDataFormat('Parser for value format "{}" for field {} is not yet implemented'.format(fmts[-1], field_name))
 

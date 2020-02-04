@@ -322,6 +322,7 @@ file_get() {
 # Usage: compile [file/dir] (log_file) (...args)
 compile() {
   local name=$1
+  [ -n "$name" ]
   local log_file=${2:-${name##*/}.log}
   type iconv >/dev/null
 
@@ -355,7 +356,7 @@ compile() {
   shopt -qo errexit; local errexit=$?; set +e
 
   # Run compiler.
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3}
+  WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
@@ -365,17 +366,19 @@ compile() {
     if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
       echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2;
     fi
-    if grep -B10 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
+    if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
       echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
       false
     fi
   fi
+  echo "${compiled_no}"
 }
 
 # Compile specified EA file.
 # Usage: compile_ea [EA/pattern] (log_file) (...args)
 compile_ea() {
   local name=${1:-$TEST_EXPERT}
+  [ -n "$name" ]
   local log_file=${2:-${name%.*}.log}
   local ea_path=$(ea_find "$name")
   local ea_dir=$(dirname "$ea_path")
@@ -384,14 +387,16 @@ compile_ea() {
   [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
   [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
   ea_path=$(ea_find "$name" .)
-  compile "$ea_path" "$log_file" ${@:3}
+  compiled_no="$(compile "$ea_path" "$log_file" ${@:3})"
   cd - &> /dev/null
+  echo "${compiled_no}"
 }
 
 # Compile specified script file.
 # Usage: compile_script [Script/pattern] (log_file) (...args)
 compile_script() {
   local name="${1:-$SCRIPT}"
+  [ -n "$name" ]
   local log_file=${2:-${name%.*}.log}
   local scr_path=$(script_find "$name")
   local scr_dir=$(dirname "$scr_path")
@@ -400,8 +405,9 @@ compile_script() {
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
   [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
   scr_path=$(script_find "$name" .)
-  compile "$scr_path" "$log_file" ${@:3}
+  compiled_no="$(compile "$scr_path" "$log_file" ${@:3})"
   cd - &> /dev/null
+  echo "${compiled_no}"
 }
 
 # Compile all in MQL4 folder.
@@ -418,7 +424,8 @@ compile_all() {
 # Usage: compile_and_test [EA/pattern] (args...)
 compile_and_test() {
   local name=${1:-$TEST_EXPERT}
-  compile_ea "$name"
+  compiled_no="$(compile_ea "$name")"
+  [ ${compiled_no} -gt 0 ]
   $CWD/run_backtest.sh -e "$@"
 }
 
@@ -1024,7 +1031,7 @@ set_digits() {
 add_url() {
   local url=$1
   [ -n "$url" ]
-  mt_modify -m "webRequestUrl=$url" -t "experts-ini" -f "$EXPERTS_INI"
+  mt_modify -m "webRequestUrl=$url" -m "webRequestUrlEnabled=1" -t "experts-ini" -f "$EXPERTS_INI"
 }
 
 # Set account leverage in FXT files.
