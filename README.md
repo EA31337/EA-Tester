@@ -73,9 +73,6 @@ to list available commands. Here is the list:
 # Install platform.
 # Usage: install_mt [ver/4/5/4.0.0.1010]
 --
-# Replaces MetaEditor with the specific version.
-# Usage: install_mteditor [ver/5.0.0.1804]
---
 # Configure virtual display and wine.
 # Usage: set_display
 --
