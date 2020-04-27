@@ -1,3 +1,5 @@
+# yamllint disable rule:line-length
+---
 dist: trusty
 language: generic
 sudo: required
@@ -7,40 +9,40 @@ services:
 addons:
   apt:
     packages:
-    - shellcheck
+      - shellcheck
 env:
   global:
-  - |
-    DOCKER_IMAGE=ea-tester
-    DOCKER_TAG=${DOCKER_TAG:-latest}
-    DOCKER_REPO=ea31337/$DOCKER_IMAGE:$DOCKER_TAG
-    PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
-    CWD="$TRAVIS_BUILD_DIR"
-    DOCKER_ARG="-e OPT_TRACE=$OPT_TRACE"
-    DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo ${TRAVIS_BRANCH////-})
-    WINETRICKS_DOWNLOADER_RETRIES=20
-  - secure: "waZbxfpNTIp/etY6lwR8GB+aSWDIw73tu6HxFdwVYdDJ/25SlY+gkJMCPqlpkjA1Aenv1I3TDDd/3dQIMYUeNbgIKOx6AtWkddnfTykqYYFJ4j6MlWPxZKaxDLjehLvjj0ZqkfXcswgXDaIoNnunKbLKiVohprLhO9Yg6I/j1LfzmPPGmFez2Mg2K0jFmri1i8prxpL4cctH0cR9NEZ+Lw13nDjY4b7AMoY6mzt6TFe9/yEt1OzYVGAh36hWgI1AL8h86cyDlUYHMRrzZjMKUGZFyOkkz3BRA6wvyOtjRhNlh2SIY+Y+HiwQaLONeQGpZ9YjNCUb+f5GIxXyEry9RV1oaMNIUnXNSQstUvgzy3QO2muD468KhfvPafpPj0gDHmfGEH+2IMcrz/WYNobsdN9JOjvPWutnxgYAzd27jwDIQ4D2WewZ3COgrRXxCAgwsOQKvlzDaFAOvPObOnCmIVsbOpONE3nSRGnrQpxJl0aaspoHLnVyKAUeCTAMhtSZirhWO+Iob9mhicB+9xEMRpxFnRD/FBUcSY/SyVlZjXxK9zIqn9t5KBK0iVZ10l/O5nV6sM7YfpAz8d4MqJDAGT05tKn/o2uDJtVvnl6szCIP5iQwsMUsQqQCuNPbmfm1V/q2ipjxLwiwOx2NRbSjFx3/5NnyXiIqehmvlfnfUjQ="
-  - secure: "oCTQnzDJX44mVNMpSutYkBWyi5hCoIRAvsDBWi/VAMBY7lFDiwbKQocCdorNlN/GBT8EISmyOlLGt78hjAIPckarbmPou5zIteIRuqaQ2xK1ShbseFAjpZaftOjljqE6ZoD5L6K5Ld0NQwiJqhBIQsv2cFwJY2706vl7Vgf/Kjn/B8/2OhPxgz8w+BpzBD+0z2JnBEpEON9wU8XeWXUzPKKYFHDHH/o839TgUjqPAaN4gU0XUrH1pygk3kdkHvC1lekoyevUePFaU6icwEPU6T7HGfw7ar+1OemzPzSQ5b/IG8U4NslUQQwjP8T4UfO964RuiJRnHVY0Y2FZZ/7XQHE5TBvh44XGuNAwhklQ4MBnz9rRpId4HMQKRaLKBGpjYeUqz/fCYDEoocRfQt3qqiPRoC/Z9yGnFy56B6iCx33MD5wzZDY3l0IBbwBK6iMrLcv5l2IYMyAIZUYmviwj18szkHr0ieyOAn+FGnnLy2ydDdYMHkwu1PVeI/nvXn78lyCHGs1aBssKiP1KK50przryb7Ti60xc2P9IAP8+NumZ8z6Onfl64XxwWIM4YicR+JZgDCZKN+ajGwIXqIzLsxj6eop0hll3XQvaYilOfDFj6UkDidZTWyhaYGdsW0JaD84r1OGpO9MwZQkSObuqWjgq4kf2qgtoA2WJMdQPDJg="
+    - |
+      DOCKER_IMAGE=ea-tester
+      DOCKER_TAG=${DOCKER_TAG:-latest}
+      DOCKER_REPO=ea31337/$DOCKER_IMAGE:$DOCKER_TAG
+      PATH=${PATH//:\.\/node_modules\/\.bin/} # Workaround for Travis issue #4862
+      CWD="$TRAVIS_BUILD_DIR"
+      DOCKER_ARG="-e OPT_TRACE=$OPT_TRACE"
+      DOCKER_TAG=$([[ "$TRAVIS_BRANCH" == "master" ]] && echo "latest" || echo ${TRAVIS_BRANCH////-})
+      WINETRICKS_DOWNLOADER_RETRIES=20
+    - secure: "waZbxfpNTIp/etY6lwR8GB+aSWDIw73tu6HxFdwVYdDJ/25SlY+gkJMCPqlpkjA1Aenv1I3TDDd/3dQIMYUeNbgIKOx6AtWkddnfTykqYYFJ4j6MlWPxZKaxDLjehLvjj0ZqkfXcswgXDaIoNnunKbLKiVohprLhO9Yg6I/j1LfzmPPGmFez2Mg2K0jFmri1i8prxpL4cctH0cR9NEZ+Lw13nDjY4b7AMoY6mzt6TFe9/yEt1OzYVGAh36hWgI1AL8h86cyDlUYHMRrzZjMKUGZFyOkkz3BRA6wvyOtjRhNlh2SIY+Y+HiwQaLONeQGpZ9YjNCUb+f5GIxXyEry9RV1oaMNIUnXNSQstUvgzy3QO2muD468KhfvPafpPj0gDHmfGEH+2IMcrz/WYNobsdN9JOjvPWutnxgYAzd27jwDIQ4D2WewZ3COgrRXxCAgwsOQKvlzDaFAOvPObOnCmIVsbOpONE3nSRGnrQpxJl0aaspoHLnVyKAUeCTAMhtSZirhWO+Iob9mhicB+9xEMRpxFnRD/FBUcSY/SyVlZjXxK9zIqn9t5KBK0iVZ10l/O5nV6sM7YfpAz8d4MqJDAGT05tKn/o2uDJtVvnl6szCIP5iQwsMUsQqQCuNPbmfm1V/q2ipjxLwiwOx2NRbSjFx3/5NnyXiIqehmvlfnfUjQ="
+    - secure: "oCTQnzDJX44mVNMpSutYkBWyi5hCoIRAvsDBWi/VAMBY7lFDiwbKQocCdorNlN/GBT8EISmyOlLGt78hjAIPckarbmPou5zIteIRuqaQ2xK1ShbseFAjpZaftOjljqE6ZoD5L6K5Ld0NQwiJqhBIQsv2cFwJY2706vl7Vgf/Kjn/B8/2OhPxgz8w+BpzBD+0z2JnBEpEON9wU8XeWXUzPKKYFHDHH/o839TgUjqPAaN4gU0XUrH1pygk3kdkHvC1lekoyevUePFaU6icwEPU6T7HGfw7ar+1OemzPzSQ5b/IG8U4NslUQQwjP8T4UfO964RuiJRnHVY0Y2FZZ/7XQHE5TBvh44XGuNAwhklQ4MBnz9rRpId4HMQKRaLKBGpjYeUqz/fCYDEoocRfQt3qqiPRoC/Z9yGnFy56B6iCx33MD5wzZDY3l0IBbwBK6iMrLcv5l2IYMyAIZUYmviwj18szkHr0ieyOAn+FGnnLy2ydDdYMHkwu1PVeI/nvXn78lyCHGs1aBssKiP1KK50przryb7Ti60xc2P9IAP8+NumZ8z6Onfl64XxwWIM4YicR+JZgDCZKN+ajGwIXqIzLsxj6eop0hll3XQvaYilOfDFj6UkDidZTWyhaYGdsW0JaD84r1OGpO9MwZQkSObuqWjgq4kf2qgtoA2WJMdQPDJg="
   matrix:
-  - CMD="docker-compose run RunHelp; scripts/eval.sh help; scripts/run_backtest.sh -?"
-  - CMD="sudo scripts/provision.sh"
-  - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
-# - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG && docker run ea-tester:$DOCKER_TAG install_mt 5" # @fixme
-  - CMD="for task in TestSyntaxVagrantfile TestSyntaxBash TestSyntaxShellcheck; do docker-compose run $DOCKER_ARG \$task; done"
-  - CMD="docker-compose run $DOCKER_ARG RunCompileMql"
-  - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
-  - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"
-  - CMD="docker-compose run $DOCKER_ARG TestLotstep4"
-# - CMD="docker-compose run $DOCKER_ARG TestLotstep5" # @fixme: GH-164
-  - CMD="docker-compose run $DOCKER_ARG TestTimeframes"
-  - CMD="docker-compose run $DOCKER_ARG TestBands"
-  - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
-  - CMD="docker-compose run $DOCKER_ARG TestModellingQuality"
-# - CMD="docker-compose run $DOCKER_ARG RunInstallMt4" # @fixme
-# - CMD="docker-compose run $DOCKER_ARG RunInstallMt4x" # @fixme
-# - CMD="docker-compose run $DOCKER_ARG RunInstallMt5" # @fixme
-  - CMD="docker-compose run $DOCKER_ARG BtDataGet_N0"
-  - CMD="docker-compose run $DOCKER_ARG DockerLargeFiles"
+    - CMD="docker-compose run RunHelp; scripts/eval.sh help; scripts/run_backtest.sh -?"
+    - CMD="sudo scripts/provision.sh"
+    - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG; [[ '$TRAVIS_PULL_REQUEST' = 'false' ]] && make docker-push DOCKER_TAG=$DOCKER_TAG || true"
+    # - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG && docker run ea-tester:$DOCKER_TAG install_mt 5" # @fixme
+    - CMD="for task in TestSyntaxVagrantfile TestSyntaxBash TestSyntaxShellcheck; do docker-compose run $DOCKER_ARG \$task; done"
+    - CMD="docker-compose run $DOCKER_ARG RunCompileMql"
+    - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
+    - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"
+    - CMD="docker-compose run $DOCKER_ARG TestLotstep4"
+    # - CMD="docker-compose run $DOCKER_ARG TestLotstep5" # @fixme: GH-164
+    - CMD="docker-compose run $DOCKER_ARG TestTimeframes"
+    - CMD="docker-compose run $DOCKER_ARG TestBands"
+    - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
+    - CMD="docker-compose run $DOCKER_ARG TestModellingQuality"
+    # - CMD="docker-compose run $DOCKER_ARG RunInstallMt4" # @fixme
+    # - CMD="docker-compose run $DOCKER_ARG RunInstallMt4x" # @fixme
+    # - CMD="docker-compose run $DOCKER_ARG RunInstallMt5" # @fixme
+    - CMD="docker-compose run $DOCKER_ARG BtDataGet_N0"
+    - CMD="docker-compose run $DOCKER_ARG DockerLargeFiles"
 
 # Tests which suppose to be working in older versions only.
 # - TEST_ARGS="-v -t -d 1000 -p EURUSD -m 1-12 -y 2015 -S 10 -b DS -D5 -e TestFXTHeader -M4.0.0.971 -R"
@@ -58,30 +60,30 @@ notifications:
     on_failure: always
     on_start: never
 before_install:
-- ulimit -a && free -m
-- chmod 777 $HOME/.cache
+  - ulimit -a && free -m
+  - chmod 777 $HOME/.cache
 install:
-- make docker-load
+  - make docker-load
 before_script:
-- docker --version && docker-compose --version
-- docker info
-- docker images
+  - docker --version && docker-compose --version
+  - docker info
+  - docker images
 script:
-- set -e
-- echo $CMD
-- eval $CMD
+  - set -e
+  - echo $CMD
+  - eval $CMD
 after_script:
-- set +x
+  - set +x
 after_success:
 after_failure:
-- bash -x "$CWD"/scripts/.vars.inc.sh
-- docker history -H --no-trunc $DOCKER_REPO
-- docker-compose logs
+  - bash -x "$CWD"/scripts/.vars.inc.sh
+  - docker history -H --no-trunc $DOCKER_REPO
+  - docker-compose logs
 cache:
   apt: true
   pip: true
   directories:
-  - /var/cache
-  - /var/lib/docker
-  - $HOME/.cache
-  - $HOME/.docker
+    - /var/cache
+    - /var/lib/docker
+    - $HOME/.cache
+    - $HOME/.docker
