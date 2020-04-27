@@ -30,14 +30,6 @@ env:
     # - CMD="make docker-ci DOCKER_TAG=$DOCKER_TAG && docker run ea-tester:$DOCKER_TAG install_mt 5" # @fixme
     - CMD="for task in TestSyntaxVagrantfile TestSyntaxBash TestSyntaxShellcheck; do docker-compose run $DOCKER_ARG \$task; done"
     - CMD="docker-compose run $DOCKER_ARG RunCompileMql"
-    - CMD="docker-compose run $DOCKER_ARG ScriptPrintPaths"
-    - CMD="docker-compose run $DOCKER_ARG TestHSTHeader; docker-compose run TestFXTHeader"
-    - CMD="docker-compose run $DOCKER_ARG TestLotstep4"
-    # - CMD="docker-compose run $DOCKER_ARG TestLotstep5" # @fixme: GH-164
-    - CMD="docker-compose run $DOCKER_ARG TestTimeframes"
-    - CMD="docker-compose run $DOCKER_ARG TestBands"
-    - CMD="docker-compose run $DOCKER_ARG TestEnvelopes"
-    - CMD="docker-compose run $DOCKER_ARG TestModellingQuality"
     # - CMD="docker-compose run $DOCKER_ARG RunInstallMt4" # @fixme
     # - CMD="docker-compose run $DOCKER_ARG RunInstallMt4x" # @fixme
     # - CMD="docker-compose run $DOCKER_ARG RunInstallMt5" # @fixme

@@ -1,0 +1,60 @@
+---
+name: Tests
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  Tests-MT4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run ScriptPrintPaths
+        working-directory: tests
+        run: docker-compose run ScriptPrintPaths
+      - name: Run TestBands
+        working-directory: tests
+        run: docker-compose run TestBands
+      - name: Run TestEnvelopes
+        working-directory: tests
+        run: docker-compose run TestEnvelopes
+      - name: Run TestFXTHeader
+        working-directory: tests
+        run: docker-compose run TestFXTHeader
+      - name: Run TestHSTHeader
+        working-directory: tests
+        run: docker-compose run TestHSTHeader
+      - name: Run TestLeverage
+        working-directory: tests
+        run: docker-compose run TestLeverage || true @fixme
+      - name: Run TestLotstep4
+        working-directory: tests
+        run: docker-compose run TestLotstep4
+      - name: Run TestLotstep5
+        working-directory: tests
+        run: docker-compose run TestLotstep5 || true @fixme GH-164
+      - name: Run TestMargin
+        working-directory: tests
+        run: docker-compose run TestMargin || true @fixme
+      - name: Run TestModellingQuality
+        working-directory: tests
+        run: docker-compose run TestModellingQuality
+      - name: Run TestSpread
+        working-directory: tests
+        run: docker-compose run TestSpread || true @fixme
+      - name: Run TestSymbolsRaw
+        working-directory: tests
+        run: docker-compose run TestSymbolsRaw || true @fixme
+      - name: Run TestSymbolsSel
+        working-directory: tests
+        run: docker-compose run TestSymbolsRaw || true @fixme
+      - name: Run TestSymgroupsRaw
+        working-directory: tests
+        run: docker-compose run TestSymgroupsRaw || true @fixme
+      - name: Run TestTicksRaw
+        working-directory: tests
+        run: docker-compose run TestTicksRaw || true @fixme
+      - name: Run TestTimeframes
+        working-directory: tests
+        run: docker-compose run TestTimeframes
