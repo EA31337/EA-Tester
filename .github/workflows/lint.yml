@@ -14,6 +14,7 @@ jobs:
   ShellCheck:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: Shell Check
         uses: luizm/action-sh-checker@v0.1.3
         env:
