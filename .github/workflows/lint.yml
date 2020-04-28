@@ -15,9 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Shell Check
-        uses: azohra/shell-linter@v0.3.0
-        with:
-          path: "scripts"
+        uses: bewuethr/shellcheck-action@v2
         env:
           SHELLCHECK_OPTS: >
             -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027
