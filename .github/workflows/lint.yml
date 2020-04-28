@@ -33,5 +33,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Check syntax
-        run: docker-compose run TestSyntax
+      - name: Run RunCompileMql
+        run: docker-compose run RunCompileMql
+      - name: Run TestSyntaxBash
+        run: docker-compose run TestSyntaxBash
+      - name: Run TestSyntaxShellcheck
+        run: docker-compose run TestSyntaxShellcheck
+      - name: Run TestSyntaxVagrantfile
+        run: docker-compose run TestSyntaxVagrantfile
