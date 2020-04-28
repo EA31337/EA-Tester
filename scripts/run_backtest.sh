@@ -43,11 +43,11 @@ on_success() {
   fi
   while getopts $ARGS arg; do
     case $arg in
-      X) # Invoke file on exit after the successful test.
-        echo "Invoking script file after test..." >&2
-        . "$OPTARG"
-        ;;
-      esac
+    X) # Invoke file on exit after the successful test.
+      echo "Invoking script file after test..." >&2
+      . "$OPTARG"
+      ;;
+    esac
   done
   # Set exit status to 0.
   exit_status=0
@@ -61,11 +61,17 @@ on_failure() {
 
   if [ -n "$TEST_REPORT_BASE" ]; then
     TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*.htm" -print -quit)
-    test -f "$TEST_REPORT_HTM" && { on_success $@; return; }
+    test -f "$TEST_REPORT_HTM" && {
+      on_success $@
+      return
+    }
   elif [ -z "$TEST_EXPERT" -a -n "$SCRIPT" ]; then
     # Report success when script was run and platform killed.
     log_file="$(find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
-    grep -w -C1 "uninit reason 0" "$log_file" && { on_success $@; return; }
+    grep -w -C1 "uninit reason 0" "$log_file" && {
+      on_success $@
+      return
+    }
   fi
 
   # Invoke custom code on failure.
@@ -176,30 +182,33 @@ parse_results() {
 }
 
 # Show usage on no arguments.
-[ $# -eq 0 ] && { usage; exit 0; }
+[ $# -eq 0 ] && {
+  usage
+  exit 0
+}
 
 # Parse the initial arguments.
 while getopts $ARGS arg; do
   case ${arg} in
 
-    \?) # Display help.
-      usage
-      exit 0
-      ;;
+  \?) # Display help.
+    usage
+    exit 0
+    ;;
 
-    v) # Verbose mode.
-      OPT_VERBOSE=true
-      VFLAG="-v"
-      VPRINT="-print"
-      VDD="noxfer"
-      # EX_ARGS="-V1" # @see: https://github.com/vim/vim/issues/919
-      type html2text sed >/dev/null
-      ;;
+  v) # Verbose mode.
+    OPT_VERBOSE=true
+    VFLAG="-v"
+    VPRINT="-print"
+    VDD="noxfer"
+    # EX_ARGS="-V1" # @see: https://github.com/vim/vim/issues/919
+    type html2text sed >/dev/null
+    ;;
 
-    x) # Run the script in debug mode.
-      OPT_TRACE=1
-      set -x
-      ;;
+  x) # Run the script in debug mode.
+    OPT_TRACE=1
+    set -x
+    ;;
 
   esac
 done
@@ -224,8 +233,8 @@ if [ -f "$TERMINAL_EXE" ]; then
   check_dirs
 else
   [ -n "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
-  echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2;
-  exit 1;
+  echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2
+  exit 1
 fi
 
 # Re-load variables.
@@ -245,58 +254,58 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-    b) # Source of backtest data to test.
-      BT_SRC=${OPTARG}
-      ;;
+  b) # Source of backtest data to test.
+    BT_SRC=${OPTARG}
+    ;;
 
-    B) # Specify early booting file.
-      # @fixme: Won't work for paths with spaces.
-      INCLUDE_BOOT+=("${OPTARG}")
-      ;;
+  B) # Specify early booting file.
+    # @fixme: Won't work for paths with spaces.
+    INCLUDE_BOOT+=("${OPTARG}")
+    ;;
 
-    C) # Clear previous backtest data files.
-      clean_bt
-      ;;
+  C) # Clear previous backtest data files.
+    clean_bt
+    ;;
 
-    e) # EA name (TestExpert).
-      TEST_EXPERT=${OPTARG}
-      ;;
+  e) # EA name (TestExpert).
+    TEST_EXPERT=${OPTARG}
+    ;;
 
-    E) # EA name (Expert).
-      EXPERT=${OPTARG}
-      ;;
+  E) # EA name (Expert).
+    EXPERT=${OPTARG}
+    ;;
 
-    f) # The .set file to run the test.
-      SETFILE="$(eval echo "$OPTARG")"
-      ;;
+  f) # The .set file to run the test.
+    SETFILE="$(eval echo "$OPTARG")"
+    ;;
 
-    I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
-      TEST_OPTS=${OPTARG}
-      ;;
+  I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
+    TEST_OPTS=${OPTARG}
+    ;;
 
-    m) # Which months to test (default: 1-12).
-      BT_MONTHS=${OPTARG}
-      ;;
+  m) # Which months to test (default: 1-12).
+    BT_MONTHS=${OPTARG}
+    ;;
 
-    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-      MT_VER=${OPTARG:-4.0.0.1010}
-      type unzip >/dev/null
-      install_mt $MT_VER
-      . "$CWD"/.vars.inc.sh # Reload variables.
-      check_dirs
-      ;;
+  M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
+    MT_VER=${OPTARG:-4.0.0.1010}
+    type unzip >/dev/null
+    install_mt $MT_VER
+    . "$CWD"/.vars.inc.sh # Reload variables.
+    check_dirs
+    ;;
 
-    p) # Symbol pair to test (e.g. EURUSD).
-      BT_SYMBOL=${OPTARG}
-      ;;
+  p) # Symbol pair to test (e.g. EURUSD).
+    BT_SYMBOL=${OPTARG}
+    ;;
 
-    s) # Script to run.
-      SCRIPT=${OPTARG}
-      ;;
+  s) # Script to run.
+    SCRIPT=${OPTARG}
+    ;;
 
-    y) # Year to test (e.g. 2017, 2018, 2011-2015).
-      BT_YEARS=${OPTARG}
-      ;;
+  y) # Year to test (e.g. 2017, 2018, 2011-2015).
+    BT_YEARS=${OPTARG}
+    ;;
 
   esac
 done
@@ -339,7 +348,10 @@ if [ -n "$TEST_EXPERT" ]; then
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
-  [ -f "$EA_PATH" ] || { echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2; exit 1; }
+  [ -f "$EA_PATH" ] || {
+    echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2
+    exit 1
+  }
   if [ "${EA_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
     ea_copy "$EA_PATH"
@@ -353,7 +365,10 @@ elif [ -n "$EXPERT" ]; then
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EXPERT")
   echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
-  [ -f "$EA_PATH" ] || { echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2; exit 1; }
+  [ -f "$EA_PATH" ] || {
+    echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2
+    exit 1
+  }
   if [ "${EA_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
     ea_copy "$EA_PATH"
@@ -367,7 +382,10 @@ elif [ -n "$SCRIPT" ]; then
   cd "$SCRIPTS_DIR"
   SCR_PATH=$(script_find "$SCRIPT")
   echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
-  [ -f "$SCR_PATH" ] || { echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2; exit 1; }
+  [ -f "$SCR_PATH" ] || {
+    echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2
+    exit 1
+  }
   if [ "${SCR_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
     script_copy "$SCR_PATH"
@@ -387,7 +405,7 @@ else
 fi
 if [ -n "$BT_END_DATE" ]; then
   echo "Configuring end test period ($BT_END_DATE)..." >&2
-  ini_set "^TestToDate"   "$BT_END_DATE" "$TESTER_INI"
+  ini_set "^TestToDate" "$BT_END_DATE" "$TESTER_INI"
 else
   BT_END_DATE="$(ini_get TestToDate)"
   if [[ "${BT_YEARS[0]}" != "${BT_END_DATE%%.*}" ]]; then
@@ -414,9 +432,13 @@ fi
 
 if [ -n "$TEST_OPTS" ]; then
   echo "Applying tester settings ($TEST_OPTS)..." >&2
-  IFS=','; test_options=($TEST_OPTS); restore_ifs
+  IFS=','
+  test_options=($TEST_OPTS)
+  restore_ifs
   for opt_pair in "${test_options[@]}"; do
-    IFS='='; test_option=($opt_pair); restore_ifs
+    IFS='='
+    test_option=($opt_pair)
+    restore_ifs
     ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
   done
 fi
@@ -437,7 +459,11 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   echo "Specified SET file via -f param does not exist ($SETFILE), exporting from EA ..." >&2
   exported_setfile=${TEST_EXPERT:-$EXPERT}
   exported_setfile=$(export_set "${exported_setfile##*/}" "$(basename "$SETFILE")")
-  [ ! -s "$TESTER_DIR/$exported_setfile" ] && { echo "ERROR: Export of SET file failed!" >&2; ls "$TESTER_DIR"/*.set; exit 1; }
+  [ ! -s "$TESTER_DIR/$exported_setfile" ] && {
+    echo "ERROR: Export of SET file failed!" >&2
+    ls "$TESTER_DIR"/*.set
+    exit 1
+  }
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
 if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
@@ -460,115 +486,118 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-    b) ;; # Already parsed.
-    B) ;; # Already parsed.
+  b) ;; # Already parsed.
+  B) ;; # Already parsed.
 
-    c) # Base currency for test (e.g. USD).
-      BT_CURRENCY=${OPTARG}
-      ;;
+  c) # Base currency for test (e.g. USD).
+    BT_CURRENCY=${OPTARG}
+    ;;
 
-    C) ;; # Already parsed.
+  C) ;; # Already parsed.
 
-    d) # Deposit amount to test (e.g. 2000).
-      BT_DEPOSIT=${OPTARG}
-      ;;
+  d) # Deposit amount to test (e.g. 2000).
+    BT_DEPOSIT=${OPTARG}
+    ;;
 
-    D) # Specify market digits.
-      BT_DIGITS=${OPTARG}
-      ;;
+  D) # Specify market digits.
+    BT_DIGITS=${OPTARG}
+    ;;
 
-    F) # Convert test report file to full detailed text format.
-      type html2text sed >/dev/null
-      OPT_FORMAT_FULL=1
-      ;;
+  F) # Convert test report file to full detailed text format.
+    type html2text sed >/dev/null
+    OPT_FORMAT_FULL=1
+    ;;
 
-    g) # Post results to Gist.
-      type gist pup >/dev/null
-      OPT_GIST=true
-      OPT_FORMAT_BRIEF=true
-      OPT_FORMAT_JSON=true
-      ;;
+  g) # Post results to Gist.
+    type gist pup >/dev/null
+    OPT_GIST=true
+    OPT_FORMAT_BRIEF=true
+    OPT_FORMAT_JSON=true
+    ;;
 
-    G) # Enhances graph.
-      type convert >/dev/null
-      OPT_GIF_ENHANCE=1
-      ;;
+  G) # Enhances graph.
+    type convert >/dev/null
+    OPT_GIF_ENHANCE=1
+    ;;
 
-    i) # Invoke file with custom rules.
-      INCLUDE+=("${OPTARG}")
-      ;;
+  i) # Invoke file with custom rules.
+    INCLUDE+=("${OPTARG}")
+    ;;
 
-    j) # Convert test report file to JSON format.
-      type pup paste >/dev/null
-      OPT_FORMAT_JSON=1
-      ;;
+  j) # Convert test report file to JSON format.
+    type pup paste >/dev/null
+    OPT_FORMAT_JSON=1
+    ;;
 
-    l) # Lot step.
-      BT_LOTSTEP=${OPTARG}
-      ;;
+  l) # Lot step.
+    BT_LOTSTEP=${OPTARG}
+    ;;
 
-    L) # Common/limit test parameters (e.g. genetic=0, maxdrawdown=20.00).
-      EA_OPTS=${OPTARG}
-      ;;
+  L) # Common/limit test parameters (e.g. genetic=0, maxdrawdown=20.00).
+    EA_OPTS=${OPTARG}
+    ;;
 
-    o) # Run optimization test.
-      OPT_OPTIMIZATION=true
-      ;;
+  o) # Run optimization test.
+    OPT_OPTIMIZATION=true
+    ;;
 
-    O) # Output directory to save the test results.
-      BT_DEST=${OPTARG}
-      ;;
+  O) # Output directory to save the test results.
+    BT_DEST=${OPTARG}
+    ;;
 
-    P) # Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
-      SET_OPTS=${OPTARG}
-      ;;
+  P) # Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+    SET_OPTS=${OPTARG}
+    ;;
 
-    r) # The name of the test report file.
-      TEST_REPORT_NAME="tester/$(basename "${OPTARG}")"
-      ;;
+  r) # The name of the test report file.
+    TEST_REPORT_NAME="tester/$(basename "${OPTARG}")"
+    ;;
 
-    R) # Set files to read-only.
-      set_read_perms
-      ;;
+  R) # Set files to read-only.
+    set_read_perms
+    ;;
 
-    S) # Spread to test.
-      BT_SPREAD=${OPTARG}
-      ;;
+  S) # Spread to test.
+    BT_SPREAD=${OPTARG}
+    ;;
 
-    t) # Convert test report file into brief text format.
-      type html2text >/dev/null
-      OPT_FORMAT_BRIEF=true
-      ;;
+  t) # Convert test report file into brief text format.
+    type html2text >/dev/null
+    OPT_FORMAT_BRIEF=true
+    ;;
 
-    T) # Timeframe to test.
-      BT_PERIOD=${OPTARG}
-      ;;
+  T) # Timeframe to test.
+    BT_PERIOD=${OPTARG}
+    ;;
 
-    X)
-      echo "Checking whether after test script exists..." >&2
-      [ -f "$OPTARG" ] || { echo "ERROR: Script specified by -X parameter does no exist." >&2; exit 1; }
-      ;;
+  X)
+    echo "Checking whether after test script exists..." >&2
+    [ -f "$OPTARG" ] || {
+      echo "ERROR: Script specified by -X parameter does no exist." >&2
+      exit 1
+    }
+    ;;
 
-    v) # Enables verbose mode.
-      OPT_VERBOSE=true
-      ;;
+  v) # Enables verbose mode.
+    OPT_VERBOSE=true
+    ;;
 
-    V) # Enables visual mode.
-      VISUAL_MODE=true
-      ;;
+  V) # Enables visual mode.
+    VISUAL_MODE=true
+    ;;
 
-    _) # Dry run.
-      OPT_DRY_RUN=true
-      ;;
+  _) # Dry run.
+    OPT_DRY_RUN=true
+    ;;
 
     # Placeholders for parameters used somewhere else.
-    ( b | B | C | e | E | f | I | m | M | p | s | x | y ) ;;
+  b | B | C | e | E | f | I | m | M | p | s | x | y) ;;
 
-    *)
-      echo "Args: $@" >&2
-      usage
-      exit 1
-      ;;
+  *)
+    echo "Args: $@" >&2
+    usage
+    exit 1
+    ;;
 
   esac
 done
@@ -598,9 +627,13 @@ fi
 if [ -n "$EA_OPTS" ]; then
   echo "Applying EA backtest settings ($EA_OPTS)..." >&2
   [ -f "$EA_INI" ]
-  IFS=','; ea_options=($EA_OPTS); restore_ifs
+  IFS=','
+  ea_options=($EA_OPTS)
+  restore_ifs
   for opt_pair in "${ea_options[@]}"; do
-    IFS='='; ea_option=($opt_pair); restore_ifs
+    IFS='='
+    ea_option=($opt_pair)
+    restore_ifs
     ini_set_ea "${ea_option[0]}" "${ea_option[1]}"
   done
 fi
@@ -608,15 +641,19 @@ if [ -n "$SET_OPTS" ]; then
   echo "Setting EA options ($SET_OPTS)..." >&2
   if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     # Append settings into the SET file.
-    IFS=','; set_options=($SET_OPTS); restore_ifs
+    IFS=','
+    set_options=($SET_OPTS)
+    restore_ifs
     for set_pair in "${set_options[@]}"; do
-      IFS='='; set_option=($set_pair); restore_ifs
+      IFS='='
+      set_option=($set_pair)
+      restore_ifs
       input_set "${set_option[0]}" "${set_option[1]}"
       ini_set_ea "${set_option[0]}" "${set_option[1]}"
     done
   else
     # Create a new SET file if does not exist.
-    tr , "\n" <<<$SET_OPTS > "$TESTER_DIR/$EA_SETFILE"
+    tr , "\n" <<<$SET_OPTS >"$TESTER_DIR/$EA_SETFILE"
   fi
   if [ -n "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
@@ -744,12 +781,15 @@ fi
 
 # Final checks.
 if [ -n "$TEST_EXPERT" ]; then
-  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
-    || { echo "ERROR: Missing backtest data files." >&2; exit 1; }
+  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] ||
+    {
+      echo "ERROR: Missing backtest data files." >&2
+      exit 1
+    }
 fi
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
-  echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2;
+  echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2
   exit 1
 fi
 
@@ -792,7 +832,7 @@ fi
 echo "Starting..." >&2
 {
   time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
-} 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
+} 2>>"$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@

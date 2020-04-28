@@ -16,8 +16,8 @@ echo "Installing winhttp..." >&2
 winetricks -q winhttp
 
 echo "Downloading MT4 installer..." >&2
-[ ! -f "$HOME/$EXEFILE" ] \
-  && wget -O "$HOME/$EXEFILE" -ct3 --content-disposition "${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}"
+[ ! -f "$HOME/$EXEFILE" ] &&
+  wget -O "$HOME/$EXEFILE" -ct3 --content-disposition "${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}"
 [ -f "$HOME/$EXEFILE" ]
 
 # Prints information of the window status in the background.
