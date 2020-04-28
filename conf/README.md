@@ -19,6 +19,7 @@ Genetic algorїthm (`genetic`):
 - 1 = Enable
 
 Positions (positions):
+
 - 0 = Long
 - 1 = Short
 - 2 = Long & Short
