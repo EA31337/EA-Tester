@@ -25,3 +25,4 @@ jobs:
             -e SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230
         with:
           sh_checker_comment: true
+          sh_checker_shfmt_disable: true
