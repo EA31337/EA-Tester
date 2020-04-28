@@ -6,9 +6,16 @@ Headless VM backtesting for MT4 platform under Linux.
 
 | Type            | Status      |
 | --------------: |:-----------:|
-| Travis CI build | [![Build Status](https://api.travis-ci.org/EA31337/EA-Tester.svg?branch=master)](https://travis-ci.org/EA31337/EA-Tester) |
-| AppVeyor build  | [![Build status](https://ci.appveyor.com/api/projects/status/r4g7ughqovcv5ph5/branch/master?svg=true)](https://ci.appveyor.com/project/kenorb/ea-tester) |
-| Docker build    | [![Docker build](https://images.microbadger.com/badges/image/ea31337/ea-tester.svg)](https://microbadger.com/images/ea31337/ea-tester "Docker build") |
+| Travis CI build | [![Build Status][travis-ci-build-image-master]][travis-ci-build-link] |
+| AppVeyor build  | [![Build status][appveyor-ci-build-link]][appveyor-ci-build-image] |
+| Docker build    | [![Docker build][docker-build-image]][docker-build-link] |
+
+[travis-ci-build-link]: https://travis-ci.org/EA31337/EA-Tester
+[travis-ci-build-image-master]: https://api.travis-ci.org/EA31337/EA-Tester.svg?branch=master
+[appveyor-ci-build-link]: https://ci.appveyor.com/api/projects/status/r4g7ughqovcv5ph5/branch/master?svg=true
+[appveyor-ci-build-image]: https://ci.appveyor.com/project/kenorb/ea-tester
+[docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
+[docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
 
 ## Usage
 
