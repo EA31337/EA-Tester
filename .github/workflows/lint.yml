@@ -22,6 +22,13 @@ jobs:
             -e SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086
             -e SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162
             -e SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230
+  MQL:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: DoozyX/clang-format-lint-action@v0.5
+        with:
+          extensions: 'h'
   Syntax:
     runs-on: ubuntu-latest
     steps:
