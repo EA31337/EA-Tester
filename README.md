@@ -1,3 +1,5 @@
+<!-- markdownlint-configure-file { "MD013": { "line_length": 120 } } -->
+
 # About
 
 Headless VM backtesting for MT4 platform under Linux.
