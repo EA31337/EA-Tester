@@ -1,8 +1,8 @@
-## MT4
+# MT4
 
-### ea.ini
+## ea.ini
 
-#### Testing
+### Testing
 
 Optimized parameter (`fitnes`):
 
