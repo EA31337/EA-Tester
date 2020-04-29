@@ -36,7 +36,7 @@ clean_traps() {
 # Install filever
 install_support_tools() {
   type wget cabextract install wine >/dev/null
-  wine filever > /dev/null && return
+  wine filever >/dev/null && return
   local tools_url="https://github.com/EA31337/EA-Tester/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
   echo "Installing support tools..." >&2
@@ -46,14 +46,16 @@ install_support_tools() {
   cabextract -F filever.exe *.cab
   install -v filever.exe ~/.wine/drive_c/windows
   rm -fr "$dtmp"
-  cd - &> /dev/null
+  cd - &>/dev/null
 }
 
 # Join string by delimiter (see: http://stackoverflow.com/a/17841619).
 join_by() {
-  local d=$1; shift;
-  echo -n "$1"; shift;
-  printf "%s" "${@/#/$d}";
+  local d=$1
+  shift
+  echo -n "$1"
+  shift
+  printf "%s" "${@/#/$d}"
 }
 
 # Check required files.
@@ -75,8 +77,7 @@ check_dirs() {
     "$LOG_DIR" \
     "$SCRIPTS_DIR" \
     "$TESTER_DIR" \
-    "$TICKDATA_DIR"
-  do
+    "$TICKDATA_DIR"; do
     [ -d "$dir" ] || mkdir $args "$dir"
   done
 }
@@ -94,13 +95,13 @@ get_time() {
 # Get the max of two values.
 # Usage: get_min (int) (int)
 get_min() {
-  echo $(( $1 < ${2:-0} ? $1 : ${2:-0} ))
+  echo $(($1 < ${2:-0} ? $1 : ${2:-0}))
 }
 
 # Get the max of two values.
 # Usage: get_max (int) (int)
 get_max() {
-  echo $(( $1 > ${2:-0} ? $1 : ${2:-0} ))
+  echo $(($1 > ${2:-0} ? $1 : ${2:-0}))
 }
 
 # Check logs for errors.
@@ -192,7 +193,10 @@ write_data() {
   local value="$2" # In hex format.
   local offset="$3"
   local len="${4:-1}"
-  local writable=$(test -w "$file"; echo $?)
+  local writable=$(
+    test -w "$file"
+    echo $?
+  )
   [ -s "$file" ]
   [ -n "$value" ]
   [ -n "$offset" ]
@@ -259,7 +263,8 @@ restore_ifs() {
 
 # Show simple stack trace.
 show_trace() {
-  while caller $((n++)); do :; done; >&2
+  while caller $((n++)); do :; done
+  >&2
 }
 
 # Check logs in real-time and kill platform on pattern match.
@@ -288,15 +293,18 @@ kill_on_match() {
 # Usage: kill_jobs
 kill_jobs() {
   kill_wine
-  sleep 10 & # Run dummy process.
+  sleep 10 &# Run dummy process.
   # Kill any remaining background jobs.
-  kill $(jobs -p) 2> /dev/null || true
+  kill $(jobs -p) 2>/dev/null || true
 }
 
 # Kill the currently running wineserver.
 # Usage: kill_wine
 kill_wine() {
-  type wineserver &>/dev/null || { true; return; }
+  type wineserver &>/dev/null || {
+    true
+    return
+  }
   wineserver -k || true
 }
 

@@ -23,7 +23,7 @@ set_opt_params() {
 # Disables optimization params
 # Usage: dis_opt_params [param]
 dis_opt_params() {
-  input_set ^"$1",F 0       # Off.
+  input_set ^"$1",F 0 # Off.
 }
 
 # Set input value in the SET file.
@@ -72,7 +72,7 @@ input_copy() {
     retries=5
     while ! ex +"%s/\\s${key}[^=]=[^0-9]\\zs[^;]\\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
       sleep 1
-      ((retries-=1))
+      ((retries -= 1))
       echo "Retrying ($retries left)..." >&2
       [ $retries -le 0 ] && break
     done
@@ -87,13 +87,16 @@ export_set() {
   local ea_path=$name
   ahk_path="$(winepath -w "$SCR"/ahk/export_set.ahk)"
   [ ! -s "$name" ] && ea_path=$(ea_find "${name##/}")
-  [ ! -f "$EXPERTS_DIR/$ea_path" ] && { echo "Error: Cannot find EA: ${name}!" >&2; return; }
+  [ ! -f "$EXPERTS_DIR/$ea_path" ] && {
+    echo "Error: Cannot find EA: ${name}!" >&2
+    return
+  }
   [[ "$ea_path" =~ 'mq' ]] && compile_ea "$name" >&2
   set_display >&2
   ini_set "^Expert" "$(basename "${ea_path/\//\\\\}" ."${ea_path##*.}")" "$TERMINAL_INI"
   WINEPATH="$(winepath -w "$TERMINAL_DIR");C:\\Apps\\AHK" \
-  timeout 60 \
-  wine AutoHotkey /ErrorStdOut "$ahk_path" "${dstfile}" "${@:3}"
+    timeout 60 \
+    wine AutoHotkey /ErrorStdOut "$ahk_path" "${dstfile}" "${@:3}"
   [ -n "$OPT_VERBOSE" ] && times >&2
   echo "${dstfile}"
 }
