@@ -1,0 +1,23 @@
+---
+name: Tests-Shell
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  Tests-Scripts:
+    runs-on: ubuntu-latest
+    container:
+      image: ea31337/ea-tester:dev
+      volumes:
+        - ${{ github.workspace }}/scripts/tests:/opt/scripts
+    steps:
+      - run: pwd
+      - run: tree
+      - run: id
+      - run: ls -la /opt/scripts
+      # @fixme
+      # - name: Test .vars.inc.sh file
+      # # working-directory: /opt/scripts/tests
+      # run: /opt/scripts/tests/test_vars.sh
