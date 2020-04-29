@@ -1,8 +1,8 @@
-## MT4
+# MT4
 
-### ea.ini
+## ea.ini
 
-#### Testing
+### Testing
 
 Optimized parameter (`fitnes`):
 
@@ -19,6 +19,7 @@ Genetic algorїthm (`genetic`):
 - 1 = Enable
 
 Positions (positions):
+
 - 0 = Long
 - 1 = Short
 - 2 = Long & Short
