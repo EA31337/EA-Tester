@@ -10,8 +10,14 @@ xargs=$(command -v gxargs || command -v xargs)
 
 # Validate settings.
 [ -z "$GITHUB_API_TOKEN" ] && [ -f ~/.secrets ] && source ~/.secrets
-[ -n "$GITHUB_API_TOKEN" ] || { echo "Error: Please define GITHUB_API_TOKEN variable." >&2; exit 1; }
-[ $# -lt 4 ] && { echo "Usage: $0 [owner] [repo] [tag] [name] [dest]"; exit 1; }
+[ -n "$GITHUB_API_TOKEN" ] || {
+  echo "Error: Please define GITHUB_API_TOKEN variable." >&2
+  exit 1
+}
+[ $# -lt 4 ] && {
+  echo "Usage: $0 [owner] [repo] [tag] [name] [dest]"
+  exit 1
+}
 [ -n "$OPT_TRACE" ] && set -x
 read owner repo tag name dest <<<$@
 
@@ -26,7 +32,10 @@ CURL_ARGS="-LJO#"
 
 # Validate token.
 echo "Validating token..." >&2
-curl -o /dev/null -sH "$AUTH" $GH_REPO || { echo "Error: Invalid repo, token or network issue!";  exit 1; }
+curl -o /dev/null -sH "$AUTH" $GH_REPO || {
+  echo "Error: Invalid repo, token or network issue!"
+  exit 1
+}
 
 # Read asset tags.
 response=$(curl -sH "$AUTH" $GH_TAGS)
@@ -35,7 +44,10 @@ echo "Fetching asset ID..." >&2
 id=$(echo "$response" | grep -C3 "name.:.\+$name" | grep -w id | head -n1)
 echo $id
 eval $(echo $id | tr : = | tr -cd '[[:alnum:]]=')
-[ -n "$id" ] || { echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2; exit 1; }
+[ -n "$id" ] || {
+  echo "Error: Failed to get asset id, response: $response" | awk 'length($0)<100' >&2
+  exit 1
+}
 GH_ASSET="$GH_REPO/releases/assets/$id"
 
 # Changing the working folder. Create if does not exist.

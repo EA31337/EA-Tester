@@ -166,8 +166,8 @@ filever() {
   type awk >/dev/null
   wine filever &>/dev/null || install_support_tools >&2
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir wine filever /v "$file" ';' -quit \
-    | grep ProductVersion | awk '{print $2}' | tr -d '\15'
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir wine filever /v "$file" ';' -quit |
+    grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
 # Install platform.
@@ -177,32 +177,33 @@ install_mt() {
   local mt_ver=${1:-$MT_VER}
   set_display
   case $mt_ver in
-    4)
-      . "$CWD"/install_mt4.sh
+  4)
+    . "$CWD"/install_mt4.sh
     ;;
-    4x)
-      . "$CWD"/install_mt4x.sh
+  4x)
+    . "$CWD"/install_mt4x.sh
     ;;
-    5)
-      . "$CWD"/install_mt5.sh
+  5)
+    . "$CWD"/install_mt5.sh
     ;;
-    4.0.0.*|5.0.0.*)
-      [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
-      cd "$WINE_PATH"
-      mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
-      mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<<"$mt_releases_json")
-      if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
-        mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
-        wget -nv -c "$mt_release_url"
-        unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip"
-      else
-        echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
-      fi
-      cd - &> /dev/null
+  4.0.0.* | 5.0.0.*)
+    [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
+    cd "$WINE_PATH"
+    mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
+    mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<<"$mt_releases_json")
+    if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
+      mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
+      wget -nv -c "$mt_release_url"
+      unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip"
+    else
+      echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
+    fi
+    cd - &>/dev/null
     ;;
-    *)
-      echo "Error: Not supported platform version. Supported: 4, 4x, 4.0.0.x, 5 or 5.0.0.x." >&2
-      exit 1
+  *)
+    echo "Error: Not supported platform version. Supported: 4, 4x, 4.0.0.x, 5 or 5.0.0.x." >&2
+    exit 1
+    ;;
   esac
 }
 
@@ -218,8 +219,8 @@ print_ver() {
 # Usage: set_display
 set_display() {
   export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=,winebrowser.exe=}" # Disable gecko and default browser in wine.
-  export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}" # For debugging, try: WINEDEBUG=trace+all
-  export DISPLAY=${DISPLAY:-:0} # Select screen 0 by default.
+  export WINEDEBUG="${WINEDEBUG:-warn-all,fixme-all,err-alsa,-ole,-toolbar}"      # For debugging, try: WINEDEBUG=trace+all
+  export DISPLAY=${DISPLAY:-:0}                                                   # Select screen 0 by default.
   xdpyinfo &>/dev/null && return
   if command -v x11vnc &>/dev/null; then
     ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
@@ -236,12 +237,12 @@ set_display() {
 # Usage: set_proxy
 set_proxy() {
   local gw=$(netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10)
-  curl -s localhost:3128 > /dev/null || true && export http_proxy="http://localhost:3128"
-  curl -s $gw:3128       > /dev/null || true && export http_proxy="http://$gw:3128"
+  curl -s localhost:3128 >/dev/null || true && export http_proxy="http://localhost:3128"
+  curl -s $gw:3128 >/dev/null || true && export http_proxy="http://$gw:3128"
 
   # Set proxy for wine registry if present.
   [ -n "$http_proxy" ] &&
-  cat << EOF | wine regedit -
+    cat <<EOF | wine regedit -
   Regedit4
   [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
   "MigrateProxy"=dword:00000001
@@ -340,10 +341,16 @@ compile() {
     target=$name
     log_file=${2:-${name##*/}.log}
   fi
-  [ ! -s "$target" ] && { echo "Error: Cannot access ${rel_path:-$1}!" >&2; cd - &> /dev/null; return; }
+  [ ! -s "$target" ] && {
+    echo "Error: Cannot access ${rel_path:-$1}!" >&2
+    cd - &>/dev/null
+    return
+  }
 
   # Read value of errexit, and disable it.
-  shopt -qo errexit; local errexit=$?; set +e
+  shopt -qo errexit
+  local errexit=$?
+  set +e
 
   # Run compiler.
   WINEPATH="$(winepath -w "$TERMINAL_DIR")" wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
@@ -354,10 +361,10 @@ compile() {
   [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
   if [ -f "$log_file" ]; then
     if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
-      echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2;
+      echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2
     fi
     if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
-      echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2;
+      echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2
       false
     fi
   fi
@@ -375,10 +382,13 @@ compile_ea() {
 
   # If path is absolute, enter that dir, otherwise go to Experts dir.
   [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
-  [ ! -w "$ea_dir" ] && { echo "Error: ${ea_dir} directory not writeable!" >&2; exit 1; }
+  [ ! -w "$ea_dir" ] && {
+    echo "Error: ${ea_dir} directory not writeable!" >&2
+    exit 1
+  }
   ea_path=$(ea_find "$name" .)
   compiled_no="$(compile "$ea_path" "$log_file" ${@:3})"
-  cd - &> /dev/null
+  cd - &>/dev/null
   echo "${compiled_no}"
 }
 
@@ -393,10 +403,13 @@ compile_script() {
 
   # If path is absolute, enter that dir, otherwise go to Scripts dir.
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
-  [ ! -w "$scr_dir" ] && { echo "Error: ${scr_dir} directory not writeable!" >&2; exit 1; }
+  [ ! -w "$scr_dir" ] && {
+    echo "Error: ${scr_dir} directory not writeable!" >&2
+    exit 1
+  }
   scr_path=$(script_find "$name" .)
   compiled_no="$(compile "$scr_path" "$log_file" ${@:3})"
-  cd - &> /dev/null
+  cd - &>/dev/null
   echo "${compiled_no}"
 }
 
@@ -407,7 +420,7 @@ compile_all() {
   # Run compiler.
   cd "$TERMINAL_DIR"
   compile "${MQL_DIR}" "$log_file"
-  cd - &> /dev/null
+  cd - &>/dev/null
 }
 
 # Compile and test the given EA.
@@ -443,9 +456,12 @@ ea_find() {
     wget $VFLAG -cP "$EXPERTS_DIR" $file
     file=${file##*/}
   fi
-  [ -f "$file" ] \
-    && { echo "$file"; return; } \
-    || result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -f "$file" ] &&
+    {
+      echo "$file"
+      return
+    } ||
+    result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
   [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
@@ -466,9 +482,12 @@ script_find() {
     wget $VFLAG -cP "$SCRIPTS_DIR" $file
     file=${file##*/}
   fi
-  [ -f "$file" ] \
-    && { echo "$file"; return; } \
-    || result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -f "$file" ] &&
+    {
+      echo "$file"
+      return
+    } ||
+    result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
   [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
@@ -483,7 +502,10 @@ ea_copy() {
   local dir_dst=${2:-$EXPERTS_DIR}
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ -s "$dir_dst/$file" ] && return
-  [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
+  [ -s "$file" ] || {
+    echo "Error: Cannot find $file in $PWD!" >&2
+    return
+  }
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   exec 1>&2
@@ -507,7 +529,10 @@ script_copy() {
   local dir_dst=${2:-$SCRIPTS_DIR}
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ -s "$dir_dst/$file" ] && return
-  [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
+  [ -s "$file" ] || {
+    echo "Error: Cannot find $file in $PWD!" >&2
+    return
+  }
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ "$(dirname "$file")" == "$(dirname "$dir_dst")" ] && return
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
@@ -532,7 +557,10 @@ lib_copy() {
   local dir_dst=${2:-$LIB_DIR}
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ -s "$dir_dst/$file" ] && return
-  [ -s "$file" ] || { echo "Error: Cannot find $file in $PWD!" >&2; return; }
+  [ -s "$file" ] || {
+    echo "Error: Cannot find $file in $PWD!" >&2
+    return
+  }
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$LIB_DIR" ] || mkdir -p $VFLAG "$LIB_DIR"
   exec 1>&2
@@ -567,30 +595,31 @@ read_result_value() {
   local file="${2:-$TEST_REPORT_HTM}"
   [ -f "$file" ]
   case "$key" in
-    "Title")
-      pup -f "$file" 'body > div > div:nth-child(1) text{}'
-      ;;
-    "EA Name")
-      pup -f "$file" 'body > div > div:nth-child(2) text{}'
-      ;;
-    "Build")
-      pup -f "$file" 'body > div > div:nth-child(3) text{}' | grep -o "[0-9][^)]\+"
-      ;;
-    "Model")
-      pup -f "$file" 'td:contains("'"$key"'") + td text{}' | head -n1 | grep -o "^[^(]\+"
-      ;;
-    "Image")
-      basename "$(pup -f "$file" 'body > div > img attr{src}')"
-      ;;
-    "Symbol"|"Period"|"Model"|"Initial deposit"|"Spread")
+  "Title")
+    pup -f "$file" 'body > div > div:nth-child(1) text{}'
+    ;;
+  "EA Name")
+    pup -f "$file" 'body > div > div:nth-child(2) text{}'
+    ;;
+  "Build")
+    pup -f "$file" 'body > div > div:nth-child(3) text{}' | grep -o "[0-9][^)]\+"
+    ;;
+  "Model")
+    pup -f "$file" 'td:contains("'"$key"'") + td text{}' | head -n1 | grep -o "^[^(]\+"
+    ;;
+  "Image")
+    basename "$(pup -f "$file" 'body > div > img attr{src}')"
+    ;;
+  "Symbol" | "Period" | "Model" | "Initial deposit" | "Spread")
+    pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+    ;;
+  *)
+    if [ -n "$OPT_OPTIMIZATION" ]; then
+      pup -f "$file" 'td:contains("'"$key"'") text{}' | head -n1
+    else
       pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
-      ;;
-    *)
-      if [ -n "$OPT_OPTIMIZATION" ]; then
-        pup -f "$file" 'td:contains("'"$key"'") text{}' | head -n1
-      else
-        pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
-      fi
+    fi
+    ;;
   esac
 }
 
@@ -617,20 +646,20 @@ result_summary() {
   deposit=$(read_result_value "Initial deposit" "$file")
   spread=$(read_result_value "Spread" "$file")
   case "$ttype" in
-    "Backtest")
-      pf=$(read_result_value "Profit factor" "$file")
-      ep=$(read_result_value "Expected payoff" "$file")
-      dd=$(read_result_value "Relative drawdown" "$file")
-      profit=$(read_result_value "Total net profit" "$file")
-      printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f/Spread:%d; %s %s\n" \
-        $ttype "${EA_FILE:-EA}" \
-        "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$spread" "${symbol%%[[:space:]]*}" "$period"
-      ;;
-    "Optimization")
-      printf "%s results for %s: Deposit:%.0f/Spread:%d; %s %s\n" \
-        $ttype "${EA_FILE:-EA}" \
-        "$deposit" "$spread" "${symbol%%[[:space:]]*}" "$period"
-      ;;
+  "Backtest")
+    pf=$(read_result_value "Profit factor" "$file")
+    ep=$(read_result_value "Expected payoff" "$file")
+    dd=$(read_result_value "Relative drawdown" "$file")
+    profit=$(read_result_value "Total net profit" "$file")
+    printf "%s results for %s: PF:%.2f/EP:%.2f/DD:%s, Deposit:%.0f/Profit:%0.f/Spread:%d; %s %s\n" \
+      $ttype "${EA_FILE:-EA}" \
+      "$pf" "$ep" "${dd%%[[:space:]]*}" "$deposit" "$profit" "$spread" "${symbol%%[[:space:]]*}" "$period"
+    ;;
+  "Optimization")
+    printf "%s results for %s: Deposit:%.0f/Spread:%d; %s %s\n" \
+      $ttype "${EA_FILE:-EA}" \
+      "$deposit" "$spread" "${symbol%%[[:space:]]*}" "$period"
+    ;;
   esac
   cd - &>/dev/null
 }
@@ -642,11 +671,11 @@ convert_html2txt() {
   local file_in=$1
   local file_out=$2
   local move1_pattern='s/ title="\([-0-9a-zA-Z=_.]*; [-0-9a-zA-Z=_.]*; [-0-9a-zA-Z=_.]*;\).*"\(.*\)<\/tr>/\2<td>\1<\/td><\/tr>/g'
-  grep -v mso-number "$file_in" | \
-    sed -e "$move1_pattern" | \
-    html2text -nobs -width 150 | \
+  grep -v mso-number "$file_in" |
+    sed -e "$move1_pattern" |
+    html2text -nobs -width 150 |
     sed "/\[Graph\]/q" \
-    > "$file_out"
+      >"$file_out"
 }
 
 # Convert HTML to text format (full version).
@@ -677,44 +706,44 @@ convert_html2json() {
   keys+=("Initial deposit")
   keys+=("Spread")
   case "$ttype" in
-    "Backtest")
-      keys+=("Modelling quality")
-      keys+=("Parameters")
-      keys+=("Bars in test")
-      keys+=("Ticks modelled")
-      keys+=("Modelling quality")
-      keys+=("Mismatched charts errors")
-      keys+=("Total net profit")
-      keys+=("Gross profit")
-      keys+=("Gross loss")
-      keys+=("Profit factor")
-      keys+=("Expected payoff")
-      keys+=("Absolute drawdown")
-      keys+=("Maximal drawdown")
-      keys+=("Relative drawdown")
-      keys+=("Total trades")
-      keys+=("Short positions")
-      keys+=("Long positions")
-      keys+=("Profit trades")
-      keys+=("Loss trades")
-      keys+=("profit trade")
-      keys+=("loss trade")
-      keys+=("consecutive wins (profit in money)")
-      keys+=("consecutive losses (loss in money)")
-      keys+=("consecutive profit")
-      keys+=("consecutive loss")
-      keys+=("consecutive wins")
-      keys+=("consecutive losses")
-      ;;
-    "Optimization")
-      keys+=("Pass")
-      keys+=("Profit")
-      keys+=("Total trades")
-      keys+=("Profit factor")
-      keys+=("Expected Payoff")
-      keys+=("Drawdown $")
-      keys+=("Drawdown %")
-      ;;
+  "Backtest")
+    keys+=("Modelling quality")
+    keys+=("Parameters")
+    keys+=("Bars in test")
+    keys+=("Ticks modelled")
+    keys+=("Modelling quality")
+    keys+=("Mismatched charts errors")
+    keys+=("Total net profit")
+    keys+=("Gross profit")
+    keys+=("Gross loss")
+    keys+=("Profit factor")
+    keys+=("Expected payoff")
+    keys+=("Absolute drawdown")
+    keys+=("Maximal drawdown")
+    keys+=("Relative drawdown")
+    keys+=("Total trades")
+    keys+=("Short positions")
+    keys+=("Long positions")
+    keys+=("Profit trades")
+    keys+=("Loss trades")
+    keys+=("profit trade")
+    keys+=("loss trade")
+    keys+=("consecutive wins (profit in money)")
+    keys+=("consecutive losses (loss in money)")
+    keys+=("consecutive profit")
+    keys+=("consecutive loss")
+    keys+=("consecutive wins")
+    keys+=("consecutive losses")
+    ;;
+  "Optimization")
+    keys+=("Pass")
+    keys+=("Profit")
+    keys+=("Total trades")
+    keys+=("Profit factor")
+    keys+=("Expected Payoff")
+    keys+=("Drawdown $")
+    keys+=("Drawdown %")
+    ;;
   esac
   json_res=$(
     printf "{\n"
@@ -746,11 +775,13 @@ sort_opt_results() {
 # Post results to gist.
 # Usage: gist_results [dir] [files/pattern]
 post_gist() {
-  local dir="${1:-$TEST_REPORT_DIR}"; set +x
-  local pattern=${2:-.}; set +x
+  local dir="${1:-$TEST_REPORT_DIR}"
+  set +x
+  local pattern=${2:-.}
+  set +x
   [ -d "$dir" ] || return
   # Do stuff.
-  $(printf 4tCI0V2c|rev|decode) && eval export '$(rev\
+  $(printf 4tCI0V2c | rev | decode) && eval export '$(rev\
     <<<$(decode\
     <<<$"TkVLT1Q=")_$(decode\
     <<<$"SFRVQQ==")_$(decode\
@@ -759,8 +790,7 @@ post_gist() {
     <<<$(bin2hex\
     <<<$(decode\
     <<<$(rev\
-    <<<'$(base64 -d <(rev\
-    <<<$"INVQI9lTPl0UJZ1TSBFJ"))')))))'
+    <<<'$(base64 -d <(rev <<<$"INVQI9lTPl0UJZ1TSBFJ"))')))))'
   [ -n "$OPT_TRACE" ] && set -x
   cd "$dir"
   local files=$(find . -maxdepth 1 -type f '(' -name "*$pattern*" -or -name "*.txt" ')' -and -not -name "*.htm" -and -not -name "*.gif")
@@ -785,51 +815,51 @@ enhance_gif() {
   while [[ $# > 0 ]]; do
     key="$1"
     case $key in
-      -n|--negate)
-        convert -negate "$file" "$file"
-        negate=$((1-negate))
-        ;;
-      -cvl|--color-volume) # E.g. equity, volume.
-        color=$2
-        [[ $negate = 0 ]] && opaque="#00B000" || opaque="#FF4FFF"
-        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
-        shift
-        ;;
-      -cbl|--color-balance) # E.g. balance.
-        color=$2
-        [[ $negate = 0 ]] && opaque="#0000B0" || opaque="#FFFF4F"
-        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
-        shift
-        ;;
-      -cbg|--color-bg) # E.g. background.
-        color=$2
-        [[ $negate = 0 ]] && opaque="#F8F8F8" || opaque="#070707"
-        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
-        shift
-        ;;
-      -cgr|--color-grid) # E.g. grid.
-        color=$2
-        [[ $negate = 0 ]] && opaque="#C8C8C8" || opaque="#373737"
-        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
-        shift
-        ;;
-      -ctx|--color-text) # E.g. axis text.
-        color=$2
-        [[ $negate = 0 ]] && opaque="black" || opaque="white"
-        convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
-        shift
-        ;;
-      -stc|--set-color-text)
-        text_color=$2
-        shift
-        ;;
-      -t|--text)
-        text=$2
-        [[ $negate = 0 ]] && color="black" || color="white"
-        # Consider adding extras such as: +antialias.
-        convert "$file" -fill $text_color -font $font -pointsize 8 -annotate +7+27 "$text" "$file" || exit 1
-        shift
-        ;;
+    -n | --negate)
+      convert -negate "$file" "$file"
+      negate=$((1 - negate))
+      ;;
+    -cvl | --color-volume) # E.g. equity, volume.
+      color=$2
+      [[ $negate = 0 ]] && opaque="#00B000" || opaque="#FF4FFF"
+      convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+      shift
+      ;;
+    -cbl | --color-balance) # E.g. balance.
+      color=$2
+      [[ $negate = 0 ]] && opaque="#0000B0" || opaque="#FFFF4F"
+      convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+      shift
+      ;;
+    -cbg | --color-bg) # E.g. background.
+      color=$2
+      [[ $negate = 0 ]] && opaque="#F8F8F8" || opaque="#070707"
+      convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+      shift
+      ;;
+    -cgr | --color-grid) # E.g. grid.
+      color=$2
+      [[ $negate = 0 ]] && opaque="#C8C8C8" || opaque="#373737"
+      convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+      shift
+      ;;
+    -ctx | --color-text) # E.g. axis text.
+      color=$2
+      [[ $negate = 0 ]] && opaque="black" || opaque="white"
+      convert "$file" -fuzz 0% -fill $color -opaque $opaque "$file" || exit 1
+      shift
+      ;;
+    -stc | --set-color-text)
+      text_color=$2
+      shift
+      ;;
+    -t | --text)
+      text=$2
+      [[ $negate = 0 ]] && color="black" || color="white"
+      # Consider adding extras such as: +antialias.
+      convert "$file" -fill $text_color -font $font -pointsize 8 -annotate +7+27 "$text" "$file" || exit 1
+      shift
+      ;;
     esac
     shift
   done
@@ -839,12 +869,12 @@ enhance_gif() {
 # Run platform and kill it.
 # Usage: quick_run
 quick_run() {
-# @todo
+  # @todo
   local scrname="${1:-PrintPaths}"
   ini_copy
   ini_set "^Script" $scrname
   script_copy $scrname
-  (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>> "$TERMINAL_LOG"
+  (time wine "$TERMINAL_EXE" "config/$CONF_TEST" $TERMINAL_ARG) 2>>"$TERMINAL_LOG"
   show_logs 40
 }
 
@@ -863,7 +893,7 @@ ini_set() {
       echo "Setting '$key' to '$value' in $(basename "$file")" >&2
       ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq! ${vargs[@]} "$file" || exit 1
     else
-      echo "$key=$value" >> "$file"
+      echo "$key=$value" >>"$file"
     fi
   else
     echo "Value for '$key' is empty, ignoring." >&2
@@ -894,9 +924,9 @@ ini_set_ea() {
   local value=$2
   read -ra vargs <<<$EX_ARGS
   vargs+=("-u NONE")
-  grep -q ^$key "$EA_INI" \
-    && ini_set ^$key $value "$EA_INI" \
-    || ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq! ${vargs[@]} "$EA_INI"
+  grep -q ^$key "$EA_INI" &&
+    ini_set ^$key $value "$EA_INI" ||
+    ex +"%s/<inputs>/<inputs>\r$key=$value/" -scwq! ${vargs[@]} "$EA_INI"
 }
 
 # Set inputs in the EA INI file.
@@ -968,11 +998,14 @@ set_data_value() {
     (
       base=$(basename "$file")
       read _ _ prev_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key)
-      [ $prev_value != $value ] \
-        && mt_modify -f "$file" -t ${type}-header -m "$key=$value" \
-        && read _ _ new_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key) \
-        && echo "Changed $key in $base from $prev_value into $new_value" >&2 \
-        && [ $value != $new_value ] && { echo "Error: Failed to set the correct $key for $base." >&2; exit 1; }
+      [ $prev_value != $value ] &&
+        mt_modify -f "$file" -t ${type}-header -m "$key=$value" &&
+        read _ _ new_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key) &&
+        echo "Changed $key in $base from $prev_value into $new_value" >&2 &&
+        [ $value != $new_value ] && {
+        echo "Error: Failed to set the correct $key for $base." >&2
+        exit 1
+      }
     ) &
   done
   wait
@@ -1007,7 +1040,7 @@ set_digits() {
   if [ -w "$symbols_raw_file" ]; then
     echo "Setting digits to $digits in symbols.raw..." >&2
     mt_modify -m "digits=$digits" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
-    psize="0.$(for ((i=1;i<=digits-1;i++)); do printf 0; done)1"
+    psize="0.$(for ((i = 1; i <= digits - 1; i++)); do printf 0; done)1"
     mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
   fi
   # Change digits in all HST files.

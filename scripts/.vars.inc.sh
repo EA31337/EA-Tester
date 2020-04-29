@@ -8,7 +8,7 @@ is_vm() { [ -d /vagrant -a -d /home/travis -a ! -f /.dockerenv ]; }
 
 # Determine platform paths.
 SCR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P || pwd -P)"
-ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
+ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2>/dev/null || echo "$SCR/..")"
 WINE_PATH="${WINE_PATH:-$HOME/.wine/drive_c/Program Files}"
 OUT="/opt"
 CONF_TEST="mt4-tester.ini"
