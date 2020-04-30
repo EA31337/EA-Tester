@@ -3,11 +3,14 @@
 [![Docker build][docker-build-image]][docker-build-link]
 [![](https://img.shields.io/badge/news-Telegram-0088CC.svg?logo=telegram)](https://t.me/EA31337_News)
 [![](https://img.shields.io/badge/chat-Telegram-0088CC.svg?logo=telegram)](https://t.me/EA31337)
+[![Edit][gitpod-image]][gitpod-link]
 
 [github-release-image]: https://img.shields.io/github/release/EA31337/EA-Tester.svg?logo=github
 [github-release-link]: https://github.com/EA31337/EA-Tester/releases
 [docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
 [docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
+[gitpod-image]: https://img.shields.io/badge/edit_code-in_Gitpod-blue?logo=gitpod&style=plastic
+[gitpod-link]: https://gitpod.io/#https://github.com/EA31337/EA-Tester
 
 # About
 
