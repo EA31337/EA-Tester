@@ -9,7 +9,7 @@
 [github-release-link]: https://github.com/EA31337/EA-Tester/releases
 [docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
 [docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
-[gitpod-image]: https://img.shields.io/badge/edit_code-in_Gitpod-blue?logo=gitpod&style=plastic
+[gitpod-image]: https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod
 [gitpod-link]: https://gitpod.io/#https://github.com/EA31337/EA-Tester
 
 # About
