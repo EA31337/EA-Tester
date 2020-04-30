@@ -14,7 +14,7 @@
 
 # About
 
-Headless VM backtesting for MT4 platform under Linux.
+Headless Forex backtesting for MetaTrader platform using Docker.
 
 ## Build status
 
