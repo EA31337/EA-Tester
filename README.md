@@ -1,8 +1,8 @@
 <!-- markdownlint-configure-file { "MD013": { "line_length": 120 } } -->
 [![Release][github-release-image]][github-release-link]
-[![Docker build][docker-build-image]][docker-build-link]
-[![](https://img.shields.io/badge/news-Telegram-0088CC.svg?logo=telegram)](https://t.me/EA31337_News)
-[![](https://img.shields.io/badge/chat-Telegram-0088CC.svg?logo=telegram)](https://t.me/EA31337)
+[![Docker image][docker-build-image]][docker-build-link]
+[![](https://img.shields.io/badge/Telegram-news-0088CC.svg?logo=telegram)](https://t.me/EA31337_News)
+[![](https://img.shields.io/badge/Telegram-chat-0088CC.svg?logo=telegram)](https://t.me/EA31337)
 [![Edit][gitpod-image]][gitpod-link]
 
 [github-release-image]: https://img.shields.io/github/release/EA31337/EA-Tester.svg?logo=github
