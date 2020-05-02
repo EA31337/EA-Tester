@@ -36,9 +36,10 @@ echo "OS: $(uname -a)"
 . /etc/*-release 2>/dev/null
 
 # Find a non-privileged user.
+id runner 2>/dev/null && user="runner"
 id travis 2>/dev/null && user="travis"
-id vagrant 2>/dev/null && user="vagrant"
 id ubuntu 2>/dev/null && user="ubuntu"
+id vagrant 2>/dev/null && user="vagrant"
 if [ -z "$user" ]; then
   echo "Error: Cannot detect non-provileged user. Use Docker instead." >&2
   exit 1
