@@ -11,10 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: id
-      # - name: Adds ubuntu user
-      # run: useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo ubuntu
       - name: Runs provisioning script
-        run: ./scripts/provision.sh
+        run: sudo -E ./scripts/provision.sh
   Test-Scripts:
     runs-on: ubuntu-latest
     container:
