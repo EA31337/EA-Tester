@@ -1,4 +1,4 @@
-# Set the base image to Ubuntu
+# Set the base Ubuntu image.
 FROM ubuntu:xenial AS ubuntu-base
 MAINTAINER kenorb
 ENV DEBIAN_FRONTEND noninteractive
@@ -7,7 +7,28 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
 WORKDIR /home/ubuntu
 
+# Provision.
 FROM ubuntu-base AS ea-tester-provisioned
+
+# Build-time variables.
+ARG HTTPS_PROXY
+ARG HTTP_PROXY
+ARG PROVISION_AHK=0
+ARG PROVISION_CHARLES=0
+ARG PROVISION_MONO=0
+ARG PROVISION_SSH=0
+ARG PROVISION_SUDO=1
+ARG PROVISION_VNC=1
+
+# Provision container image.
+ADD scripts /opt/scripts
+ENV PATH $PATH:/opt/scripts:/opt/scripts/py
+ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
+RUN provision.sh
+
+# Install MT platform.
+FROM ea-tester-provisioned AS ea-tester-with-mt4
+
 # Build-time metadata as defined at http://label-schema.org
 ARG BUILD_DATE
 ARG VCS_REF
@@ -22,32 +43,15 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
 
-# Build-time variables.
-ARG BT_DEST=/opt/results
-ARG HTTPS_PROXY
-ARG HTTP_PROXY
-ARG MT_VER=4.0.0.1260
-ARG PROVISION_AHK=0
-ARG PROVISION_CHARLES=1
-ARG PROVISION_MONO=0
-ARG PROVISION_SSH=0
-ARG PROVISION_SUDO=1
-ARG PROVISION_VNC=1
-
-# Provision container image.
-ADD scripts /opt/scripts
-ENV PATH $PATH:/opt/scripts:/opt/scripts/py
-ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
-RUN provision.sh
-
-FROM ea-tester-provisioned AS ea-tester-with-mt4
 # Setup results directory.
+ARG BT_DEST=/opt/results
 ENV BT_DEST $BT_DEST
 RUN mkdir -v -m a=rwx $BT_DEST
 RUN chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
 
 # Default backtest inputs.
+ARG MT_VER=4.0.0.1260
 ENV MT_VER $MT_VER
 
 # Run test.

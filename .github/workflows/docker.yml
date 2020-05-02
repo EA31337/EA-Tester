@@ -13,9 +13,10 @@ jobs:
       - name: Build ubuntu-base
         run: docker build --target ubuntu-base .
       - name: Build ea-tester-provisioned
-        run: >
-          docker build
+        run: docker build --target ea-tester-provisioned .
+      - name: Build ea-tester-with-mt4
+        run: docker build
           --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           --build-arg VCS_REF=${GITHUB_SHA}
           --build-arg VERSION=${GITHUB_REF}
-          --target ea-tester-provisioned .
+          --target ea-tester-with-mt4 .
