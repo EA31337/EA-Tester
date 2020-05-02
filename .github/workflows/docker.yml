@@ -18,6 +18,8 @@ jobs:
         run: docker build --target ea-tester-base .
       - name: Build ea-tester-with-mt4
         run: docker build --target ea-tester-with-mt4 .
+      - name: Build ea-tester-with-mt5
+        run: docker build --target ea-tester-with-mt5 .
       - name: Build ea-tester
         run: docker build
           --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")

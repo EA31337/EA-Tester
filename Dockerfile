@@ -59,10 +59,20 @@ RUN eval.sh install_mt $MT_VER
 RUN run_backtest.sh -s PrintPaths -v
 
 # Clean up.
-USER root
-RUN find /var/lib/apt/lists -type f -delete
-RUN find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
-USER ubuntu
+RUN eval.sh clean_bt
+RUN eval.sh clean_ea
+RUN eval.sh clean_files
+
+# Install MT5 platform.
+FROM ea-tester-base AS ea-tester-with-mt5
+
+# Install platform.
+ARG MT_VER=5.0.0.2361
+ENV MT_VER $MT_VER
+RUN eval.sh install_mt $MT_VER
+RUN run_backtest.sh -s PrintPaths -v
+
+# Clean up.
 RUN eval.sh clean_bt
 RUN eval.sh clean_ea
 RUN eval.sh clean_files
