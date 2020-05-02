@@ -1,8 +1,13 @@
 # Set the base image to Ubuntu
-FROM ubuntu:xenial
+FROM ubuntu:xenial AS ubuntu-base
 MAINTAINER kenorb
 ENV DEBIAN_FRONTEND noninteractive
 
+# Setup the default user.
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
+WORKDIR /home/ubuntu
+
+FROM ubuntu-base AS ea-tester-provisioned
 # Build-time metadata as defined at http://label-schema.org
 ARG BUILD_DATE
 ARG VCS_REF
@@ -16,10 +21,6 @@ LABEL org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.vendor="FX31337" \
       org.label-schema.version=$VERSION \
       org.label-schema.schema-version="1.0"
-
-# Setup the default user.
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
-WORKDIR /home/ubuntu
 
 # Build-time variables.
 ARG BT_DEST=/opt/results
@@ -39,6 +40,7 @@ ENV PATH $PATH:/opt/scripts:/opt/scripts/py
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
+FROM ea-tester-provisioned AS ea-tester-with-mt4
 # Setup results directory.
 ENV BT_DEST $BT_DEST
 RUN mkdir -v -m a=rwx $BT_DEST
