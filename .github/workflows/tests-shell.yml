@@ -8,11 +8,14 @@ on:
 jobs:
   Test-Provision:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:xenial
+      volumes:
+        - ${{ github.workspace }}/scripts/tests:/opt/scripts
     steps:
-      - uses: actions/checkout@v2
       - run: id
       - name: Runs provisioning script
-        run: sudo -E ./scripts/provision.sh
+        run: sudo /opt/scripts/provision.sh
   Test-Scripts:
     runs-on: ubuntu-latest
     container:
