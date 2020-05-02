@@ -1,0 +1,14 @@
+---
+name: Docker
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  Build-Dockerfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build ubuntu-base
+        run: docker build --target ubuntu-base .
