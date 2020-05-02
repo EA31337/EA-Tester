@@ -12,3 +12,10 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build ubuntu-base
         run: docker build --target ubuntu-base .
+      - name: Build ea-tester-provisioned
+        run: >
+          docker build
+          --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          --build-arg VCS_REF=${GITHUB_SHA}
+          --build-arg VERSION=${GITHUB_REF}
+          --target ea-tester-provisioned .
