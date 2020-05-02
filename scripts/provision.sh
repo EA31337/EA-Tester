@@ -84,7 +84,10 @@ Linux)
     echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 
     # Omit source repositories from updates for performance reasons.
-    command -v sed >/dev/null && find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
+    command -v sed >/dev/null && {
+      PATH=$(dirname $(which find sed) | paste -sd:) \
+      find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
+    }
 
     # Enable 32 bit architecture for 64 bit systems (required for Wine).
     dpkg --add-architecture i386
