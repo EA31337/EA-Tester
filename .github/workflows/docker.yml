@@ -12,11 +12,15 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build ubuntu-base
         run: docker build --target ubuntu-base .
-      - name: Build ea-tester-provisioned
-        run: docker build --target ea-tester-provisioned .
+      - name: Build ubuntu-provisioned
+        run: docker build --target ubuntu-provisioned .
+      - name: Build ea-tester-base
+        run: docker build --target ea-tester-base .
       - name: Build ea-tester-with-mt4
+        run: docker build --target ea-tester-with-mt4 .
+      - name: Build ea-tester
         run: docker build
           --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           --build-arg VCS_REF=${GITHUB_SHA}
           --build-arg VERSION=${GITHUB_REF}
-          --target ea-tester-with-mt4 .
+          --target ea-tester .
