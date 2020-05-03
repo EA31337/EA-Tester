@@ -26,3 +26,15 @@ jobs:
           --build-arg VCS_REF=${GITHUB_SHA}
           --build-arg VERSION=${GITHUB_REF}
           --target ea-tester .
+  Test-Docker:
+    runs-on: ubuntu-latest
+    container:
+      image: ea31337/ea-tester:dev
+      volumes:
+        - ${{ github.workspace }}/scripts/tests:/opt/scripts
+    steps:
+      - run: pwd
+      - run: id
+      - run: ls -la /opt/scripts
+      # - run: scripts/eval.sh help
+      # - run: scripts/run_backtest.sh -?
