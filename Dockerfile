@@ -69,12 +69,12 @@ FROM ea-tester-base AS ea-tester-with-mt5
 ARG MT_VER=5.0.0.2361
 ENV MT_VER $MT_VER
 RUN eval.sh install_mt $MT_VER
-RUN run_backtest.sh -s PrintPaths -v
+#RUN run_backtest.sh -s PrintPaths -v
 
 # Clean up.
-RUN eval.sh clean_bt
-RUN eval.sh clean_ea
-RUN eval.sh clean_files
+#RUN eval.sh clean_bt
+#RUN eval.sh clean_ea
+#RUN eval.sh clean_files
 
 # Final EA Tester image.
 FROM ea-tester-with-mt4 as ea-tester
