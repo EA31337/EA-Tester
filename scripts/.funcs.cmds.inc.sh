@@ -171,10 +171,11 @@ filever() {
 }
 
 # Install platform.
-# Usage: install_mt [ver/4/5/4.0.0.1010]
+# Usage: install_mt [ver/4/5/v4.0.0.1260/v5.0.0.2361] (dest)
 install_mt() {
   type jq wget unzip >/dev/null
   local mt_ver=${1:-$MT_VER}
+  local dir_dest=${2:-$WINE_PATH}
   set_display
   case $mt_ver in
   4)
@@ -187,8 +188,8 @@ install_mt() {
     . "$CWD"/install_mt5.sh
     ;;
   4.0.0.* | 5.0.0.*)
-    [ ! -d "$WINE_PATH" ] && mkdir $VFLAG -p "$WINE_PATH"
-    cd "$WINE_PATH"
+    [ ! -d "$dir_dest" ] && mkdir $VFLAG -p "$dir_dest"
+    cd "$dir_dest"
     mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
     mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<<"$mt_releases_json")
     if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
