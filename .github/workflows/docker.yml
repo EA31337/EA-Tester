@@ -17,20 +17,20 @@ on:
       - published
 
 jobs:
-  Build-Dockerfile:
+  Docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: Build ubuntu-base
-        run: docker build --target ubuntu-base .
+        run: docker build --target ubuntu-base -t ubuntu-base .
       - name: Build ubuntu-provisioned
-        run: docker build --target ubuntu-provisioned .
+        run: docker build --target ubuntu-provisioned -t ubuntu-provisioned .
       - name: Build ea-tester-base
-        run: docker build --target ea-tester-base .
+        run: docker build --target ea-tester-base -t ea-tester-base .
       - name: Build ea-tester-with-mt4
-        run: docker build --target ea-tester-with-mt4 .
+        run: docker build --target ea-tester-with-mt4 -t mt4 .
       - name: Build ea-tester-with-mt5
-        run: docker build --target ea-tester-with-mt5 .
+        run: docker build --target ea-tester-with-mt5 -t mt5 .
       - name: Build ea-tester
         run: docker build
           --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
