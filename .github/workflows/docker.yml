@@ -43,7 +43,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: EA31337/EA-Tester/ea-tester
+          repository: ea31337/ea-tester/ea-tester
           tag_with_ref: true
   Test-Docker:
     runs-on: ubuntu-latest
