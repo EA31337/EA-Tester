@@ -2,8 +2,19 @@
 name: Docker
 
 on:
-  - pull_request
-  - push
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
+      - dev
+    paths-ignore:
+      - '*.md'
+  release:
+    types:
+      - published
 
 jobs:
   Build-Dockerfile:
@@ -26,6 +37,14 @@ jobs:
           --build-arg VCS_REF=${GITHUB_SHA}
           --build-arg VERSION=${GITHUB_REF}
           --target ea-tester .
+      - name: Push to Github Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: EA31337/EA-Tester/ea-tester
+          tag_with_ref: true
   Test-Docker:
     runs-on: ubuntu-latest
     container:
