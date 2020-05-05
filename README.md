@@ -36,19 +36,19 @@ Headless Forex backtesting for MetaTrader platform using Docker.
 [appveyor-ci-build-image]: https://ci.appveyor.com/project/kenorb/ea-tester
 
 <!-- GitHub Actions CI build links - Tests-Shell -->
-[gha-link-shell-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-Shell
+[gha-link-shell-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-Shell+branch%3Amaster
 [gha-link-shell-dev]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-Shell+branch%3Adev
 [gha-image-shell-master]: https://github.com/EA31337/EA-Tester/workflows/Tests-Shell/badge.svg
 [gha-image-shell-dev]: https://github.com/EA31337/EA-Tester/workflows/Tests-Shell/badge.svg?branch=dev
 
 <!-- GitHub Actions CI build links - Tests-MQL -->
-[gha-link-mql-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-MQL
+[gha-link-mql-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-MQL+branch%3Amaster
 [gha-link-mql-dev]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-MQL+branch%3Adev
 [gha-image-mql-master]: https://github.com/EA31337/EA-Tester/workflows/Tests-MQL/badge.svg
 [gha-image-mql-dev]: https://github.com/EA31337/EA-Tester/workflows/Tests-MQL/badge.svg?branch=dev
 
 <!-- GitHub Actions CI build links - Lint -->
-[gha-link-lint-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ALint
+[gha-link-lint-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ALint+branch%3Amaster
 [gha-link-lint-dev]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ALint+branch%3Adev
 [gha-image-lint-master]: https://github.com/EA31337/EA-Tester/workflows/Lint/badge.svg
 [gha-image-lint-dev]: https://github.com/EA31337/EA-Tester/workflows/Lint/badge.svg?branch=dev
