@@ -5,13 +5,6 @@
 [![](https://img.shields.io/badge/Telegram-chat-0088CC.svg?logo=telegram)](https://t.me/EA31337)
 [![Edit][gitpod-image]][gitpod-link]
 
-[github-release-image]: https://img.shields.io/github/release/EA31337/EA-Tester.svg?logo=github
-[github-release-link]: https://github.com/EA31337/EA-Tester/releases
-[docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
-[docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
-[gitpod-image]: https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod
-[gitpod-link]: https://gitpod.io/#https://github.com/EA31337/EA-Tester
-
 # About
 
 Headless Forex backtesting for MetaTrader platform using Docker.
@@ -25,6 +18,43 @@ Headless Forex backtesting for MetaTrader platform using Docker.
 | MQL Tests | [![Status][gha-image-mql-master]][gha-link-mql-master] | [![Status][gha-image-mql-dev]][gha-link-mql-dev]
 | Syntax and formatting | [![Status][gha-image-lint-master]][gha-link-lint-master] | [![Status][gha-image-lint-dev]][gha-link-lint-dev]
 | Travis CI build | [![Status][travis-ci-build-image-master]][travis-ci-build-link] | [![Status][travis-ci-build-image-dev]][travis-ci-build-link]
+
+## Usage
+
+The easiest way is to [install Docker](https://www.docker.com/get-started), then run tester from the terminal:
+
+    docker run ea31337/ea-tester help
+
+to list available commands.
+
+### Backtesting
+
+Here is the example command for running backtest on MACD using historical data from 2018:
+
+    docker run ea31337/ea-tester run_backtest -e MACD -y 2018 -v -t
+
+To backtest EA31337 bot, check: [Backtesting using Docker](https://github.com/EA31337/EA31337/wiki/Backtesting-using-Docker).
+
+### CLI options
+
+Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters and variables.
+
+### Support
+
+- For bugs/features, raise a [new issue at GitHub](https://github.com/EA31337/EA-Tester/issues).
+- Join our [Telegram group](https://t.me/EA31337) and [channel](https://t.me/EA31337_Announcements) for help.
+
+<!-- Named links -->
+
+<!-- Header links -->
+[github-release-image]: https://img.shields.io/github/release/EA31337/EA-Tester.svg?logo=github
+[github-release-link]: https://github.com/EA31337/EA-Tester/releases
+[docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
+[docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
+[gitpod-image]: https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod
+[gitpod-link]: https://gitpod.io/#https://github.com/EA31337/EA-Tester
+
+<!-- Build links -->
 
 <!-- Travis CI build links -->
 [travis-ci-build-link]: https://travis-ci.org/EA31337/EA-Tester
@@ -52,28 +82,3 @@ Headless Forex backtesting for MetaTrader platform using Docker.
 [gha-link-lint-dev]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ALint+branch%3Adev
 [gha-image-lint-master]: https://github.com/EA31337/EA-Tester/workflows/Lint/badge.svg
 [gha-image-lint-dev]: https://github.com/EA31337/EA-Tester/workflows/Lint/badge.svg?branch=dev
-
-## Usage
-
-The easiest way is to [install Docker](https://www.docker.com/get-started), then run tester from the terminal:
-
-    docker run ea31337/ea-tester help
-
-to list available commands.
-
-### Backtesting
-
-Here is the example command for running backtest on MACD using historical data from 2018:
-
-    docker run ea31337/ea-tester run_backtest -e MACD -y 2018 -v -t
-
-To backtest EA31337 bot, check: [Backtesting using Docker](https://github.com/EA31337/EA31337/wiki/Backtesting-using-Docker).
-
-### CLI options
-
-Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters and variables.
-
-### Support
-
-- For bugs/features, raise a [new issue at GitHub](https://github.com/EA31337/EA-Tester/issues).
-- Join our [Telegram group](https://t.me/EA31337) and [channel](https://t.me/EA31337_Announcements) for help.
