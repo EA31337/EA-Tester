@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
-type wget >/dev/null || { echo "Error: Please install wget before continuing." >&2; exit 1; }
+type wget >/dev/null || {
+  echo "Error: Please install wget before continuing." >&2
+  exit 1
+}
 TERMINAL_EXE="$(find /opt -name terminal.exe -print -quit)"
 DIR="$(dirname "$TERMINAL_EXE")"
 

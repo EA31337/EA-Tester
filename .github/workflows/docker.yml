@@ -1,0 +1,67 @@
+---
+name: Docker
+
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+  push:
+    branches:
+      - master
+      - dev
+    paths-ignore:
+      - '*.md'
+  release:
+    types:
+      - published
+
+jobs:
+  Docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build ubuntu-base
+        run: docker build --target ubuntu-base -t ubuntu-base .
+      - name: Build ubuntu-provisioned
+        run: docker build --target ubuntu-provisioned -t ubuntu-provisioned .
+      - name: Build ea-tester-base
+        run: docker build --target ea-tester-base -t ea-tester-base .
+      - name: Build ea-tester-with-mt4
+        run: docker build --target ea-tester-with-mt4 -t mt4 .
+      - name: Build ea-tester-with-mt5
+        run: docker build --target ea-tester-with-mt5 -t mt5 .
+      - name: Build ea-tester
+        run: docker build
+          --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          --build-arg VCS_REF=${GITHUB_SHA}
+          --build-arg VERSION=${GITHUB_REF}
+          --target ea-tester .
+      - run: docker images
+      - name: Push to Github Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: ea31337/ea-tester/ea-tester
+          tag_with_ref: true
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ea31337/ea-tester
+          tag_with_ref: true
+  Test-Docker:
+    runs-on: ubuntu-latest
+    container:
+      image: ea31337/ea-tester:dev
+      volumes:
+        - ${{ github.workspace }}/scripts/tests:/opt/scripts
+    steps:
+      - run: pwd
+      - run: id
+      - run: ls -la /opt/scripts
+      # - run: scripts/eval.sh help
+      # - run: scripts/run_backtest.sh -?
