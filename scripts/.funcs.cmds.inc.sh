@@ -176,6 +176,7 @@ install_mt() {
   type jq wget unzip >/dev/null
   local mt_ver=${1:-$MT_VER}
   local dir_dest=${2:-$WINE_PATH}
+  dir_dest=${dir_dest:-$HOME}
   set_display
   case $mt_ver in
   4)
@@ -202,7 +203,11 @@ install_mt() {
     cd - &>/dev/null
     ;;
   *)
-    echo "Error: Not supported platform version. Supported: 4, 4x, 4.0.0.x, 5 or 5.0.0.x." >&2
+    if [ -z "$MT_VER" ]; then
+      echo "Error: Platform not specified!" >&2
+    else
+      echo "Error: Not supported platform version ($MT_VER). Supported: 4, 4x, 4.0.0.x, 5 or 5.0.0.x." >&2
+    fi
     exit 1
     ;;
   esac
