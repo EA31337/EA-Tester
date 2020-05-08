@@ -27,6 +27,11 @@ on_success() {
   echo "Checking logs..." >&2
   check_log_errors
   if [ $? -ne 0 ]; then
+    # Invoke custom code on failure.
+    if [ -n "$RUN_ON_FAIL" ]; then
+      echo "Running code on failure ($RUN_ON_FAIL)..." >&2
+      eval "$RUN_ON_FAIL"
+    fi
     echo "ERROR: RUN failed." >&2
     exit 1
   fi
