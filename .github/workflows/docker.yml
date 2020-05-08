@@ -12,6 +12,7 @@ on:
       - dev
     paths-ignore:
       - '*.md'
+      - '*.txt'
   release:
     types:
       - published

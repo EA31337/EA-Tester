@@ -47,7 +47,7 @@ Supported options:
     Convert test report file into JSON format.
     Variable (bool): OPT_FORMAT_JSON
   -l (double)
-    Specify a lot step (e.g. 0.01).
+    Specifies a lot step (e.g. 0.01).
     Variable (float): BT_LOTSTEP
   -L (limit)
     EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown_enable=1,maxdrawdown=20.00).
@@ -58,7 +58,7 @@ Supported options:
   -M (version)
     Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
   -o
-    Run test in optimization mode.
+    Runs test in optimization mode.
     Variable (bool): OPT_OPTIMIZATION
   -O (dir)
     Output directory to save the test results. Default: /opt/results for Docker container.
@@ -89,10 +89,10 @@ Supported options:
     Verbose mode.
     Variable (bool): OPT_VERBOSE
   -V
-    Run test in visual mode (TestVisualEnable).
+    Runs test in visual mode (TestVisualEnable).
     Variable (bool): VISUAL_MODE
   -x
-    Run the script in trace/debug mode.
+    Runs the script in trace/debug mode.
     Variable (bool): OPT_TRACE
   -X (file)
     Invoke script file n exit after the successful test.
@@ -124,15 +124,15 @@ Other supported variables (without options assigned):
 - OPT_NOERR (bool)
   Disables errexit flag to prevent exiting script on failure.
 - RUN_ON_START (string)
-  Run shell code on startup (before the test).
+  Runs shell code on startup (before the test).
 - RUN_ON_SET (string)
-  Run shell code on SET configuration (e.g. "file_get URL").
+  Runs shell code on SET configuration (e.g. "file_get URL").
 - RUN_ON_SUCCESS (string)
-  Run shell code on success (after the test).
+  Runs shell code after successful test.
 - RUN_ON_FAIL (string)
-  Run shell code on failure (after the test).
+  Runs shell code after the test failure.
 - RUN_ON_EXIT (string)
-  Run shell code on exit (after the test).
+  Runs shell code on exit (after the test).
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
 - EX_ARGS (string)
