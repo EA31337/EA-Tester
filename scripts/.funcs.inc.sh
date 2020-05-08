@@ -321,6 +321,11 @@ kill_display() {
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
 on_exit() {
   local exit_status=${1:-$?}
+  # Invoke custom code on exit.
+  if [ -n "$RUN_ON_EXIT" ]; then
+    echo "Running code on exit ($RUN_ON_EXIT)..." >&2
+    eval "$RUN_ON_EXIT"
+  fi
   kill_jobs
   kill_wine
   [ -n "$OPT_VERBOSE" ] && echo "Exiting $0 with $exit_status" >&2
@@ -332,6 +337,11 @@ on_exit() {
 on_error() {
   local exit_status=${1:-$?}
   local frame=0
+  # Invoke custom code on error.
+  if [ -n "$RUN_ON_ERROR" ]; then
+    echo "Running code on error ($RUN_ON_ERROR)..." >&2
+    eval "$RUN_ON_ERROR"
+  fi
   kill_jobs
   kill_wine
   kill_display

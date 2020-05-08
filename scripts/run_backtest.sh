@@ -842,7 +842,7 @@ echo "Starting..." >&2
 # Check the results.
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@
 
-# Invoke shutdown/final code.
+# Invoke custom code on shutdown/final run.
 if [ -n "$RUN_ON_EXIT" ]; then
   echo "Running code on exit ($RUN_ON_EXIT)..." >&2
   eval "$RUN_ON_EXIT"

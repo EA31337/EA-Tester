@@ -129,6 +129,8 @@ Other supported variables (without options assigned):
   Runs shell code on SET configuration (e.g. "file_get URL").
 - RUN_ON_SUCCESS (string)
   Runs shell code after successful test.
+- RUN_ON_ERROR (string)
+  Runs shell code on error.
 - RUN_ON_FAIL (string)
   Runs shell code after the test failure.
 - RUN_ON_EXIT (string)
