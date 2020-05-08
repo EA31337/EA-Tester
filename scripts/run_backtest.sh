@@ -802,7 +802,7 @@ if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'mq' ]]; then
   # Compile EA when source code file is specified.
   echo "Compiling EA ($EA_PATH)..." >&2
   compiled_no="$(compile_ea ${EA_PATH##*/})"
-  [ ${compiled_no} -gt 0 ]
+  [ "${compiled_no}" -gt 0 ]
 elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   # Compile script when source code file is specified.
   echo "Compiling script ($SCR_PATH)..." >&2
