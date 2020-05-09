@@ -377,6 +377,7 @@ compile() {
       fi
       if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
         echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2
+        [ -n "$OPT_VERBOSE" ] && conv <"$log_file"
         false
       fi
     fi
