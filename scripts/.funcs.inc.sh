@@ -127,9 +127,10 @@ check_log_errors() {
   errors+=("Assert fail on .\+")
   errors+=("Testing pass stopped .\+")
   cd "$TERMINAL_DIR"
+  # shellcheck disable=SC2251
   ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  # shellcheck disable=SC2251
   ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
-  cd - &>/dev/null
 }
 
 # Check logs for warnings.
@@ -140,7 +141,9 @@ check_log_warns() {
   errors+=("objects of type")
   errors+=("undeleted objects left")
   cd "$TERMINAL_DIR"
+  # shellcheck disable=SC2251
   ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  # shellcheck disable=SC2251
   ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
 }
 
