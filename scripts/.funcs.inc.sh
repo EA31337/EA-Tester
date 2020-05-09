@@ -137,6 +137,7 @@ check_log_errors() {
 check_log_warns() {
   local errors=()
   errors+=("leaked memory")
+  errors+=("objects of type")
   errors+=("undeleted objects left")
   cd "$TERMINAL_DIR"
   ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
