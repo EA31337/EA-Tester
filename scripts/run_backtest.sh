@@ -24,15 +24,19 @@ usage() {
 on_success() {
 
   # Fail on error in the logs.
-  echo "Checking logs..." >&2
+  echo "Checking logs for warnings and errors..." >&2
   check_log_errors
   if [ $? -ne 0 ]; then
-    # Invoke custom code on failure.
-    if [ -n "$RUN_ON_FAIL" ]; then
-      echo "Running code on failure ($RUN_ON_FAIL)..." >&2
-      eval "$RUN_ON_FAIL"
-    fi
-    echo "ERROR: RUN failed." >&2
+    echo "ERROR: RUN failed with errors." >&2
+    on_fail
+    on_error 1
+  fi
+
+  check_log_warns
+  if [ $? -ne 0 ]; then
+    echo "ERROR: RUN failed with warnings." >&2
+    on_warn
+    on_fail
     on_error 1
   fi
 
@@ -79,22 +83,11 @@ on_failure() {
     }
   fi
 
-  # Invoke custom code on failure.
-  if [ -n "$RUN_ON_FAIL" ]; then
-    echo "Running code on failure ($RUN_ON_FAIL)..." >&2
-    eval "$RUN_ON_FAIL"
-  fi
   echo "Printing logs..." >&2
   show_logs
   echo "ERROR: RUN failed." >&2
+  on_fail
   on_finish
-}
-
-# Invoke on test finish.
-on_finish() {
-  kill_jobs
-  kill_wine
-  kill_display
 }
 
 # Parse report files.

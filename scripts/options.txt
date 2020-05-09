@@ -130,7 +130,9 @@ Other supported variables (without options assigned):
 - RUN_ON_SUCCESS (string)
   Runs shell code after successful test.
 - RUN_ON_ERROR (string)
-  Runs shell code on error.
+  Runs shell code on test errors (including warnings).
+- RUN_ON_WARN (string)
+  Runs shell code on test warnings (e.g. memory leaks).
 - RUN_ON_FAIL (string)
   Runs shell code after the test failure.
 - RUN_ON_EXIT (string)

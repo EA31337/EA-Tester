@@ -126,6 +126,16 @@ check_log_errors() {
   errors+=("Configuration issue .\+")
   errors+=("Assert fail on .\+")
   errors+=("Testing pass stopped .\+")
+  cd "$TERMINAL_DIR"
+  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
+  cd - &>/dev/null
+}
+
+# Check logs for warnings.
+# Usage: check_log_warns
+check_log_warns() {
+  local errors=()
   errors+=("leaked memory")
   errors+=("undeleted objects left")
   cd "$TERMINAL_DIR"
@@ -348,4 +358,29 @@ on_error() {
   echo "ERROR: Exiting $0 with $exit_status" >&2
   show_trace
   exit $exit_status
+}
+
+# Invoke on test fail.
+on_fail() {
+  # Invoke custom code on test failure.
+  if [ -n "$RUN_ON_FAIL" ]; then
+    echo "Running code on failure ($RUN_ON_FAIL)..." >&2
+    eval "$RUN_ON_FAIL"
+  fi
+}
+
+# Invoke on test warnings.
+on_warn() {
+  # Invoke custom code on test warnings.
+  if [ -n "$RUN_ON_WARN" ]; then
+    echo "Running code on failure ($RUN_ON_WARN)..." >&2
+    eval "$RUN_ON_WARN"
+  fi
+}
+
+# Invoke on test finish.
+on_finish() {
+  kill_jobs
+  kill_wine
+  kill_display
 }
