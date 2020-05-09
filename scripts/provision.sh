@@ -87,7 +87,7 @@ Linux)
     # Omit source repositories from updates for performance reasons.
     command -v sed >/dev/null && {
       PATH=$(dirname $(which find sed) | paste -sd:) \
-      find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
+        find /etc/apt -type f -name '*.list' -execdir sed -i 's/^\(deb-src\)/#\1/' {} +
     }
 
     # Enable 32 bit architecture for 64 bit systems (required for Wine).

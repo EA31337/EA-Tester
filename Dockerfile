@@ -4,7 +4,7 @@ MAINTAINER kenorb
 ENV DEBIAN_FRONTEND noninteractive
 
 # Setup the default user.
-RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1000 ubuntu
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu
 USER ubuntu
 WORKDIR /home/ubuntu
 

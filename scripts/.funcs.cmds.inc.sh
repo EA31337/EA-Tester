@@ -369,16 +369,19 @@ compile() {
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
   echo "Info: Number of files compiled: $compiled_no" >&2
-  [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
-  if [ -f "$log_file" ]; then
-    if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
-      echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2
+  (
+    [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
+    if [ -f "$log_file" ]; then
+      if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv <"$log_file"); then
+        echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2
+      fi
+      if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
+        echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2
+        [ -n "$OPT_VERBOSE" ] && conv <"$log_file"
+        false
+      fi
     fi
-    if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv <"$log_file"); then
-      echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2
-      false
-    fi
-  fi
+  ) >&2
   echo "${compiled_no}"
 }
 
@@ -472,10 +475,10 @@ ea_find() {
       echo "$file"
       return
     } ||
-    result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
   echo ${result#./}
   cd - &>/dev/null
 }
@@ -498,10 +501,10 @@ script_find() {
       echo "$file"
       return
     } ||
-    result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
   echo ${result#./}
   cd - &>/dev/null
 }

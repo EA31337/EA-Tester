@@ -24,11 +24,20 @@ usage() {
 on_success() {
 
   # Fail on error in the logs.
-  echo "Checking logs..." >&2
+  echo "Checking logs for warnings and errors..." >&2
   check_log_errors
   if [ $? -ne 0 ]; then
-    echo "ERROR: RUN failed." >&2
-    exit 1
+    echo "ERROR: RUN failed with errors." >&2
+    on_fail
+    on_error 1
+  fi
+
+  check_log_warns
+  if [ $? -ne 0 ]; then
+    echo "ERROR: RUN failed with warnings." >&2
+    on_warn
+    on_fail
+    on_error 1
   fi
 
   echo "RUN succeeded." >&2
@@ -74,22 +83,11 @@ on_failure() {
     }
   fi
 
-  # Invoke custom code on failure.
-  if [ -n "$RUN_ON_FAIL" ]; then
-    echo "Running code on failure ($RUN_ON_FAIL)..." >&2
-    eval "$RUN_ON_FAIL"
-  fi
   echo "Printing logs..." >&2
   show_logs
   echo "ERROR: RUN failed." >&2
+  on_fail
   on_finish
-}
-
-# Invoke on test finish.
-on_finish() {
-  kill_jobs
-  kill_wine
-  kill_display
 }
 
 # Parse report files.
@@ -105,8 +103,8 @@ parse_results() {
   # Locate the report file.
   TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*.htm" -print -quit)
   TEST_REPORT_DIR="$(dirname "$TEST_REPORT_HTM")"
-  test -d "$TEST_REPORT_DIR" || exit 1
-  test -f "$TEST_REPORT_HTM" || exit 1
+  test -d "$TEST_REPORT_DIR" || on_error 1
+  test -f "$TEST_REPORT_HTM" || on_error 1
 
   if [ -n "$OPT_FORMAT_JSON" ]; then
     # Convert test report file into JSON format.
@@ -234,7 +232,7 @@ if [ -f "$TERMINAL_EXE" ]; then
 else
   [ -n "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
   echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2
-  exit 1
+  on_error 1
 fi
 
 # Re-load variables.
@@ -349,8 +347,8 @@ if [ -n "$TEST_EXPERT" ]; then
   EA_PATH=$(ea_find "$TEST_EXPERT")
   echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || {
-    echo "Error: TestExpert file ($TEST_EXPERT) not found in '$ROOT'!" >&2
-    exit 1
+    echo "Error: TestExpert file ($TEST_EXPERT) not found!" >&2
+    on_error 1
   }
   if [ "${EA_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
@@ -366,8 +364,8 @@ elif [ -n "$EXPERT" ]; then
   EA_PATH=$(ea_find "$EXPERT")
   echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
   [ -f "$EA_PATH" ] || {
-    echo "Error: Expert file ($EXPERT) not found in '$ROOT'!" >&2
-    exit 1
+    echo "Error: Expert file ($EXPERT) not found!" >&2
+    on_error 1
   }
   if [ "${EA_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
@@ -383,8 +381,8 @@ elif [ -n "$SCRIPT" ]; then
   SCR_PATH=$(script_find "$SCRIPT")
   echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
   [ -f "$SCR_PATH" ] || {
-    echo "Error: Script file ($SCRIPT) not found in '$ROOT'!" >&2
-    exit 1
+    echo "Error: Script file ($SCRIPT) not found!" >&2
+    on_error 1
   }
   if [ "${SCR_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
@@ -462,7 +460,7 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   [ ! -s "$TESTER_DIR/$exported_setfile" ] && {
     echo "ERROR: Export of SET file failed!" >&2
     ls "$TESTER_DIR"/*.set
-    exit 1
+    on_error 1
   }
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
@@ -574,7 +572,7 @@ while getopts $ARGS arg; do
     echo "Checking whether after test script exists..." >&2
     [ -f "$OPTARG" ] || {
       echo "ERROR: Script specified by -X parameter does no exist." >&2
-      exit 1
+      on_error 1
     }
     ;;
 
@@ -596,7 +594,7 @@ while getopts $ARGS arg; do
   *)
     echo "Args: $@" >&2
     usage
-    exit 1
+    on_error 1
     ;;
 
   esac
@@ -677,7 +675,7 @@ if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
   else
     if [ ! -s "$SETFILE" ]; then
       echo "ERROR: Set file not found ($SETFILE)!" >&2
-      exit 1
+      on_error 1
     fi
   fi
 fi
@@ -724,7 +722,7 @@ if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   [ -w "$BT_DEST" ] || {
     echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
     stat "$BT_DEST" >&2
-    exit 1
+    on_error 1
   }
 fi
 
@@ -784,20 +782,20 @@ if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] ||
     {
       echo "ERROR: Missing backtest data files." >&2
-      exit 1
+      on_error 1
     }
 fi
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2
-  exit 1
+  on_error 1
 fi
 
 if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'mq' ]]; then
   # Compile EA when source code file is specified.
   echo "Compiling EA ($EA_PATH)..." >&2
   compiled_no="$(compile_ea ${EA_PATH##*/})"
-  [ ${compiled_no} -gt 0 ]
+  [ "${compiled_no}" -gt 0 ]
 elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   # Compile script when source code file is specified.
   echo "Compiling script ($SCR_PATH)..." >&2
@@ -837,7 +835,7 @@ echo "Starting..." >&2
 # Check the results.
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@
 
-# Invoke shutdown/final code.
+# Invoke custom code on shutdown/final run.
 if [ -n "$RUN_ON_EXIT" ]; then
   echo "Running code on exit ($RUN_ON_EXIT)..." >&2
   eval "$RUN_ON_EXIT"
