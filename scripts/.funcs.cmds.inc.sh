@@ -220,8 +220,8 @@ install_mt() {
 
 # Show version of installed platform binaries.
 print_ver() {
-  MT_VER=$(filever terminal.exe)
-  MTE_VER=$(filever metaeditor.exe)
+  MT_VER=$(filever $(basename "$TERMINAL_EXE"))
+  MTE_VER=$(filever $(basename "$MTEDITOR_EXE"))
   echo "Installed Terminal: $MT_VER"
   echo "Installed MetaEditor: $MTE_VER"
 }
