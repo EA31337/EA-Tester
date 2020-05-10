@@ -102,7 +102,7 @@ live_logs() {
   # Prints MQL4 logs when available (e.g. MQL4/Logs/20180717.log).
   {
     while sleep $interval; do
-      log_file="$([ -d "$LOG_DIR" ] && find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
+      log_file="$([ -d "$MQLOG_DIR" ] && find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
     done && tail -f "$log_file"
   } &
