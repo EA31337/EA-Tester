@@ -15,7 +15,7 @@ Supported options:
     Deposit amount to test. Default: 10000
     Variable (int): BT_DEPOSIT
   -D (digits)
-    Specify market digits (e.g. 5 or 4).
+    Specifies number of digits after decimal point for the current symbol prices (e.g. 4 or 5).
     Variable (uint): BT_DIGITS
   -e (filename/url/pattern)
     EA name to test (TestExpert).
@@ -50,7 +50,7 @@ Supported options:
     Specifies a lot step (e.g. 0.01).
     Variable (float): BT_LOTSTEP
   -L (limit)
-    EA common/limit test parameters separated by comma (e.g. genetic=0,maxdrawdown_enable=1,maxdrawdown=20.00).
+    Specifies EA common/limit test parameters in a sequence of comma-separated values (e.g. genetic=0,maxdrawdown_enable=1,maxdrawdown=20.00).
     Variable (string): EA_OPTS
   -m (month)
     Month to test. Default: 1-12.
@@ -111,13 +111,13 @@ Other supported variables (without options assigned):
 - BT_LEVERAGE (uint)
   Specify account leverage to test. Default: 100.
 - BT_TESTMODEL (uint)
-  This controls type of backtest data being tested.
+  Specifies type of backtest data being tested.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
 - BT_PERIOD_FXT (string)
   Overrides FXT file to use for the test.
   By default, it is the same as BT_PERIOD.
 - BT_TESTMODEL_FXT (uint)
-  This controls type of backtest data being downloaded in FXT format.
+  Specifies type of backtest data being downloaded in FXT format.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only
 - EA_WHITELIST_URLS (string)
   Adds URLs to whitelist. Separate by a semicolon. Required for WebRequest().
@@ -143,5 +143,7 @@ Other supported variables (without options assigned):
   Arguments passed to Ex editor on in-place file editing.
 - OPT_DRY_RUN (bool)
   Do not run test on dry run.
+- SETFILE (string)
+  Specifies SET file to use for the test.
 - SET_PARAMS (string)
-  Parameters to set optimized values in SET file (SETFILE), separated by commas.
+  Parameters to set optimized values in SET file (SETFILE) in a sequence of comma-separated values.

@@ -6,7 +6,7 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-ARGS="?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
+ARGS="45?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
 
 # Check dependencies.
 type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
@@ -194,6 +194,18 @@ while getopts $ARGS arg; do
     exit 0
     ;;
 
+  4) # MT4
+    MT_VER=4
+    ;;
+
+  5) # MT5
+    MT_VER=5
+    ;;
+
+  M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
+    MT_VER=${OPTARG:-4.0.0.1010}
+    ;;
+
   v) # Verbose mode.
     OPT_VERBOSE=true
     VFLAG="-v"
@@ -211,6 +223,9 @@ while getopts $ARGS arg; do
   esac
 done
 
+[ -n "$NOERR" ] || set -e
+[ -n "$OPT_TRACE" ] && set -x
+
 # Invoke includes.
 . "$CWD"/.aliases.inc.sh
 . "$CWD"/.funcs.inc.sh
@@ -221,8 +236,14 @@ done
 # Initialize.
 initialize
 
-[ -n "$NOERR" ] || set -e
-[ -n "$OPT_TRACE" ] && set -x
+# Check if MT version has been specified.
+if [ -n "$MT_VER" ] && [ ${#MT_VER} -gt 8 ]; then
+  # Install MT platform.
+  type unzip >/dev/null
+  install_mt $MT_VER
+  . "$CWD"/.vars.inc.sh # Reload variables.
+  check_dirs
+fi
 
 # Check if terminal is present, otherwise install it.
 echo "Checking platform..." >&2
@@ -234,9 +255,6 @@ else
   echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2
   on_error 1
 fi
-
-# Re-load variables.
-. "$CWD"/.vars.inc.sh
 
 # Enter platform directory.
 cd "$TERMINAL_DIR"
@@ -283,14 +301,6 @@ while getopts $ARGS arg; do
 
   m) # Which months to test (default: 1-12).
     BT_MONTHS=${OPTARG}
-    ;;
-
-  M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-    MT_VER=${OPTARG:-4.0.0.1010}
-    type unzip >/dev/null
-    install_mt $MT_VER
-    . "$CWD"/.vars.inc.sh # Reload variables.
-    check_dirs
     ;;
 
   p) # Symbol pair to test (e.g. EURUSD).
@@ -829,7 +839,7 @@ fi
 # Run the test in the platform.
 echo "Starting..." >&2
 {
-  time wine "$TERMINAL_EXE" $TERMINAL_ARG "config/$CONF_TEST"
+  time wine "$TERMINAL_EXE" $TERMINAL_ARG $TERMINAL_ARG_CFG
 } 2>>"$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.

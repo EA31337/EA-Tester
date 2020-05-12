@@ -61,8 +61,8 @@ join_by() {
 # Check required files.
 # Usage: check_files
 check_files() {
-  if [ "$SERVER" != "default" ] && [ -w "$HISTORY_DIR/$SERVER" ]; then
-    [ -s "$symbols_raw" ] || cp $VFLAG "$HISTORY_DIR/default/symbols.raw" "$HISTORY_DIR/$SERVER/symbols.raw"
+  if [ "$SERVER" != "default" ] && [ -w "$TERMINAL_HST/$SERVER" ]; then
+    [ -s "$(get_path_symbols_raw)" ] && cp $VFLAG "$TERMINAL_HST/default/symbols.raw" "$TERMINAL_HST/$SERVER/symbols.raw"
   fi
 }
 
@@ -73,7 +73,7 @@ check_dirs() {
     "$TERMINAL_DIR/$MQL_DIR" \
     "$EXPERTS_DIR" \
     "$FILES_DIR" \
-    "$HISTORY_DIR/$SERVER" \
+    "$TERMINAL_HST/$SERVER" \
     "$LOG_DIR" \
     "$SCRIPTS_DIR" \
     "$TESTER_DIR" \
