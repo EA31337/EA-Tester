@@ -86,6 +86,11 @@ check_logs() {
   find "$TERMINAL_DIR" -name "*.log" -type f -exec grep --color -C1 -iw "$filter" ${@:2} "{}" +
 }
 
+# Gets filepath to symbols.raw file.
+get_path_symbols_raw() {
+  printf "%s" "$TERMINAL_HST/${SERVER:-"default"}/symbols.raw"
+}
+
 # Display logs in real-time.
 # Usage: live_logs [invert-match] [interval]
 live_logs() {
@@ -147,7 +152,7 @@ clean_files() {
   [ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f $VPRINT -delete
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
   # Remove selected symbol and group files, so they can be regenerated.
-  find "$HISTORY_DIR" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
+  find "$TERMINAL_HST" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
 }
 
 # Delete backtest data files.
@@ -1009,7 +1014,7 @@ set_data_value() {
   [ -n "$key" ]
   [ -n "$value" ]
   (
-    find "$TICKDATA_DIR" "$HISTORY_DIR/${SERVER:-"default"}" -type f -iname "*.${type}" -print0 | while IFS= read -r -d $'\0' file; do
+    find "$TICKDATA_DIR" "$TERMINAL_HST/${SERVER:-"default"}" -type f -iname "*.${type}" -print0 | while IFS= read -r -d $'\0' file; do
       (
         base=$(basename "$file")
         read _ _ prev_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key)
@@ -1056,7 +1061,7 @@ set_lotstep() {
 set_digits() {
   local digits=$1
   [ -n "$digits" ]
-  symbols_raw_file="$HISTORY_DIR/${SERVER:-"default"}/symbols.raw"
+  symbols_raw_file="$(get_path_symbols_raw)"
   if [ -w "$symbols_raw_file" ]; then
     echo "Setting digits to $digits in symbols.raw..." >&2
     mt_modify -m "digits=$digits" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"

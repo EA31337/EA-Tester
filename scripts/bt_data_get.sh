@@ -40,7 +40,7 @@ csv2data() {
   conv_args="-v -i /dev/stdin -s $symbol -p 10 -S default"
   tmpfile=$(mktemp)
   find "$dest_dir" -name '*.csv' -print0 | sort -z | $xargs -r0 cat >"$tmpfile"
-  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN1 -f hst4 -d "$HISTORY_DIR/${SERVER:-default}"
+  conv_csv_to_mt $conv_args -i "$tmpfile" -t M1,M5,M15,M30,H1,H4,D1,W1,MN1 -f hst4 -d "$TERMINAL_HST/${SERVER:-default}"
   conv_csv_to_mt $conv_args -i "$tmpfile" -t ${period:-M1,M5,M15,M30,H1,H4,D1,W1,MN1} -f fxt4 -d "$TICKDATA_DIR"
   rm $vflag "$tmpfile"
 }
@@ -139,7 +139,7 @@ case $bt_src in
   cd - &>/dev/null
   echo "Moving..." >&2
   find "$dest_dir" -type f -name "*.fxt" -exec mv $vflag "{}" "$TICKDATA_DIR" ';'
-  find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
+  find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$TERMINAL_HST/${SERVER:-default}" ';'
   convert=0
   ;;
 
@@ -158,7 +158,7 @@ case $bt_src in
   done
   echo "Moving..." >&2
   find "$dest_dir" -type f -name "*.fxt" -exec mv $vflag "{}" "$TICKDATA_DIR" ';'
-  find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$HISTORY_DIR/${SERVER:-default}" ';'
+  find "$dest_dir" -type f -name "*.hst" -exec mv $vflag "{}" "$TERMINAL_HST/${SERVER:-default}" ';'
   convert=0
   ;;
 

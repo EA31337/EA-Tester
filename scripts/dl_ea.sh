@@ -4,8 +4,8 @@ type wget >/dev/null || {
   echo "Error: Please install wget before continuing." >&2
   exit 1
 }
-TERMINAL_EXE="$(find /opt -name terminal.exe -print -quit)"
-DIR="$(dirname "$TERMINAL_EXE")"
+TERMINAL4_EXE="$(find /opt -name terminal.exe -print -quit)"
+DIR="$(dirname "$TERMINAL4_EXE")"
 
 # Download EA.
 wget -qNP $DIR/MQL4/Experts $1
