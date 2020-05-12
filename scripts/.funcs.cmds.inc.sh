@@ -169,9 +169,10 @@ clean_bt() {
 # Usage: filever [file/terminal.exe]
 filever() {
   type awk >/dev/null
-  wine filever &>/dev/null || install_support_tools >&2
+
+  timeout 10 wine filever &>/dev/null || install_support_tools >&2
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir wine filever /v "$file" ';' -quit |
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir timeout 10 wine filever /v "$file" ';' -quit |
     grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
