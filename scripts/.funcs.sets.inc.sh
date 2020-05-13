@@ -33,8 +33,8 @@ input_set() {
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   file=${file:-$SETFILE}
-  [ -s "$file" ] || {
-    echo "ERROR: File $file does not exist or has a zero size." >&2
+  [ -w "$file" ] || {
+    echo "ERROR: File $file is not writeable or does not exist" >&2
     type on_error &>/dev/null && on_error 1
   }
   read -ra vargs <<<$EX_ARGS
