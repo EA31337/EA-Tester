@@ -198,7 +198,7 @@ install_mt() {
     [ ! -d "$dir_dest" ] && mkdir $VFLAG -p "$dir_dest"
     [ ! -w "$dir_dest" ] && {
       echo "Error: Destination folder not writable!" >&2
-      stat "$dir_dest" >&2
+      (id && stat "$dir_dest") >&2
       exit 1
     }
     cd "$dir_dest"
