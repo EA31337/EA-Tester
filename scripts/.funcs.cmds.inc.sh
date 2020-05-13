@@ -967,7 +967,7 @@ ini_set_inputs() {
 ini_get() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
-  [ -s "$file" ] || return
+  [ ! -s "$file" ] && return
   local value="$(grep -om1 "^$key=\S\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value
