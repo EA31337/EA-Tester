@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Define shell functions for dealing with SET file.
 #
 
@@ -35,13 +34,15 @@ input_set() {
   file=${file:-$SETFILE}
   [ -w "$file" ] || {
     echo "ERROR: File $file is not writeable or does not exist" >&2
-    type on_error &>/dev/null && on_error 1
+    type on_error &>/dev/null && on_error 1 || exit 1
   }
   read -ra vargs <<<$EX_ARGS
   vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
-    ex +"%s/$key=\\zs.*$/$value/" -scwq! ${vargs[@]} "$file" >&2 || exit 1
+    ex +"%s/$key=\\zs.*$/$value/" -scwq! ${vargs[@]} "$file" >&2 || {
+      type on_error &>/dev/null && on_error 1 || exit 1
+    }
   else
     echo "Value for '$key' is empty, ignoring." >&2
   fi
