@@ -13,6 +13,19 @@ jobs:
         uses: ibiqlik/action-yamllint@master
         with:
           strict: true
+  Markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v1.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: .
+          config_file: ".markdownlint.yaml"
+#         ignore_files: "examples/ignore/*"
+#         rules: "examples/rules/custom.js"
   ShellCheck:
     runs-on: ubuntu-latest
     steps:
