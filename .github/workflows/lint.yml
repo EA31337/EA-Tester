@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 name: Lint
 on:
@@ -24,8 +23,6 @@ jobs:
         with:
           files: .
           config_file: ".markdownlint.yaml"
-#         ignore_files: "examples/ignore/*"
-#         rules: "examples/rules/custom.js"
   ShellCheck:
     runs-on: ubuntu-latest
     steps:
