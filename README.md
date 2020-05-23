@@ -1,11 +1,12 @@
-<!-- markdownlint-configure-file { "MD013": { "line_length": 120 } } -->
+# EA Tester
+
 [![Release][github-release-image]][github-release-link]
 [![Docker image][docker-build-image]][docker-build-link]
-[![](https://img.shields.io/badge/Telegram-news-0088CC.svg?logo=telegram)](https://t.me/EA31337_News)
-[![](https://img.shields.io/badge/Telegram-chat-0088CC.svg?logo=telegram)](https://t.me/EA31337)
-[![Edit][gitpod-image]][gitpod-link]
+[![EA31337 News](https://img.shields.io/badge/Telegram-news-0088CC.svg?logo=telegram)](https://t.me/EA31337_News)
+[![EA31337 Chat](https://img.shields.io/badge/Telegram-chat-0088CC.svg?logo=telegram)](https://t.me/EA31337)
+[![Edit Code][gitpod-image]][gitpod-link]
 
-# About
+## About
 
 Headless Forex backtesting for MetaTrader platform using Docker.
 
