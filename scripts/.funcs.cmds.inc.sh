@@ -198,7 +198,7 @@ install_mt() {
     [ ! -d "$dir_dest" ] && mkdir $VFLAG -p "$dir_dest"
     [ ! -w "$dir_dest" ] && {
       echo "Error: Destination folder not writable!" >&2
-      stat "$dir_dest" >&2
+      (id && stat "$dir_dest") >&2
       exit 1
     }
     cd "$dir_dest"
@@ -967,6 +967,7 @@ ini_set_inputs() {
 ini_get() {
   local key="$1"
   local file="${2:-$TESTER_INI}"
+  [ ! -s "$file" ] && return
   local value="$(grep -om1 "^$key=\S\+" "$file" | head -1 | cut -d= -f2-)"
   echo "Getting '$key' from $(basename "$file"): $value" >&2
   echo $value

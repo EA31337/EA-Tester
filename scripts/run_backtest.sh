@@ -217,14 +217,16 @@ while getopts $ARGS arg; do
 
   x) # Run the script in debug mode.
     OPT_TRACE=1
-    set -x
     ;;
 
   esac
 done
 
 [ -n "$NOERR" ] || set -e
-[ -n "$OPT_TRACE" ] && set -x
+[ -n "$OPT_TRACE" ] && {
+  set -x
+  EX_ARGS="${EX_ARGS:-"-V1"}"
+}
 
 # Invoke includes.
 . "$CWD"/.aliases.inc.sh

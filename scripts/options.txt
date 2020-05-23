@@ -69,7 +69,7 @@ Supported options:
     Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
     Variable (string): SET_OPTS
   -r (string)
-    The name of the test report file. Default: tester/Report
+    Specifies the name of the test report file. Default: tester/Report
     Variable (string): TEST_REPORT_NAME
   -R
     Set files to read-only.
@@ -140,7 +140,7 @@ Other supported variables (without options assigned):
 - JSON_PARSER (string)
   Command to parse JSON file (e.g. jq or python).
 - EX_ARGS (string)
-  Arguments passed to Ex editor on in-place file editing.
+  Specifies the arguments passed to Ex editor on in-place file editing.
 - OPT_DRY_RUN (bool)
   Do not run test on dry run.
 - SETFILE (string)
