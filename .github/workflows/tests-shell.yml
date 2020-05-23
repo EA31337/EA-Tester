@@ -18,7 +18,8 @@ jobs:
       image: ea31337/ea-tester:dev
     steps:
       - uses: actions/checkout@v2
-      - run: ln -fs scripts /opt/scripts
-      - name: Test .vars.inc.sh file
+      - name: Prepare folder
+        run: ln -fsv scripts /opt/scripts
+      - name: Run test scripts
         working-directory: scripts/tests
-        run: ./test_vars.sh
+        run: find . -name "*.sh" -print -exec {} ";"
