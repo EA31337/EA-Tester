@@ -22,6 +22,8 @@ jobs:
         run: ln -fsv scripts /opt/scripts
       - run: ./test_aliases.sh
         working-directory: scripts/tests
+      - run: ./test_backtest.sh
+        working-directory: scripts/tests
       - run: ./test_cmds.sh
         working-directory: scripts/tests
       - run: ./test_eval.sh
