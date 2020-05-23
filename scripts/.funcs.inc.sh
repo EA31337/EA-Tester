@@ -353,7 +353,7 @@ on_error() {
   local frame=0
   # Invoke custom code on error.
   if [ -n "$RUN_ON_ERROR" ]; then
-    echo "Running code on error ($RUN_ON_ERROR)..." >&2
+    echo "INFO: Running code on error ($RUN_ON_ERROR)..."
     eval "$RUN_ON_ERROR"
   fi
   kill_jobs

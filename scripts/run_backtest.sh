@@ -24,36 +24,36 @@ usage() {
 on_success() {
 
   # Fail on error in the logs.
-  echo "Checking logs for warnings and errors..." >&2
+  echo "INFO: Checking logs for warnings and errors..."
   check_log_errors
   if [ $? -ne 0 ]; then
-    echo "ERROR: RUN failed with errors." >&2
+    echo "ERROR: RUN failed with errors."
     on_fail
     on_error 1
   fi
 
   check_log_warns
   if [ $? -ne 0 ]; then
-    echo "ERROR: RUN failed with warnings." >&2
+    echo "ERROR: RUN failed with warnings."
     on_warn
     on_fail
     on_error 1
   fi
 
-  echo "RUN succeeded." >&2
+  echo "INFO: RUN succeeded."
   show_logs
   parse_results $@
   on_finish
   local OPTIND
   # Invoke custom code on success.
   if [ -n "$RUN_ON_SUCCESS" ]; then
-    echo "Running code on success ($RUN_ON_SUCCESS)..." >&2
+    echo "INFO: Running code on success ($RUN_ON_SUCCESS)..."
     eval "$RUN_ON_SUCCESS"
   fi
   while getopts $ARGS arg; do
     case $arg in
     X) # Invoke file on exit after the successful test.
-      echo "Invoking script file after test..." >&2
+      echo "INFO: Invoking script file after test..."
       . "$OPTARG"
       ;;
     esac
@@ -64,7 +64,7 @@ on_success() {
 
 # Invoke on test failure.
 on_failure() {
-  echo "FAIL?!" >&2
+  echo "WARN: Something went wrong, a non-zero exit code returned."
   # Sometimes MT4 fails on success, therefore double checking.
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
 
@@ -83,9 +83,9 @@ on_failure() {
     }
   fi
 
-  echo "Printing logs..." >&2
+  echo "INFO: Printing logs..."
   show_logs
-  echo "ERROR: RUN failed." >&2
+  echo "ERROR: RUN failed."
   on_fail
   on_finish
 }
@@ -94,7 +94,7 @@ on_failure() {
 parse_results() {
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
 
-  echo "Checking the total time elapsed..." >&2
+  echo "INFO: Checking the total time elapsed..."
   save_time
 
   # Ignore if no test results or test expert name is set (e.g. when running the script).
@@ -108,17 +108,17 @@ parse_results() {
 
   if [ -n "$OPT_FORMAT_JSON" ]; then
     # Convert test report file into JSON format.
-    echo "Converting HTML report ($TEST_REPORT_DIR) into JSON file..." >&2
+    echo "INFO: Converting HTML report ($TEST_REPORT_DIR) into JSON file..."
     convert_html2json "$TEST_REPORT_HTM"
   fi
 
   if [ -n "$OPT_OPTIMIZATION" ]; then
     # Parse and save the optimization test results.
-    echo "Sorting optimization test results..." >&2
+    echo "INFO: Sorting optimization test results..."
     if [ "${MT_VER%%.*}" -ne 5 ]; then
       sort_opt_results "$TEST_REPORT_HTM"
     fi
-    echo "Saving optimization results..."
+    echo "INFO: Saving optimization results..."
     if [ -n "${param_list[*]}" ] || [ -n "$SET_PARAMS" ]; then
       if [ -z "${param_list[*]}" ]; then
         IFS=',' param_list=(${SET_PARAMS})
@@ -126,7 +126,7 @@ parse_results() {
       fi
       for input in ${param_list[@]}; do
         value=$(htm_get "$input" "$TEST_REPORT_HTM")
-        echo "Setting '$input' to '$value' in '$(basename $SETFILE)'" >&2
+        echo "INFO: Setting '$input' to '$value' in '$(basename $SETFILE)'"
         ini_set "^$input" "$value" "$SETFILE"
       done
     fi
@@ -135,19 +135,19 @@ parse_results() {
   if [ -n "$OPT_FORMAT_FULL" ]; then
     # Convert test report file to full detailed text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
-    echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+    echo "INFO: Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..."
     convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
   elif [ -n "$OPT_FORMAT_BRIEF" ]; then
     # Convert test report file into brief text format.
     TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
-    echo "Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..." >&2
+    echo "INFO: Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..."
     convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
   fi
 
   if [ -n "$OPT_GIF_ENHANCE" ]; then
     # Enhance gif report files.
     report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
-    echo "Enhancing report image ($TEST_REPORT_BASE.gif)..." >&2
+    echo "INFO: Enhancing report image ($TEST_REPORT_BASE.gif)..."
     enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
     if [ -f "$TEST_REPORT_TXT" ]; then
       local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
@@ -157,14 +157,14 @@ parse_results() {
 
   if [ -n "$OPT_VERBOSE" ]; then
     # Print test results in plain text.
-    echo "Printing test report ($(basename "$TEST_REPORT_HTM"))..." >&2
+    echo "INFO: Printing test report ($(basename "$TEST_REPORT_HTM"))..."
     grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
     find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
   fi
 
   if [ -d "$BT_DEST" ]; then
     # Copy the test results if the destination directory has been specified.
-    echo "Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..." >&2
+    echo "INFO: Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..."
     cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
     [ -f "$TESTER_LOGS/$(date +%Y%m%d).log" ] && cp $VFLAG "$TESTER_LOGS/$(date +%Y%m%d).log" "$BT_DEST/${TEST_REPORT_BASE}.log"
     find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
@@ -248,13 +248,13 @@ if [ -n "$MT_VER" ] && [ ${#MT_VER} -gt 8 ]; then
 fi
 
 # Check if terminal is present, otherwise install it.
-echo "Checking platform..." >&2
+echo "INFO: Checking platform..."
 if [ -f "$TERMINAL_EXE" ]; then
   # Check required directories.
   check_dirs
 else
   [ -n "$OPT_VERBOSE" ] && grep ^TERMINAL <(set) | xargs
-  echo "ERROR: Terminal not found, please specify -M parameter with version to install it." >&2
+  echo "ERROR: Terminal not found, please specify -M parameter with version to install it."
   on_error 1
 fi
 
@@ -322,7 +322,7 @@ done
 
 # Apply settings.
 if [ -n "$INCLUDE_BOOT" ]; then
-  echo "Invoking include booting file(s) (${INCLUDE_BOOT[@]})..." >&2
+  echo "INFO: Invoking include booting file(s) (${INCLUDE_BOOT[@]})..."
   for file in "${INCLUDE_BOOT[@]}"; do
     [ -f "$INCLUDE_BOOT" ]
     . <(cat "$file")
@@ -331,7 +331,7 @@ fi
 
 # Invoke boot code.
 if [ -n "$RUN_ON_START" ]; then
-  echo "Running code on startup ($RUN_ON_START)..." >&2
+  echo "INFO: Running code on startup ($RUN_ON_START)..."
   eval "$RUN_ON_START"
 fi
 
@@ -357,9 +357,9 @@ if [ -n "$TEST_EXPERT" ]; then
   # Locate TestExpert if specified.
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$TEST_EXPERT")
-  echo "Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..." >&2
+  echo "INFO: Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..."
   [ -f "$EA_PATH" ] || {
-    echo "Error: TestExpert file ($TEST_EXPERT) not found!" >&2
+    echo "ERROR: TestExpert file ($TEST_EXPERT) not found!"
     on_error 1
   }
   if [ "${EA_PATH::1}" == '/' ]; then
@@ -374,9 +374,9 @@ elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EXPERT")
-  echo "Locating Expert file ("$EXPERT" => "$EA_PATH")..." >&2
+  echo "INFO: Locating Expert file ("$EXPERT" => "$EA_PATH")..."
   [ -f "$EA_PATH" ] || {
-    echo "Error: Expert file ($EXPERT) not found!" >&2
+    echo "ERROR: Expert file ($EXPERT) not found!"
     on_error 1
   }
   if [ "${EA_PATH::1}" == '/' ]; then
@@ -391,9 +391,9 @@ elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
   cd "$SCRIPTS_DIR"
   SCR_PATH=$(script_find "$SCRIPT")
-  echo "Locating Script file ("$SCRIPT" => "$SCR_PATH")..." >&2
+  echo "INFO: Locating Script file ("$SCRIPT" => "$SCR_PATH")..."
   [ -f "$SCR_PATH" ] || {
-    echo "Error: Script file ($SCRIPT) not found!" >&2
+    echo "ERROR: Script file ($SCRIPT) not found!"
     on_error 1
   }
   if [ "${SCR_PATH::1}" == '/' ]; then
@@ -407,14 +407,14 @@ elif [ -n "$SCRIPT" ]; then
 fi
 
 if [ -n "$BT_START_DATE" ]; then
-  echo "Configuring start test period ($BT_START_DATE)..." >&2
+  echo "INFO: Configuring start test period ($BT_START_DATE)..."
   ini_set "^TestFromDate" "$BT_START_DATE" "$TESTER_INI"
 else
   BT_START_DATE="$(ini_get TestFromDate)"
   BT_YEARS=(${BT_START_DATE%%.*})
 fi
 if [ -n "$BT_END_DATE" ]; then
-  echo "Configuring end test period ($BT_END_DATE)..." >&2
+  echo "INFO: Configuring end test period ($BT_END_DATE)..."
   ini_set "^TestToDate" "$BT_END_DATE" "$TESTER_INI"
 else
   BT_END_DATE="$(ini_get TestToDate)"
@@ -426,7 +426,7 @@ fi
 
 # Configure symbol pair.
 if [ -n "$BT_SYMBOL" ]; then
-  echo "Configuring symbol pair ($BT_SYMBOL)..." >&2
+  echo "INFO: Configuring symbol pair ($BT_SYMBOL)..."
   ini_set "^TestSymbol" "$BT_SYMBOL" "$TESTER_INI"
 else
   BT_SYMBOL="$(ini_get TestSymbol)"
@@ -434,14 +434,14 @@ fi
 
 # Configure testing mode.
 if [ -n "$BT_TESTMODEL" ]; then
-  echo "Configuring test model ($BT_TESTMODEL)..." >&2
+  echo "INFO: Configuring test model ($BT_TESTMODEL)..."
   ini_set "^TestModel" "$BT_TESTMODEL" "$TESTER_INI"
 else
   BT_TESTMODEL="$(ini_get TestModel)"
 fi
 
 if [ -n "$TEST_OPTS" ]; then
-  echo "Applying tester settings ($TEST_OPTS)..." >&2
+  echo "INFO: Applying tester settings ($TEST_OPTS)..."
   IFS=','
   test_options=($TEST_OPTS)
   restore_ifs
@@ -466,18 +466,18 @@ SERVER="${SERVER:-$(ini_get Server)}"
 
 # Export SET file when SETFILE does not exist.
 if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
-  echo "Specified SET file via -f param does not exist ($SETFILE), exporting from EA ..." >&2
+  echo "ERROR: Specified SET file via -f param does not exist ($SETFILE), exporting from EA ..."
   exported_setfile=${TEST_EXPERT:-$EXPERT}
   exported_setfile=$(export_set "${exported_setfile##*/}" "$(basename "$SETFILE")")
   [ ! -s "$TESTER_DIR/$exported_setfile" ] && {
-    echo "ERROR: Export of SET file failed!" >&2
+    echo "ERROR: Export of SET file failed!"
     ls "$TESTER_DIR"/*.set
     on_error 1
   }
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
 if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
-  echo "EA's SET file is missing ($EA_SETFILE), copying from $SETFILE..." >&2
+  echo "INFO: EA's SET file is missing ($EA_SETFILE), copying from $SETFILE..."
   cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
 fi
 
@@ -581,9 +581,9 @@ while getopts $ARGS arg; do
     ;;
 
   X)
-    echo "Checking whether after test script exists..." >&2
+    echo "INFO: Checking whether after test script exists..."
     [ -f "$OPTARG" ] || {
-      echo "ERROR: Script specified by -X parameter does no exist." >&2
+      echo "ERROR: Script specified by -X parameter does no exist."
       on_error 1
     }
     ;;
@@ -604,7 +604,7 @@ while getopts $ARGS arg; do
   b | B | C | e | E | f | I | m | M | p | s | x | y) ;;
 
   *)
-    echo "Args: $@" >&2
+    echo "WARN: Args: $@" >&2
     usage
     on_error 1
     ;;
@@ -614,7 +614,7 @@ done
 
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
-  echo "Invoking include file(s) (${INCLUDE[@]})..." >&2
+  echo "INFO: Invoking include file(s) (${INCLUDE[@]})..."
   for file in ${INCLUDE[@]}; do
     [ -f "$INCLUDE" ]
     . <(cat "$file")
@@ -623,19 +623,19 @@ fi
 
 # Configure test period.
 if [ -n "$BT_PERIOD" ]; then
-  echo "Configuring test period ($BT_PERIOD)..." >&2
+  echo "INFO: Configuring test period ($BT_PERIOD)..."
   ini_set "^TestPeriod" "$BT_PERIOD" "$TESTER_INI"
 fi
 
 # Action(s) to evaluate.
 if [ -n "$RUN_ON_SET" ]; then
   for code in "${RUN_ON_SET[@]}"; do
-    echo "Running code on SET configuration ($code)..." >&2
+    echo "INFO: Running code on SET configuration ($code)..."
     eval "$code"
   done
 fi
 if [ -n "$EA_OPTS" ]; then
-  echo "Applying EA backtest settings ($EA_OPTS)..." >&2
+  echo "INFO: Applying EA backtest settings ($EA_OPTS)..."
   [ -f "$EA_INI" ]
   IFS=','
   ea_options=($EA_OPTS)
@@ -648,7 +648,7 @@ if [ -n "$EA_OPTS" ]; then
   done
 fi
 if [ -n "$SET_OPTS" ]; then
-  echo "Setting EA options ($SET_OPTS)..." >&2
+  echo "INFO: Setting EA options ($SET_OPTS)..."
   if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     # Append settings into the SET file.
     IFS=','
@@ -667,13 +667,13 @@ if [ -n "$SET_OPTS" ]; then
   fi
   if [ -n "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
-    echo "Final parameters: $(grep -v ,.= "$TESTER_DIR/$EA_SETFILE" | paste -sd,)" >&2
+    echo "INFO: Final parameters: $(grep -v ,.= "$TESTER_DIR/$EA_SETFILE" | paste -sd,)" >&2
   fi
 fi
 
 # Adds SET file into Terminal INI Configuration file.
 if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
-  echo "Configuring SET parameters ($EA_SETFILE)..." >&2
+  echo "INFO: Configuring SET parameters ($EA_SETFILE)..."
   if [ -f "$TESTER_DIR/$EA_SETFILE" ]; then
     if [ -n "$TEST_EXPERT" ]; then
       ini_set "^TestExpertParameters" "$EA_SETFILE" "$TESTER_INI"
@@ -682,11 +682,11 @@ if [ -n "$SETFILE" -o -n "$SET_OPTS" ]; then
     elif [ -n "$SCRIPT" ]; then
       ini_set "^ScriptParameters" "$EA_SETFILE" "$TESTER_INI"
     fi
-    echo "Copying parameters from SET into INI file..." >&2
+    echo "INFO: Copying parameters from SET into INI file..."
     ini_set_inputs "$TESTER_DIR/$EA_SETFILE" "$EA_INI"
   else
     if [ ! -s "$SETFILE" ]; then
-      echo "ERROR: Set file not found ($SETFILE)!" >&2
+      echo "ERROR: Set file not found ($SETFILE)!"
       on_error 1
     fi
   fi
@@ -694,45 +694,45 @@ fi
 
 # Configure base currency if present.
 if [ -n "$BT_CURRENCY" ]; then
-  echo "Configuring base currency ($BT_CURRENCY)..." >&2
+  echo "INFO: Configuring base currency ($BT_CURRENCY)..."
   ini_set "^currency" "$BT_CURRENCY" "$EA_INI"
 fi
 
 # Configure deposit if present.
 if [ -n "$BT_DEPOSIT" ]; then
-  echo "Configuring deposit ($BT_DEPOSIT)..." >&2
+  echo "INFO: Configuring deposit ($BT_DEPOSIT)..."
   ini_set "^deposit" "$BT_DEPOSIT" "$EA_INI"
 fi
 
 # Sets a test report if present.
 if [ -n "$EA_FILE" ]; then
   TEST_REPORT_NAME="${TEST_REPORT_NAME:-tester/${EA_FILE##*/}-Report}.htm"
-  echo "Configuring test report ($TEST_REPORT_NAME)..." >&2
+  echo "INFO: Configuring test report ($TEST_REPORT_NAME)..."
   ini_set "^TestReport" "$TEST_REPORT_NAME" "$TESTER_INI"
 fi
 
 # Sets the optimization mode if present.
 if [ -n "$OPT_OPTIMIZATION" ]; then
-  echo "Configuring optimization mode..." >&2
+  echo "INFO: Configuring optimization mode..."
   ini_set "^TestOptimization" true "$TESTER_INI"
 fi
 
 # Sets the visual mode if present.
 if [ -n "$VISUAL_MODE" ]; then
-  echo "Enabling visual mode..." >&2
+  echo "INFO: Enabling visual mode..."
   ini_set "^TestVisualEnable" true "$TESTER_INI"
 fi
 
 # Checks the destination folder (if run EA, not a script).
 if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
-  echo "Checking destination directory ($BT_DEST)..." >&2
+  echo "INFO: Checking destination directory ($BT_DEST)..."
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
   [ -f /.dockerenv -a -w "$BT_DEST" ] || {
-    echo "Warning: No write access! Attempting fixing the destination directory permissions ($BT_DEST)..." >&2
+    echo "WARN: No write access! Attempting fixing the destination directory permissions ($BT_DEST)..."
     timeout 1 sudo id && chmod $VFLAG a=rwx "$BT_DEST" || true
   }
   [ -w "$BT_DEST" ] || {
-    echo "Error: Destination directory ($BT_DEST) not writeable!" >&2
+    echo "ERROR: Destination directory ($BT_DEST) not writeable!"
     stat "$BT_DEST" >&2
     on_error 1
   }
@@ -743,7 +743,7 @@ BT_PERIOD=$(ini_get TestPeriod)
 BT_PERIOD_FXT=${BT_PERIOD_FXT:-$BT_PERIOD}
 BT_TESTMODEL_FXT=${BT_TESTMODEL_FXT:-0}
 if [ -n "$TEST_EXPERT" ]; then
-  echo "Checking backtest data (${BT_SRC:-DS})..."
+  echo "INFO: Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2018})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Download backtest files if not present.
@@ -761,31 +761,31 @@ fi
 
 # Sets a spread in FXT files (if specified).
 if [ -n "$BT_SPREAD" ]; then
-  echo "Configuring spread ($BT_SPREAD)..." >&2
+  echo "INFO: Configuring spread ($BT_SPREAD)..."
   set_spread $BT_SPREAD
 fi
 
 # Sets currency/volume digits and point size in symbol raw and FXT files (if specified).
 if [ -n "$BT_DIGITS" ]; then
-  echo "Configuring digits ($BT_DIGITS)..." >&2
+  echo "INFO: Configuring digits ($BT_DIGITS)..."
   set_digits $BT_DIGITS
 fi
 
 # Sets a lot step in FXT files (if specified).
 if [ -n "$BT_LOTSTEP" ]; then
-  echo "Setting lot step in FXT files ($BT_LOTSTEP)..." >&2
+  echo "INFO: Setting lot step in FXT files ($BT_LOTSTEP)..."
   set_lotstep $BT_LOTSTEP
 fi
 
 # Sets an account leverage in FXT files (if specified).
 if [ -n "$BT_LEVERAGE" ]; then
-  echo "Setting account leverage in FXT files ($BT_LEVERAGE)..." >&2
+  echo "INFO: Setting account leverage in FXT files ($BT_LEVERAGE)..."
   set_leverage $BT_LEVERAGE
 fi
 
 # Sets white-listed web-request URLs (if specified).
 if [ -n "$EA_WHITELIST_URLS" ]; then
-  echo "Setting white-listed URLs ($EA_WHITELIST_URLS)..." >&2
+  echo "INFO: Setting white-listed URLs ($EA_WHITELIST_URLS)..."
   add_url $EA_WHITELIST_URLS
 fi
 
@@ -793,31 +793,33 @@ fi
 if [ -n "$TEST_EXPERT" ]; then
   [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] ||
     {
-      echo "ERROR: Missing backtest data files." >&2
+      echo "ERROR: Missing backtest data files!"
       on_error 1
     }
 fi
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
-  echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)." >&2
+  echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)!"
   on_error 1
 fi
 
 if [ -n "$EA_FILE" ] && [[ ${EA_PATH##*.} =~ 'mq' ]]; then
   # Compile EA when source code file is specified.
-  echo "Compiling EA ($EA_PATH)..." >&2
+  echo "INFO: Compiling EA ($EA_PATH)..."
   compiled_no="$(compile_ea ${EA_PATH##*/})"
+  echo "INFO: Number of files compiled: $compiled_no"
   [ "${compiled_no}" -gt 0 ]
 elif [ -n "$SCRIPT" ] && [[ ${SCR_PATH##*.} =~ 'mq' ]]; then
   # Compile script when source code file is specified.
-  echo "Compiling script ($SCR_PATH)..." >&2
+  echo "INFO: Compiling script ($SCR_PATH)..."
   compiled_no="$(compile_script ${SCR_PATH##*/})"
+  echo "INFO: Number of files compiled: $compiled_no"
   [ ${compiled_no} -gt 0 ]
 fi
 
 # Exit on dry run.
 if [ -n "$OPT_DRY_RUN" ]; then
-  echo "Dry run completed." >&2
+  echo "INFO: Dry run completed."
   exit $?
 fi
 
@@ -839,7 +841,7 @@ if [ -n "$OPT_VERBOSE" ]; then
 fi
 
 # Run the test in the platform.
-echo "Starting..." >&2
+echo "INFO: Starting..."
 {
   time wine "$TERMINAL_EXE" $TERMINAL_ARG $TERMINAL_ARG_CFG
 } 2>>"$TERMINAL_LOG" && exit_status=$? || exit_status=$?
@@ -849,9 +851,9 @@ echo "Starting..." >&2
 
 # Invoke custom code on shutdown/final run.
 if [ -n "$RUN_ON_EXIT" ]; then
-  echo "Running code on exit ($RUN_ON_EXIT)..." >&2
+  echo "INFO: Running code on exit ($RUN_ON_EXIT)..."
   eval "$RUN_ON_EXIT"
 fi
 
-[ -n "$OPT_VERBOSE" ] && times >&2 && echo "$0 done" >&2
+[ -n "$OPT_VERBOSE" ] && times >&2 && echo "INFO: $0 done."
 exit $exit_status

@@ -15,11 +15,20 @@ file_stdout=/tmp/stdout
 file_stderr=/tmp/stderr
 
 # Asserts.
+set -x
 
-## Test script with missing parameters.
+## Checks backtest with missing parameters.
 ! run_backtest -_ 1>$file_stdout 2>$file_stderr
-grep ^ERROR $file_stderr
-wc -l "$file_stdout"
-[ "$(wc -l "$file_stdout" | grep -o ^"[0-9]\+")" -eq 2 ]
+grep ^ERROR $file_stdout
+
+## Checks backtest with dummy script.
+#run_backtest -_ -s Dummy 1>$file_stdout 2>$file_stderr
+#grep "compiled: 1" $file_stdout
+#! grep ^ERROR $file_stderr
+
+## Checks backtest with dummy script as EA.
+#run_backtest -_ -x -e Dummy 1>$file_stdout 2>$file_stderr
+#grep "compiled: 1" $file_stdout
+#! grep ^ERROR $file_stderr
 
 echo "${BASH_SOURCE[0]} done."
