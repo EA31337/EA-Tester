@@ -2,6 +2,10 @@
 # Test .vars.inc.sh file.
 set -ex
 
+# Initialize.
+. ../.funcs.inc.sh
+initialize
+
 # Test code
 . ../.vars.inc.sh
 

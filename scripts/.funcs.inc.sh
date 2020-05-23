@@ -326,7 +326,7 @@ kill_wine() {
 # Usage: kill_display
 kill_display() {
   (
-    pkill -e Xvfb
+    pkill -e Xvfb || pkill Xvfb
     [ -w /tmp/.X0-lock ] && rm $VFLAG /tmp/.X0-lock
   ) || true
 }
