@@ -205,7 +205,7 @@ install_mt() {
     if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
       mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
       wget -nv -c "$mt_release_url"
-      unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip"
+      (unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip") 1>&2
     else
       echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
     fi
@@ -239,13 +239,13 @@ set_display() {
   xdpyinfo &>/dev/null && return
   if command -v x11vnc &>/dev/null; then
     ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
-  fi
+  fi 1>&2
   ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &
   sleep 1
   if command -v fluxbox &>/dev/null; then
     ! pgrep -a fluxbox && fluxbox 2>/dev/null &
   fi
-  echo "IP: $(hostname -I) ($(hostname))"
+  echo "INFO: IP: $(hostname -I) ($(hostname))"
 }
 
 # Detect and configure proxy.
