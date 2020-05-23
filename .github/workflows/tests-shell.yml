@@ -22,6 +22,8 @@ jobs:
         working-directory: scripts/tests
       - run: ./test_backtest.sh
         working-directory: scripts/tests
+      - run: ./test_bt_data_gen.sh
+        working-directory: scripts/tests
       - run: ./test_cmds.sh
         working-directory: scripts/tests
       - run: ./test_eval.sh
