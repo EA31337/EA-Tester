@@ -18,6 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Run ScriptDummy
+        working-directory: tests
+        run: docker-compose run ScriptDummy
       - name: Run ScriptPrintPaths
         working-directory: tests
         run: docker-compose run ScriptPrintPaths
