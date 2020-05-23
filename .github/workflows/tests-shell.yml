@@ -20,6 +20,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Prepare folder
         run: ln -fsv scripts /opt/scripts
-      - name: Run test scripts
+      - run: ./test_aliases.sh
         working-directory: scripts/tests
-        run: find . -name "*.sh" -print -exec {} ";"
+      - run: ./test_cmds.sh
+        working-directory: scripts/tests
+      - run: ./test_vars.sh
+        working-directory: scripts/tests

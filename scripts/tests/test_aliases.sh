@@ -6,9 +6,10 @@ set -e
 . ../.funcs.inc.sh
 initialize
 
-# Test code
+# Includes required code.
 . ../.aliases.inc.sh
 
+# Test code
 input="123"
 input_encoded=$(printf "%s" "$input" | encode)
 input_decoded=$(printf "%s" "$input_encoded" | decode)

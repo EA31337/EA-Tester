@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# Test .vars.inc.sh file.
-set -ex
+# Test .funcs.cmds.inc.sh file.
+set -e
 
 # Initialize.
 . ../.funcs.inc.sh
 initialize
 
 # Includes required code.
-. ../.vars.inc.sh
+. ../.funcs.cmds.inc.sh
 
-# Test code
+# Asserts.
+help
 
 echo "${BASH_SOURCE[0]} done."
