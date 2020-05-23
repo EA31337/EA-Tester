@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test .funcs.cmds.inc.sh file.
+# Test generation of backtest data.
 set -e
 
 # Initialize.
@@ -24,10 +24,17 @@ for type in none wave curve zigzag random; do
       # Convert to binary format.
       for format in fxt4 hst4 hcc; do
         for tf in M1 M5 M15 M30 H1 H4 D1 W1 MN1; do
-          conv_csv_to_mt -i "$file" -d "$dst" -f $format -t $tf -s ${type^^} -v
+          conv_csv_to_mt -i "$file" -d "$dst" -f $format -t $tf -s ${type^^}
         done
       done
     done
+  done
+done
+
+## Test generated files.
+for format in hst fxt hcc; do
+  find "$dst" -name "*.${format}" -print0 | while IFS= read -r -d '' file; do
+    mt_read -f "$file" -t "${format}-header" >/dev/null
   done
 done
 
