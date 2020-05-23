@@ -2,8 +2,16 @@
 name: Tests-MQL
 
 on:
-  - pull_request
-  - push
+  pull_request:
+    paths:
+      - '**/docker-compose.yml'
+      - '**/*.mq?'
+      - '.github/workflows/tests-mql.yml'
+  push:
+    paths:
+      - '**/docker-compose.yml'
+      - '**/*.mq?'
+      - '.github/workflows/tests-mql.yml'
 
 jobs:
   Tests-MT4:

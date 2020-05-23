@@ -4,15 +4,16 @@ name: Docker
 on:
   pull_request:
     paths-ignore:
-      - '*.md'
-      - '*.txt'
+      - '**/*.md'
+      - '**/*.txt'
   push:
     branches:
       - "master"
       - "dev*"
     paths-ignore:
-      - '*.md'
-      - '*.txt'
+      - '**/*.md'
+      - '**/*.txt'
+      - '**/*.yml'
   release:
     types:
       - published

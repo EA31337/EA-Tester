@@ -2,8 +2,14 @@
 name: Tests-Shell
 
 on:
-  - pull_request
-  - push
+  pull_request:
+    paths:
+      - '**/*.sh'
+      - '.github/workflows/tests-shell.yml'
+  push:
+    paths:
+      - '**/*.sh'
+      - '.github/workflows/tests-shell.yml'
 
 jobs:
   Tests-Scripts:
@@ -12,7 +18,6 @@ jobs:
       image: ea31337/ea-tester:dev
     steps:
       - uses: actions/checkout@v2
-      - run: rm -fr /opt/scripts
       - run: ln -fs scripts /opt/scripts
       - name: Test .vars.inc.sh file
         working-directory: scripts/tests
