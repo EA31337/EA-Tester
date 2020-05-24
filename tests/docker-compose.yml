@@ -165,7 +165,7 @@ services:
 
   # MQL Scripts.
   ScriptDummy:
-    command: run_backtest -s Dummy
+    command: run_backtest -s Dummy.mq4
     image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
