@@ -355,9 +355,9 @@ fi
 # Locate the main file to execute.
 if [ -n "$TEST_EXPERT" ]; then
   # Locate TestExpert if specified.
+  echo "INFO: Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..."
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$TEST_EXPERT")
-  echo "INFO: Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..."
   [ -f "$EA_PATH" ] || {
     echo "ERROR: TestExpert file ($TEST_EXPERT) not found!"
     on_error 1
@@ -372,9 +372,9 @@ if [ -n "$TEST_EXPERT" ]; then
   cd - &>/dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
+  echo "INFO: Locating Expert file ("$EXPERT" => "$EA_PATH")..."
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EXPERT")
-  echo "INFO: Locating Expert file ("$EXPERT" => "$EA_PATH")..."
   [ -f "$EA_PATH" ] || {
     echo "ERROR: Expert file ($EXPERT) not found!"
     on_error 1
@@ -389,9 +389,9 @@ elif [ -n "$EXPERT" ]; then
   cd - &>/dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
+  echo "INFO: Locating Script file ("$SCRIPT" => "$SCR_PATH")..."
   cd "$SCRIPTS_DIR"
   SCR_PATH=$(script_find "$SCRIPT")
-  echo "INFO: Locating Script file ("$SCRIPT" => "$SCR_PATH")..."
   [ -f "$SCR_PATH" ] || {
     echo "ERROR: Script file ($SCRIPT) not found!"
     on_error 1
