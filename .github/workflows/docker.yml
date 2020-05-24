@@ -23,7 +23,7 @@ jobs:
   Docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Build ubuntu-base
         run: docker build --target ubuntu-base -t ubuntu-base .
       - name: Build ubuntu-provisioned
