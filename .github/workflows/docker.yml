@@ -44,7 +44,9 @@ jobs:
       - name: Prints GitHub actor and repository
         run: echo "${{ github.actor }} @ ${{ github.repository }}"
       - name: Push to Docker Hub
-        if: github.repository == 'EA31337/EA-Tester'
+        if: >
+          github.repository == 'EA31337/EA-Tester'
+          && github.event_name != 'pull_request'
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -52,7 +54,9 @@ jobs:
           repository: ea31337/ea-tester
           tag_with_ref: true
       - name: Push to GitHub Packages
-        if: github.repository == 'EA31337/EA-Tester'
+        if: >
+          github.repository == 'EA31337/EA-Tester'
+          && github.event_name != 'pull_request'
         uses: docker/build-push-action@v1
         with:
           add_git_labels: true
