@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
+      - '.*'
   push:
     branches:
       - "master"
@@ -13,7 +14,7 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
-      - '**/*.yml'
+      - '.*'
   release:
     types:
       - published
@@ -40,8 +41,10 @@ jobs:
           --build-arg VERSION=${GITHUB_REF}
           --target ea-tester .
       - run: docker images
+      - name: Prints GitHub actor and repository
+        run: echo "${{ github.actor }} @ ${{ github.repository }}"
       - name: Push to Docker Hub
-        if: github.actor == 'ea31337'
+        if: github.repository == 'EA31337/EA-Tester'
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -49,9 +52,10 @@ jobs:
           repository: ea31337/ea-tester
           tag_with_ref: true
       - name: Push to GitHub Packages
-        if: github.actor == 'ea31337'
+        if: github.repository == 'EA31337/EA-Tester'
         uses: docker/build-push-action@v1
         with:
+          add_git_labels: true
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
