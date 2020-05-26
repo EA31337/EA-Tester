@@ -1,6 +1,5 @@
 # Set the base Ubuntu image.
 FROM ubuntu:xenial AS ubuntu-base
-MAINTAINER kenorb
 ENV DEBIAN_FRONTEND noninteractive
 
 # Setup the default user.
@@ -23,7 +22,7 @@ ARG PROVISION_SUDO=1
 ARG PROVISION_VNC=1
 
 # Provision container image.
-ADD scripts /opt/scripts
+COPY scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts:/opt/scripts/py
 ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
@@ -39,8 +38,8 @@ USER ubuntu
 FROM ubuntu-provisioned AS ea-tester-base
 
 # Add files.
-ADD conf /opt/conf
-ADD tests /opt/tests
+COPY conf /opt/conf
+COPY tests /opt/tests
 
 # Setup results directory.
 ARG BT_DEST=/opt/results
