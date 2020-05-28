@@ -2,14 +2,33 @@
 name: Tests-MQL
 
 on:
-  - pull_request
-  - push
+  pull_request:
+    paths:
+      - '**/docker-compose.yml'
+      - '**/*.mq?'
+      - '.github/workflows/tests-mql.yml'
+  push:
+    paths:
+      - '**/docker-compose.yml'
+      - '**/*.mq?'
+      - '.github/workflows/tests-mql.yml'
 
 jobs:
   Tests-MT4:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Check dependencies
+        if: github.actor == 'nektos/act'
+        run: >
+          apt-get update
+          && apt-get -qq install python-pip
+          && pip install docker-compose
+      - name: Run ScriptDummy
+        working-directory: tests
+        run: docker-compose run ScriptDummy
+        # @fixme
+        if: false
       - name: Run ScriptPrintPaths
         working-directory: tests
         run: docker-compose run ScriptPrintPaths

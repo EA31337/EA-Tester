@@ -164,6 +164,13 @@ services:
       RUN_ON_START: clean_ea
 
   # MQL Scripts.
+  ScriptDummy:
+    command: run_backtest -s Dummy.mq4
+    image: ea31337/ea-tester:dev
+    volumes:
+      - .:/opt/tests
+      - ../scripts:/opt/scripts
+      - ../conf:/opt/conf
   ScriptPrintPaths:
     command: run_backtest -s PrintPaths
     image: ea31337/ea-tester:dev

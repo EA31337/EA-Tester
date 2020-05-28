@@ -4,24 +4,34 @@ name: Docker
 on:
   pull_request:
     paths-ignore:
-      - '*.md'
-      - '*.txt'
+      - '**/*.md'
+      - '**/*.txt'
+      - '.*'
   push:
     branches:
       - "master"
       - "dev*"
     paths-ignore:
-      - '*.md'
-      - '*.txt'
+      - '**/*.md'
+      - '**/*.txt'
+      - '.*'
   release:
     types:
       - published
 
 jobs:
-  Docker:
+  Hadolint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - uses: brpaz/hadolint-action@master
+        with:
+          dockerfile: Dockerfile
+  Docker:
+    runs-on: ubuntu-latest
+    needs: Hadolint
+    steps:
+      - uses: actions/checkout@v2
       - name: Build ubuntu-base
         run: docker build --target ubuntu-base -t ubuntu-base .
       - name: Build ubuntu-provisioned
@@ -39,8 +49,12 @@ jobs:
           --build-arg VERSION=${GITHUB_REF}
           --target ea-tester .
       - run: docker images
+      - name: Prints GitHub actor and repository
+        run: echo "${{ github.actor }} @ ${{ github.repository }}"
       - name: Push to Docker Hub
-        if: github.actor == 'ea31337'
+        if: >
+          github.repository == 'EA31337/EA-Tester'
+          && github.event_name != 'pull_request'
         uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -48,9 +62,12 @@ jobs:
           repository: ea31337/ea-tester
           tag_with_ref: true
       - name: Push to GitHub Packages
-        if: github.actor == 'ea31337'
+        if: >
+          github.repository == 'EA31337/EA-Tester'
+          && github.event_name != 'pull_request'
         uses: docker/build-push-action@v1
         with:
+          add_git_labels: true
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
@@ -58,6 +75,7 @@ jobs:
           tag_with_ref: true
   Test-Docker:
     runs-on: ubuntu-latest
+    needs: Docker
     container:
       image: ea31337/ea-tester:dev
       volumes:

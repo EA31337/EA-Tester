@@ -135,9 +135,8 @@ live_stats() {
 # Delete compiled EAs.
 # Usage: clean_ea
 clean_ea() {
-  exec 1>&2
-  echo "Cleaning compiled EAs and scripts..." >&2
-  find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete
+  echo "INFO: Cleaning compiled EAs and scripts..."
+  find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete >&2
 }
 
 # Clean files (e.g. previous report and log files).
@@ -145,7 +144,7 @@ clean_ea() {
 clean_files() {
   # Remove previous log, dat, txt and htm files.
   exec 1>&2
-  echo "Cleaning previous test data..."
+  echo "INFO: Cleaning previous test data..."
   find "$TESTER_DIR" '(' -name "*.htm" -o -name "*.txt" ')' -type f $VPRINT -delete
   [ -d "$TESTER_DIR"/files ] && find "$TESTER_DIR"/files -type f $VPRINT -delete
   # Remove log files.
@@ -159,9 +158,8 @@ clean_files() {
 # Usage: clean_bt
 clean_bt() {
   # Remove previous backtest files for the current symbol.
-  exec 1>&2
-  echo "Cleaning backtest data for ${BT_SYMBOL}..." >&2
-  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' -type f $VPRINT -delete
+  echo "INFO: Cleaning backtest data for ${BT_SYMBOL}..." >&2
+  find "$TERMINAL_DIR" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' -type f $VPRINT -delete >&2
   ini_del "bt_data" "$CUSTOM_INI"
 }
 
@@ -207,7 +205,7 @@ install_mt() {
     if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
       mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
       wget -nv -c "$mt_release_url"
-      unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip"
+      (unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip") 1>&2
     else
       echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
     fi
@@ -228,8 +226,8 @@ install_mt() {
 print_ver() {
   MT_VER=$(filever $(basename "$TERMINAL_EXE"))
   MTE_VER=$(filever $(basename "$MTEDITOR_EXE"))
-  echo "Installed Terminal: $MT_VER"
-  echo "Installed MetaEditor: $MTE_VER"
+  echo "INFO: Installed Terminal: $MT_VER"
+  echo "INFO: Installed MetaEditor: $MTE_VER"
 }
 
 # Configure virtual display and wine.
@@ -241,13 +239,13 @@ set_display() {
   xdpyinfo &>/dev/null && return
   if command -v x11vnc &>/dev/null; then
     ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
-  fi
+  fi 1>&2
   ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &
   sleep 1
   if command -v fluxbox &>/dev/null; then
     ! pgrep -a fluxbox && fluxbox 2>/dev/null &
   fi
-  echo "IP: $(hostname -I) ($(hostname))"
+  echo "INFO: IP: $(hostname -I) ($(hostname))"
 }
 
 # Detect and configure proxy.
@@ -284,8 +282,7 @@ script_copy() {
   local dest="$SCRIPTS_DIR/$(basename "$file")"
   [ ! -s "$file" ] && file=$(ea_find "$file")
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
-  exec 1>&2
-  cp $VFLAG "$file" "$SCRIPTS_DIR"/
+  cp $VFLAG "$file" "$SCRIPTS_DIR"/ >&2
 }
 
 # Copy library file (e.g. dll) given the file path.
@@ -294,8 +291,7 @@ lib_copy() {
   local file="$1"
   local dest="$LIB_DIR/$(basename "$file")"
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
-  exec 1>&2
-  cp $VFLAG "$file" "$LIB_DIR"/
+  cp $VFLAG "$file" "$LIB_DIR"/ >&2
 }
 
 # Copy a file given the file path.
@@ -304,8 +300,7 @@ file_copy() {
   local file="$1"
   local dest="$FILES_DIR/$(basename "$file")"
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
-  exec 1>&2
-  cp $VFLAG "$file" "$FILES_DIR"/
+  cp $VFLAG "$file" "$FILES_DIR"/ >&2
 }
 
 # Copy srv files into terminal dir.
@@ -314,7 +309,7 @@ srv_copy() {
   local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ -n "$srv_file" ]; then
-    cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
+    cp $VFLAG "$srv_file" "$TERMINAL_CNF"/ >&2
   fi
 }
 
@@ -374,7 +369,6 @@ compile() {
   compiled_no=$?
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
-  echo "Info: Number of files compiled: $compiled_no" >&2
   (
     [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
     if [ -f "$log_file" ]; then
@@ -457,10 +451,9 @@ compile_and_test() {
 ini_copy() {
   # Copy the configuration file, so platform can find it.
   [ -d "$TESTER_DIR" ] || mkdir -p $VFLAG "$TESTER_DIR"
-  exec 1>&2
   echo "Copying ini files..." >&2
-  cp $VFLAG "$TPL_TEST" "$TESTER_INI"
-  cp $VFLAG "$TPL_TERM" "$TERMINAL_INI"
+  cp $VFLAG "$TPL_TEST" "$TESTER_INI" >&2
+  cp $VFLAG "$TPL_TERM" "$TERMINAL_INI" >&2
 }
 
 # Find the EA file.
@@ -528,18 +521,19 @@ ea_copy() {
   }
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
-  exec 1>&2
-  mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
-  if [ ${#includes[@]} -eq 0 ]; then
-    # Copy a single file when no includes present.
-    cp $VFLAG "$file" "$dir_dst"/
-  elif [[ "${includes[*]}" =~ .. ]]; then
-    # Copy the parent folder of EA, when relative includes are found.
-    cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
-  else
-    # Copy the whole EA folder, when includes are found.
-    cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
-  fi
+  (
+    mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
+    if [ ${#includes[@]} -eq 0 ]; then
+      # Copy a single file when no includes present.
+      cp $VFLAG "$file" "$dir_dst"/
+    elif [[ "${includes[*]}" =~ .. ]]; then
+      # Copy the parent folder of EA, when relative includes are found.
+      cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
+    else
+      # Copy the whole EA folder, when includes are found.
+      cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+    fi
+  ) >&2
 }
 
 # Copy script file to the platform scripts dir.
@@ -556,18 +550,19 @@ script_copy() {
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ "$(dirname "$file")" == "$(dirname "$dir_dst")" ] && return
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
-  exec 1>&2
-  mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
-  if [ ${#includes[@]} -eq 0 ]; then
-    # Copy a single file when no includes present.
-    cp $VFLAG "$file" "$dir_dst"/
-  elif [[ "${includes[*]}" =~ .. ]]; then
-    # Copy the parent folder of EA, when relative includes are found.
-    cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
-  else
-    # Copy the whole EA folder, when includes are found.
-    cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
-  fi
+  (
+    mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
+    if [ ${#includes[@]} -eq 0 ]; then
+      # Copy a single file when no includes present.
+      cp $VFLAG "$file" "$dir_dst"/
+    elif [[ "${includes[*]}" =~ .. ]]; then
+      # Copy the parent folder of EA, when relative includes are found.
+      cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
+    else
+      # Copy the whole EA folder, when includes are found.
+      cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+    fi
+  ) >&2
 }
 
 # Copy library file (e.g. dll) to the platform lib dir.
@@ -583,7 +578,6 @@ lib_copy() {
   }
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$LIB_DIR" ] || mkdir -p $VFLAG "$LIB_DIR"
-  exec 1>&2
   cp $VFLAG "$file" "$dir_dst"/
 }
 
@@ -593,8 +587,7 @@ file_copy() {
   local file="$1"
   local dest="$FILES_DIR/$(basename "$file")"
   [ "$(dirname "$file")" == "$(dirname "$dest")" ] && return
-  exec 1>&2
-  cp $VFLAG "$file" "$FILES_DIR"/
+  cp $VFLAG "$file" "$FILES_DIR"/ >&2
 }
 
 # Copy server files into terminal dir.
@@ -603,7 +596,7 @@ srv_copy() {
   local server="$(ini_get Server)"
   srv_file=$(find "$ROOT" -name "$server.srv" -type f -print -quit)
   if [ -n "$srv_file" ]; then
-    cp $VFLAG "$srv_file" "$TERMINAL_CNF"/
+    cp $VFLAG "$srv_file" "$TERMINAL_CNF"/ >&2
   fi
 }
 

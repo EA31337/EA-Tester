@@ -11,3 +11,4 @@ shopt -s expand_aliases
 # Define aliases.
 alias encode="base64"
 alias decode="base64 -d"
+alias run="eval.sh"

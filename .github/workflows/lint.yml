@@ -1,13 +1,23 @@
 ---
 name: Lint
+
 on:
-  - pull_request
-  - push
+  pull_request:
+    paths:
+      - '**/*.mq?'
+      - '**/*.sh'
+      - '*.y?ml'
+  push:
+    paths:
+      - '**/*.mq?'
+      - '**/*.sh'
+      - '**/*.y?ml'
+
 jobs:
   YAML:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: YAML check (yamllint)
         uses: ibiqlik/action-yamllint@master
         with:
@@ -15,7 +25,7 @@ jobs:
   Markdown:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: markdownlint-cli
         uses: nosborn/github-action-markdown-cli@v1.1.1
         env:
@@ -26,7 +36,7 @@ jobs:
   ShellCheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Shell Check
         uses: luizm/action-sh-checker@master
         env:
@@ -37,14 +47,14 @@ jobs:
   MQL:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: DoozyX/clang-format-lint-action@v0.5
         with:
           extensions: 'h'
   Syntax:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Run RunCompileMql
         run: docker-compose run RunCompileMql
       - name: Run TestSyntaxBash
