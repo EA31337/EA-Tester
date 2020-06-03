@@ -115,7 +115,7 @@ parse_results() {
   if [ -n "$OPT_OPTIMIZATION" ]; then
     # Parse and save the optimization test results.
     echo "INFO: Sorting optimization test results..."
-    if [ "${MT_VER%%.*}" -ne 5 ]; then
+    if [ "${MT_VER:0:1}" = 4 ]; then
       sort_opt_results "$TEST_REPORT_HTM"
     fi
     echo "INFO: Saving optimization results..."
