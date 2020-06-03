@@ -195,7 +195,7 @@ install_mt() {
   4.0.0.* | 5.0.0.*)
     [ ! -d "$dir_dest" ] && mkdir $VFLAG -p "$dir_dest"
     [ ! -w "$dir_dest" ] && {
-      echo "Error: Destination folder not writable!" >&2
+      echo "ERROR: Destination folder not writable!"
       (id && stat "$dir_dest") >&2
       exit 1
     }
