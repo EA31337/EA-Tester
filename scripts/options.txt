@@ -4,7 +4,7 @@ Supported options:
     Source of backtest data to test. Default: DS
     Variable (string): BT_SRC
   -B (filename)
-    Specify early booting script to execute.
+    Specifies early booting script to execute.
     Variable (string): INCLUDE_BOOT
   -c (currency)
     Base currency for test. Default: USD
@@ -53,7 +53,7 @@ Supported options:
     Specifies EA common/limit test parameters in a sequence of comma-separated values (e.g. genetic=0,maxdrawdown_enable=1,maxdrawdown=20.00).
     Variable (string): EA_OPTS
   -m (month)
-    Month to test. Default: 1-12.
+    Specifies range of months in each year to test. Default: 1-12.
     Variable (uint/string): BT_MONTHS
   -M (version)
     Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
@@ -97,7 +97,7 @@ Supported options:
   -X (file)
     Invoke script file n exit after the successful test.
   -y (year)
-    Year to test. Default: 2018
+    Specifies range of years to test. Default: 2019
     Variable (uint/string): BT_YEARS
   -_
     Dry run.
@@ -107,9 +107,9 @@ Supported options:
 
 Other supported variables (without options assigned):
 - BT_DAYS (uint/string)
-  Specify days to test. Default: 1-31.
+  Specifies range of days in each month to test. Default: 1-31.
 - BT_LEVERAGE (uint)
-  Specify account leverage to test. Default: 100.
+  Specifies account leverage to test. Default: 100.
 - BT_TESTMODEL (uint)
   Specifies type of backtest data being tested.
   Values: 0 (default) - Every tick, 1 - Control points, 2 - Open prices only

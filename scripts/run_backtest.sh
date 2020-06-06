@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script to run backtest test.
-# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2018 -s 20 -b DS -r Report -O "_optimization_results"
+# E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2019 -s 20 -b DS -r Report -O "_optimization_results"
 
 # Initialize variables.
 [ -n "$OPT_NOERR" ] || set -e
@@ -17,7 +17,7 @@ type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
 usage() {
   printf "Usage: %s (args)\n\n" "$0"
   cat $CWD/options.txt
-  printf "\n\nExample: %s -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2018 -m 1-2 -S 20 -b DS -T M30\n" "$0"
+  printf "\n\nExample: %s -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2019 -m 1-2 -S 20 -b DS -T M30\n" "$0"
 }
 
 # Invoke on test success.
@@ -313,7 +313,7 @@ while getopts $ARGS arg; do
     SCRIPT=${OPTARG}
     ;;
 
-  y) # Year to test (e.g. 2017, 2018, 2011-2015).
+  y) # Year to test (e.g. 2018, 2019, 2011-2015).
     BT_YEARS=${OPTARG}
     ;;
 
@@ -744,11 +744,11 @@ BT_PERIOD_FXT=${BT_PERIOD_FXT:-$BT_PERIOD}
 BT_TESTMODEL_FXT=${BT_TESTMODEL_FXT:-0}
 if [ -n "$TEST_EXPERT" ]; then
   echo "INFO: Checking backtest data (${BT_SRC:-DS})..."
-  bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2018})-${BT_SRC:-DS}
+  bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2019})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
   # Download backtest files if not present.
   if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
-    bt_data_get "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2018}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
+    bt_data_get "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2019}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
     if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
