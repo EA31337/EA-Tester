@@ -115,7 +115,7 @@ parse_results() {
   if [ -n "$OPT_OPTIMIZATION" ]; then
     # Parse and save the optimization test results.
     echo "INFO: Sorting optimization test results..."
-    if [ "${MT_VER%%.*}" -ne 5 ]; then
+    if [ "${MT_VER:0:1}" = 4 ]; then
       sort_opt_results "$TEST_REPORT_HTM"
     fi
     echo "INFO: Saving optimization results..."
@@ -476,8 +476,8 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   }
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
-if [ -s "$SETFILE" -a ! -f "$TESTER_DIR/$EA_SETFILE" ]; then
-  echo "INFO: EA's SET file is missing ($EA_SETFILE), copying from $SETFILE..."
+if [ -r "$SETFILE" ] && ! diff -u "$TESTER_DIR/$EA_SETFILE" "$SETFILE"; then
+  echo "INFO: Copying SET file..."
   cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
 fi
 

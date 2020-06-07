@@ -44,7 +44,7 @@ Supported options:
     Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
     Variable (string): TEST_OPTS
   -j
-    Convert test report file into JSON format.
+    Converts test report file to JSON formatted file.
     Variable (bool): OPT_FORMAT_JSON
   -l (double)
     Specifies a lot step (e.g. 0.01).
@@ -80,7 +80,7 @@ Supported options:
     Spread to test in points.
     Variable (uint): BT_SPREAD
   -t
-    Convert test report file into brief text format.
+    Converts test report file to brief text format.
     Variable (bool): OPT_FORMAT_BRIEF
   -T (timeframe)
     Timeframe (TestPeriod) to test. Default: M30
