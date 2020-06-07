@@ -364,8 +364,8 @@ class Dukascopy:
             timestamp = "%d.%02d.%02d %02d:%02d:%06.3f" % (self.year, self.month, self.day, self.hour, minute, second)
             askPrice = row[1]/point
             bidPrice = row[2]/point
-            bidVolume = round(row[3] * 1000000)
-            askVolume = round(row[4] * 1000000)
+            bidVolume = "%.2f" % (row[4])
+            askVolume = "%.2f" % (row[3])
 
             # Writing one row in CSV format
             w.writerow([timestamp, bidPrice, askPrice, bidVolume, askVolume])
