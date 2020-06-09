@@ -33,4 +33,12 @@ ea_copy "$(ea_find TestBands)"
 script_copy "$(script_find Dummy)"
 script_copy "$(script_find PrintPaths)"
 
+# Test compiling EA/script files.
+[ $(compile "$(script_find Dummy)") -eq 1 ]
+[ $(compile Dummy) -eq 1 ]
+[ $(compile_ea "$(script_find Dummy)") -eq 1 ]
+[ $(compile_ea Dummy) -eq 1 ]
+[ $(compile_script "$(script_find Dummy)") -eq 1 ]
+[ $(compile_script Dummy) -eq 1 ]
+
 echo "${BASH_SOURCE[0]} done."
