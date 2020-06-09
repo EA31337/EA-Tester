@@ -355,13 +355,15 @@ fi
 # Locate the main file to execute.
 if [ -n "$TEST_EXPERT" ]; then
   # Locate TestExpert if specified.
-  echo "INFO: Locating TestExpert file ("$TEST_EXPERT" => "$EA_PATH")..."
+  echo "INFO: Locating TestExpert file ($TEST_EXPERT)..."
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$TEST_EXPERT")
-  [ -f "$EA_PATH" ] || {
+  if [ -f "$EA_PATH" ]; then
+    echo "INFO: TestExpert file found at: $EA_PATH"
+  else
     echo "ERROR: TestExpert file ($TEST_EXPERT) not found!"
     on_error 1
-  }
+  fi
   if [ "${EA_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
     ea_copy "$EA_PATH"
@@ -372,13 +374,15 @@ if [ -n "$TEST_EXPERT" ]; then
   cd - &>/dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
-  echo "INFO: Locating Expert file ("$EXPERT" => "$EA_PATH")..."
+  echo "INFO: Locating Expert file ("$EXPERT")..."
   cd "$EXPERTS_DIR"
   EA_PATH=$(ea_find "$EXPERT")
-  [ -f "$EA_PATH" ] || {
+  if [ -f "$EA_PATH" ]; then
+    echo "INFO: Expert file found at: $EA_PATH"
+  else
     echo "ERROR: Expert file ($EXPERT) not found!"
     on_error 1
-  }
+  fi
   if [ "${EA_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
     ea_copy "$EA_PATH"
@@ -389,13 +393,15 @@ elif [ -n "$EXPERT" ]; then
   cd - &>/dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
-  echo "INFO: Locating Script file ("$SCRIPT" => "$SCR_PATH")..."
+  echo "INFO: Locating Script file ("$SCRIPT")..."
   cd "$SCRIPTS_DIR"
   SCR_PATH=$(script_find "$SCRIPT")
-  [ -f "$SCR_PATH" ] || {
+  if [ -f "$SCR_PATH" ]; then
+    echo "INFO: Script file found at: $SCR_PATH"
+  else
     echo "ERROR: Script file ($SCRIPT) not found!"
     on_error 1
-  }
+  fi
   if [ "${SCR_PATH::1}" == '/' ]; then
     # Copy EA to Experts dir when path is absolute.
     script_copy "$SCR_PATH"
