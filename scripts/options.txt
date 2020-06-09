@@ -65,6 +65,7 @@ Supported options:
     Variable (string): BT_DEST
   -p (pair)
     Symbol pair to test (e.g. EURUSD).
+    Variable (string): BT_SYMBOL
   -P (param)
     Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
     Variable (string): SET_OPTS
