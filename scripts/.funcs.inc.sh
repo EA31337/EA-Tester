@@ -270,6 +270,13 @@ function conv() {
   iconv -f "$from" -t "$to" | tr -d \\r
 }
 
+# Checks if process is running.
+is_process_up() {
+  local process=${1:-terminal}
+  ! WINEDEBUG=-all winedbg --command 'info proc' | grep -q "$process"
+  printf "%d" $?
+}
+
 # Restore IFS.
 restore_ifs() {
   IFS=$' \t\n'
@@ -319,7 +326,11 @@ kill_wine() {
     true
     return
   }
-  wineserver -k || true
+  wineserver -k -w || true
+  sleep 2
+  if [ $(is_process_up terminal) -eq 1 ]; then
+    wineserver -k9
+  fi
 }
 
 # Kill display.
