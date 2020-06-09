@@ -25,4 +25,12 @@ help | grep "Usage" >/dev/null
 [ -f "$(MT_VER=4 script_find Dummy.mq4)" ]
 [ -f "$(MT_VER=5 script_find Dummy.mq5)" ]
 
+# Test copying EA files.
+ea_copy "$(ea_find Dummy)"
+ea_copy "$(ea_find TestBands)"
+
+# Test copying script files.
+script_copy "$(script_find Dummy)"
+script_copy "$(script_find PrintPaths)"
+
 echo "${BASH_SOURCE[0]} done."
