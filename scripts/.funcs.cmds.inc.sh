@@ -329,8 +329,10 @@ compile() {
   local log_file=${2:-${name##*/}.log}
   type iconv >/dev/null
 
+  local mt_ver=${MT_VER:-4}
   local rel_path=$name
   local target=$rel_path
+  mt_ver=${mt_ver:0:1}
   if [ -d "$rel_path" ]; then
     # If folder, enter it.
     cd "$rel_path"
@@ -344,8 +346,8 @@ compile() {
   elif [ ! -s "$rel_path" ]; then
     # If file does not exist, find in the current folder.
     name=${name##*/} # Drop the path.
-    local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq?" -print -quit)
-    local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq?" -print -quit)
+    local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq${mt_ver}" -print -quit)
+    local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq${mt_ver}" -print -quit)
     target=$(echo ${exact#./} || echo ${match#./})
     log_file=${log_file:-${name}.log}
   else
@@ -462,6 +464,8 @@ ini_copy() {
 ea_find() {
   local file="${1:-$EA_FILE}"
   local dir="${2:-$EXPERTS_DIR}"
+  local mt_ver=${MT_VER:-4}
+  mt_ver=${mt_ver:0:1}
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$dir"
   if [[ "$file" =~ :// ]]; then
@@ -474,10 +478,10 @@ ea_find() {
       echo "$file"
       return
     } ||
-    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
   cd - &>/dev/null
 }
@@ -488,6 +492,8 @@ ea_find() {
 script_find() {
   local file="$1"
   local dir="${2:-$SCRIPTS_DIR}"
+  local mt_ver=${MT_VER:-4}
+  mt_ver=${mt_ver:0:1}
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   cd "$dir"
   if [[ "$file" =~ :// ]]; then
@@ -500,10 +506,10 @@ script_find() {
       echo "$file"
       return
     } ||
-    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq?" ')' -print -quit)
+    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq?" -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex?" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
   cd - &>/dev/null
 }
