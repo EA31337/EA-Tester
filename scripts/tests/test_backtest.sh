@@ -10,14 +10,20 @@ initialize
 . ../.aliases.inc.sh
 . ../.funcs.cmds.inc.sh
 
+# Defines global variables.
+export OPT_TRACE=1
+export RUN_ON_ERROR="tail $file_stdout $file_stderr"
+
 # Defines local variables.
 file_stdout=/tmp/stdout
 file_stderr=/tmp/stderr
 
-# Asserts.
-set -x
+# Enables trace messages.
+[ -n "$OPT_TRACE" ] && set -x
 
-# Install both platforms.
+## START TESTS
+
+# Installs both platforms.
 install_mt 4.0.0.1260 /opt 1>$file_stdout 2>$file_stderr
 install_mt 5.0.0.2361 /opt 1>$file_stdout 2>$file_stderr
 
