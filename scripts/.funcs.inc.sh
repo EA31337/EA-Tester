@@ -270,11 +270,21 @@ function conv() {
   iconv -f "$from" -t "$to" | tr -d \\r
 }
 
+# Print last return code.
+get_return() {
+  printf "%d" $?
+}
+
+# Print last negated return code.
+get_return_neg() {
+  printf "%d" $(( 1-$? ))
+}
+
 # Checks if process is running.
 is_process_up() {
   local process=${1:-terminal}
-  ! WINEDEBUG=-all winedbg --command 'info proc' | grep -q "$process"
-  printf "%d" $?
+  WINEDEBUG=-all winedbg --command 'info proc' | grep -q "$process"
+  get_return_neg
 }
 
 # Restore IFS.
