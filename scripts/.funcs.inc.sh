@@ -283,8 +283,11 @@ get_return_neg() {
 # Checks if process is running.
 is_process_up() {
   local process=${1:-terminal}
-  WINEDEBUG=-all winedbg --command 'info proc' | grep -q "$process"
-  get_return_neg
+  (
+    set +e
+    WINEDEBUG=-all winedbg --command 'info proc' | grep -q "$process"
+    get_return_neg
+  )
 }
 
 # Restore IFS.
