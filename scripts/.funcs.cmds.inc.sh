@@ -477,13 +477,13 @@ ea_find() {
     {
       echo "$file"
       return
-    } ||
-    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
+    }
+  cd - &>/dev/null
+  result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
-  cd - &>/dev/null
 }
 
 # Find the script file.
@@ -505,13 +505,13 @@ script_find() {
     {
       echo "$file"
       return
-    } ||
-    result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
+    }
+  cd - &>/dev/null
+  result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
-  cd - &>/dev/null
 }
 
 # Copy EA file to the platform experts dir.
