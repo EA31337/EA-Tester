@@ -327,12 +327,18 @@ compile() {
   local name=$1
   [ -n "$name" ]
   local log_file=${2:-${name##*/}.log}
+  local log_dir=$(dirname "$log_file")
   type iconv >/dev/null
 
   local mt_ver=${MT_VER:-4}
   local rel_path=$name
   local target=$rel_path
   mt_ver=${mt_ver:0:1}
+  # Check access to log directory.
+  [ ! -w "$log_dir" ] && {
+    echo "ERROR: $(realpath "${log_dir}") directory not writeable!" >&2
+    type on_error &>/dev/null && on_error 1 || exit 1
+  }
   if [ -d "$rel_path" ]; then
     # If folder, enter it.
     cd "$rel_path"
@@ -343,20 +349,13 @@ compile() {
     cd "$(dirname "$rel_path")"
     target=$(basename "$rel_path")
     log_file=${log_file:-mql.log}
-  elif [ ! -s "$rel_path" ]; then
-    # If file does not exist, find in the current folder.
-    name=${name##*/} # Drop the path.
-    local exact=$(find -L . -maxdepth 4 -type f -name "${name%.*}.mq${mt_ver}" -print -quit)
-    local match=$(find -L . -maxdepth 4 -type f -name "*${name%.*}*.mq${mt_ver}" -print -quit)
-    target=$(echo ${exact#./} || echo ${match#./})
-    log_file=${log_file:-${name}.log}
   else
     # File exists.
     target=$name
     log_file=${2:-${name##*/}.log}
   fi
   [ ! -s "$target" ] && {
-    echo "Error: Cannot access ${rel_path:-$1}!" >&2
+    echo "ERROR: Cannot access ${rel_path:-$1}!" >&2
     cd - &>/dev/null
     return
   }
@@ -397,12 +396,14 @@ compile_ea() {
   local log_file=${2:-${name%.*}.log}
   local ea_path=$(ea_find "$name")
   local ea_dir=$(dirname "$ea_path")
+  local log_dir=$(dirname "$log_file")
 
   # If path is absolute, enter that dir, otherwise go to Experts dir.
   [ "${ea_path:0:1}" == "/" ] && cd "$ea_dir" || cd "$EXPERTS_DIR"
-  [ ! -w "$ea_dir" ] && {
-    echo "Error: ${ea_dir} directory not writeable!" >&2
-    exit 1
+  # Check access to log directory.
+  [ ! -w "$log_dir" ] && {
+    echo "ERROR: $(realpath "${log_dir}") directory not writeable!" >&2
+    type on_error &>/dev/null && on_error 1 || exit 1
   }
   ea_path=$(ea_find "$name" .)
   compiled_no="$(compile "$ea_path" "$log_file" ${@:3})"
@@ -418,12 +419,14 @@ compile_script() {
   local log_file=${2:-${name%.*}.log}
   local scr_path=$(script_find "$name")
   local scr_dir=$(dirname "$scr_path")
+  local log_dir=$(dirname "$log_file")
 
   # If path is absolute, enter that dir, otherwise go to Scripts dir.
   [ "${scr_path:0:1}" == "/" ] && cd "$scr_dir" || cd "$SCRIPTS_DIR"
-  [ ! -w "$scr_dir" ] && {
-    echo "Error: ${scr_dir} directory not writeable!" >&2
-    exit 1
+  # Check access to log directory.
+  [ ! -w "$log_dir" ] && {
+    echo "ERROR: $(realpath "${log_dir}") directory not writeable!" >&2
+    type on_error &>/dev/null && on_error 1 || exit 1
   }
   scr_path=$(script_find "$name" .)
   compiled_no="$(compile "$scr_path" "$log_file" ${@:3})"
@@ -911,13 +914,13 @@ ini_set() {
   vargs+=("-u NONE")
   if [ -n "$value" ]; then
     if grep -q "$key" "$file"; then
-      echo "Setting '$key' to '$value' in $(basename "$file")" >&2
+      echo "INFO: Setting '$key' to '$value' in $(basename "$file")" >&2
       ex +'%s#'"$key"'=\zs.*$#'"$value"'#' -scwq! ${vargs[@]} "$file" || exit 1
     else
       echo "$key=$value" >>"$file"
     fi
   else
-    echo "Value for '$key' is empty, ignoring." >&2
+    echo "WARN: Value for '$key' is empty, ignoring." >&2
   fi
 }
 
@@ -934,7 +937,7 @@ ini_del() {
     echo "Deleting '$key' from $(basename "$file")" >&2
     ex +':g/'"$key"'=/d' -scwq! ${vargs[@]} "$file" || exit 1
   else
-    echo "Value '$key' does not exist, ignoring." >&2
+    echo "WARN: Value '$key' does not exist, ignoring." >&2
   fi
 }
 
