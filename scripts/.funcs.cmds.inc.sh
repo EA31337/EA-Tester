@@ -552,11 +552,11 @@ ea_copy() {
       # Copy a single file when no includes present.
       cp $VFLAG "$file" "$dir_dst"/
     elif [[ "${includes[*]}" =~ ".." ]]; then
-      # Copy the parent folder of EA, when relative includes are found.
-      cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
+      # Link the parent directory of EA, when relative includes are found.
+      ln $VFLAG -s "$(dirname "$file")/.." "$dir_dst"/
     else
-      # Copy the whole EA folder, when includes are found.
-      cp -fr "$(dirname "$file")" "$dir_dst"/ | paste -sd';'
+      # Link the whole EA directory, when includes are found.
+      ln $VFLAG -s "$(dirname "$file")" "$dir_dst"/
     fi
   ) >&2
 }
