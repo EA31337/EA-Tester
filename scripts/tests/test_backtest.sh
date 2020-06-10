@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test run_backtest.sh file.
-set -eEx -o pipefail
+set -ex -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh
@@ -10,13 +10,13 @@ initialize
 . ../.aliases.inc.sh
 . ../.funcs.cmds.inc.sh
 
-# Defines global variables.
-export OPT_TRACE=1
-export RUN_ON_ERROR="tail $file_stdout $file_stderr"
-
 # Defines local variables.
 file_stdout=/tmp/stdout
 file_stderr=/tmp/stderr
+
+# Defines global variables.
+export OPT_TRACE=1
+export RUN_ON_ERROR="tail $file_stdout $file_stderr"
 
 # Enables trace messages.
 [ -n "$OPT_TRACE" ] && set -x
