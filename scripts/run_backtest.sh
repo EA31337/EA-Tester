@@ -3,7 +3,7 @@
 # E.g. run_backtest.sh -v -t -e MACD -f "/path/to/file.set" -c USD -p EURUSD -d 2000 -m 1-2 -y 2018 -s 20 -b DS -r Report -O "_optimization_results"
 
 # Initialize variables.
-[ -n "$OPT_NOERR" ] || set -e
+[ -n "$OPT_NOERR" ] || set -eE
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 ARGS="45?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
