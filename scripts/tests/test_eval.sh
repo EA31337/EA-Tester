@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test eval.sh file.
-set -e
+set -eE -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh

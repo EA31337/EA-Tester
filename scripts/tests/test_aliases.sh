@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test .aliases.inc.sh file.
-set -e
+set -eEx -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh

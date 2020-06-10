@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test generation of backtest data.
-set -e
+set -eEx -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh

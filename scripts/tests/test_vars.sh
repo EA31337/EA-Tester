@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test .vars.inc.sh file.
-set -ex
+set -eEx -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh

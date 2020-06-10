@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Test compilation commands.
-set -eE
-set -o pipefail
+set -eE -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh
