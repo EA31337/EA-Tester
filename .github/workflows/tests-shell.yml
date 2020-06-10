@@ -26,6 +26,8 @@ jobs:
         working-directory: scripts/tests
       - run: ./test_cmds.sh
         working-directory: scripts/tests
+      - run: ./test_compile.sh
+        working-directory: scripts/tests
       - run: ./test_eval.sh
         working-directory: scripts/tests
       - run: ./test_vars.sh

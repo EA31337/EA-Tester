@@ -100,6 +100,7 @@ live_logs() {
   # Prints Terminal log when available (e.g. logs/20180717.log).
   {
     while sleep $interval; do
+      # shellcheck disable=SC2153
       log_file="$([ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
     done && tail -f "$log_file"
@@ -107,6 +108,7 @@ live_logs() {
   # Prints MQL4 logs when available (e.g. MQL4/Logs/20180717.log).
   {
     while sleep $interval; do
+      # shellcheck disable=SC2153
       log_file="$([ -d "$MQLOG_DIR" ] && find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
     done && tail -f "$log_file"
@@ -136,7 +138,14 @@ live_stats() {
 # Usage: clean_ea
 clean_ea() {
   echo "INFO: Cleaning compiled EAs and scripts..."
-  find "$TERMINAL_DIR/$MQL_DIR" '(' -name '*.ex4' -or -name '*.ex5' ')' -type f $VPRINT -delete >&2
+  find "$TERMINAL_DIR/$MQL_DIR" -name "*.ex[45]" -type f $VPRINT -delete >&2
+}
+
+# Delete EA source code files.
+# Usage: clean_ea_sources
+clean_sources() {
+  echo "INFO: Cleaning EA/script source code files..."
+  find "$TERMINAL_DIR/$MQL_DIR" -name "*.mq[45]" -type f $VPRINT -delete >&2
 }
 
 # Clean files (e.g. previous report and log files).
@@ -483,12 +492,12 @@ ea_find() {
       echo "$file"
       return
     }
-  cd - &>/dev/null
   result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
+  cd - &>/dev/null
 }
 
 # Find the script file.
@@ -511,12 +520,12 @@ script_find() {
       echo "$file"
       return
     }
-  cd - &>/dev/null
   result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex?" ')' -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
   [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
+  cd - &>/dev/null
 }
 
 # Copy EA file to the platform experts dir.
