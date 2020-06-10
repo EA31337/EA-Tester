@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Test .funcs.cmds.inc.sh file.
-set -e
+set -eE
+set -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh

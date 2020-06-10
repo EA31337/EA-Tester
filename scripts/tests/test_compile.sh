@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Test compilation commands.
-set -e
+set -eE
+set -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh
@@ -15,7 +16,7 @@ initialize
 echo INFO: Test compiling EA/script files.
 clean_sources
 [ "$(compile "$(ea_find Dummy)" /tmp/mql.log /s)" -eq 1 ]
-[ "$(compile_ea "$(find_ea Dummy)" /tmp/mql.log /s)" -eq 1 ]
+[ "$(compile_ea "$(ea_find Dummy)" /tmp/mql.log /s)" -eq 1 ]
 [ "$(compile_script "$(script_find Dummy)" /tmp/mql.log /s)" -eq 1 ]
 
 echo INFO: Test copying EA files.

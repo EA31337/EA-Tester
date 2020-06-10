@@ -370,17 +370,21 @@ compile() {
   }
 
   # Read value of errexit, and disable it.
-  shopt -qo errexit
-  local errexit=$?
-  set +e
+  shopt -qo errexit && errexit=0 || errexit=1
+  shopt -qo errtrace && errtrace=0 || errtrace=1
 
   # Run compiler.
-  WINEDEBUG=fixme-all,err-winediag \
-  WINEPATH="$(winepath -w "$TERMINAL_DIR")" \
-    wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
-  compiled_no=$?
+  compiled_no=$(
+    set +eE
+    trap '' ERR
+    WINEDEBUG=fixme-all,err-winediag \
+    WINEPATH="$(winepath -w "$TERMINAL_DIR")" \
+      wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
+    echo $?
+  )
   # Reset errexit to the previous value.
   [[ $errexit -eq 0 ]] && set -e
+  [[ $errtrace -eq 0 ]] && set -E
   (
     [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
     if [ -f "$log_file" ]; then
