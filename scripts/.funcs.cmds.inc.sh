@@ -547,10 +547,11 @@ ea_copy() {
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   (
     mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
+    # shellcheck disable=SC2076
     if [ ${#includes[@]} -eq 0 ]; then
       # Copy a single file when no includes present.
       cp $VFLAG "$file" "$dir_dst"/
-    elif [[ "${includes[*]}" =~ .. ]]; then
+    elif [[ "${includes[*]}" =~ ".." ]]; then
       # Copy the parent folder of EA, when relative includes are found.
       cp -fr "$(dirname "$file")/.." "$dir_dst"/ | paste -sd';'
     else
