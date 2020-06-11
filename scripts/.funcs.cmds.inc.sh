@@ -546,7 +546,7 @@ ea_copy() {
   [ "$(dirname "$file")" == "$dir_dst" ] && return
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   (
-    mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"')
+    mapfile -t includes < <(grep ^#include "$file" | grep -o '"[^"]\+"' | tr -d '"' || true)
     # shellcheck disable=SC2076
     if [ ${#includes[@]} -eq 0 ]; then
       # Copy a single file when no includes present.
