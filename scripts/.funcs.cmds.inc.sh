@@ -172,7 +172,7 @@ clean_bt() {
   # Remove previous backtest files for the current symbol.
   echo "INFO: Cleaning backtest data for $symbol..." >&2
   find "$dir" '(' -name "${symbol}*.hst" -o -name "${symbol}*.fxt" -o -name "${symbol}*.hcc" ')' -type f $VPRINT -delete >&2
-  ini_del "bt_data" "$CUSTOM_INI"
+  [ -s "$CUSTOM_INI" ] && ini_del "bt_data" "$CUSTOM_INI" || true
 }
 
 # Check the version of the given binary file.
