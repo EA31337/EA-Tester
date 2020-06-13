@@ -142,10 +142,11 @@ clean_ea() {
 }
 
 # Delete EA source code files.
-# Usage: clean_ea_sources
+# Usage: clean_ea_sources (subdir)
 clean_sources() {
+  local subdir=$1
   echo "INFO: Cleaning EA/script source code files..."
-  find "$TERMINAL_DIR/$MQL_DIR" -name "*.mq[45]" -type f $VPRINT -delete >&2
+  find "$TERMINAL_DIR/$subdir" -name "*.mq[45]" -type f $VPRINT -delete >&2
 }
 
 # Clean files (e.g. previous report and log files).
