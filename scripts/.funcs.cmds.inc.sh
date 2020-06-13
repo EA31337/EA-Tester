@@ -165,12 +165,13 @@ clean_files() {
 }
 
 # Deletes backtest data files.
-# Usage: clean_bt (dir)
+# Usage: clean_bt (dir) (symbol)
 clean_bt() {
   local dir=${1:-$TERMINAL_DIR}
+  local symbol=${2:-$BT_SYMBOL}
   # Remove previous backtest files for the current symbol.
-  echo "INFO: Cleaning backtest data for ${BT_SYMBOL}..." >&2
-  find "$dir" '(' -name "${BT_SYMBOL}*.hst" -o -name "${BT_SYMBOL}*.fxt" ')' -type f $VPRINT -delete >&2
+  echo "INFO: Cleaning backtest data for $symbol..." >&2
+  find "$dir" '(' -name "${symbol}*.hst" -o -name "${symbol}*.fxt" -o -name "${symbol}*.hcc" ')' -type f $VPRINT -delete >&2
   ini_del "bt_data" "$CUSTOM_INI"
 }
 
@@ -217,7 +218,7 @@ install_mt() {
       mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<<"$mt_releases_json")
       wget -nv -c "$mt_release_url"
       (unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip") 1>&2
-      clean_bt .
+      clean_bt . '*'
     else
       echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
     fi
