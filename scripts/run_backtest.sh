@@ -825,7 +825,9 @@ fi
 
 # Exit on dry run.
 if [ -n "$OPT_DRY_RUN" ]; then
+  errcode=$?
   echo "INFO: Dry run completed."
+  on_exit
   exit $?
 fi
 
