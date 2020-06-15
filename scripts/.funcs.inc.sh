@@ -110,6 +110,7 @@ check_log_errors() {
   local errors=()
   errors+=("cannot open")
   errors+=("not initialized")
+  errors+=("zero divide in")
   errors+=("initialization failed")
   errors+=("TestGenerator: .\+ not found")
   errors+=(".\+ no history data")
