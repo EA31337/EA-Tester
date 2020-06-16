@@ -189,7 +189,7 @@ Vagrant.configure(2) do |config|
   end
 
   if Vagrant.has_plugin?("vagrant-vbguest")
-    # Set auto_update to false, if you do NOT want to check the correct 
+    # Set auto_update to false, if you do NOT want to check the correct
     # additions version when booting this machine.
     config.vbguest.auto_update = true
 
