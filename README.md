@@ -28,10 +28,10 @@ to list available commands.
 
 ### Backtesting
 
-Here is the example command for running backtest on MACD using historical data from 2018:
+Here is the example command for running backtest on MACD using historical data from 2019:
 
 ```shell
-docker run ea31337/ea-tester run_backtest -e MACD -y 2018 -v -t
+docker run ea31337/ea-tester run_backtest -e MACD -y 2019 -v -t
 ```
 
 To backtest EA31337 bot, check: [Backtesting using Docker](https://github.com/EA31337/EA31337/wiki/Backtesting-using-Docker).

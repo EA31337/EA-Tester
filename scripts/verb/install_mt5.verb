@@ -2,7 +2,7 @@
 
 w_metadata install_mt5 apps \
     title="MetaTrader 5" \
-    year="2018" \
+    year="2020" \
     media="download"
 
 load_install_mt5()
