@@ -849,7 +849,7 @@ enhance_gif() {
   local file="$1"
   local text=''
   local negate=0
-  local font=$(fc-match --format=%{file} Arial.ttf)
+  local font=$(fc-match --format=%{file} Arial &>/dev/null || true)
   local text_color=${GIF_TEXT_COLOR:-gray}
   type convert >/dev/null
   [ -f "$file" ]
@@ -898,8 +898,9 @@ enhance_gif() {
     -t | --text)
       text=$2
       [[ $negate = 0 ]] && color="black" || color="white"
+      [ -n "$font" ] && font_args="-font $font" || font_args=""
       # Consider adding extras such as: +antialias.
-      convert "$file" -fill $text_color -font $font -pointsize 8 -annotate +7+27 "$text" "$file" || exit 1
+      convert "$file" -fill $text_color $font_args -pointsize 8 -annotate +7+27 "$text" "$file" || exit 1
       shift
       ;;
     esac
