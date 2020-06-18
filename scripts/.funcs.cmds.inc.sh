@@ -382,7 +382,7 @@ compile() {
     set +eE
     trap '' ERR
     WINEDEBUG=fixme-all,err-winediag \
-    WINEPATH="$(winepath -w "$TERMINAL_DIR")" \
+      WINEPATH="$(winepath -w "$TERMINAL_DIR")" \
       wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
     echo $?
   )
@@ -1045,9 +1045,9 @@ set_data_value() {
         read _ _ prev_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key)
         [ "$prev_value" != "$value" ] && {
           mt_modify -f "$file" -t ${type}-header -m "$key=$value" &&
-          read _ _ new_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key) &&
-          echo "Changed $key in $base from $prev_value into $new_value" >&2 &&
-          [ $value != $new_value ] && {
+            read _ _ new_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key) &&
+            echo "Changed $key in $base from $prev_value into $new_value" >&2 &&
+            [ $value != $new_value ] && {
             echo "Error: Failed to set the correct $key for $base." >&2
             exit 1
           }

@@ -279,7 +279,7 @@ get_return() {
 
 # Print last negated return code.
 get_return_neg() {
-  printf "%d" $(( 1-$? ))
+  printf "%d" $((1 - $?))
 }
 
 # Checks if process is running.
@@ -329,7 +329,7 @@ kill_on_match() {
 # Usage: kill_jobs
 kill_jobs() {
   kill_wine
-  sleep 10 &# Run dummy process.
+  sleep 10 & # Run dummy process.
   # Kill any remaining background jobs.
   kill $(jobs -p) 2>/dev/null || true
 }
