@@ -11,7 +11,7 @@ struct SYMBOL_GROUP {                              // -- offset ---- size --- de
    char name       [16];                           //         0        16     group name        (szchar)
    char description[60];                           //        16        60     group description (szchar); not visible in MetaTrader
    UINT backgroundColor;                           //        76         4     group color in "Market Watch" window, may be overwritten by SYMBOL.color
-}; 
+};
 */
 
 int OnInit() {

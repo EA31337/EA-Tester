@@ -70,12 +70,13 @@ check_files() {
 check_dirs() {
   local args="-p $VFLAG"
   for dir in \
-    "$TERMINAL_DIR/$MQL_DIR" \
     "$EXPERTS_DIR" \
     "$FILES_DIR" \
-    "$TERMINAL_HST/$SERVER" \
     "$LOG_DIR" \
+    "$MQLOG_DIR" \
     "$SCRIPTS_DIR" \
+    "$TERMINAL_DIR/$MQL_DIR" \
+    "$TERMINAL_HST/$SERVER" \
     "$TESTER_DIR" \
     "$TICKDATA_DIR"; do
     [ -d "$dir" ] || mkdir $args "$dir"
@@ -110,6 +111,7 @@ check_log_errors() {
   local errors=()
   errors+=("cannot open")
   errors+=("not initialized")
+  errors+=("zero divide in")
   errors+=("initialization failed")
   errors+=("TestGenerator: .\+ not found")
   errors+=(".\+ no history data")
