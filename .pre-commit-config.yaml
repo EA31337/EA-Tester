@@ -30,7 +30,7 @@ repos:
       - id: reek
       - id: require-ascii
       - id: script-must-have-extension
-      - id: shellcheck
+      # - id: shellcheck
       - id: shfmt
 
   - repo: https://github.com/adrienverge/yamllint.git
