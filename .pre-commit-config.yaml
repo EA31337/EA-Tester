@@ -27,7 +27,6 @@ repos:
         exclude: ^(lib|conf/servers)/.*$
       - id: git-check     # Configure in .gitattributes
       - id: markdownlint  # Configure in .mdlrc
-      - id: reek
       - id: require-ascii
       - id: script-must-have-extension
       # - id: shellcheck
