@@ -13,7 +13,8 @@ CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 #
 
 # Init shell settings.
-initialize() {
+initialize()
+{
 
   # Handle bash errors. Exit on error. Trap exit.
   # Trap normal exit signal (exit on all errors).
@@ -29,14 +30,16 @@ initialize() {
 }
 
 # Clean traps which are in use.
-clean_traps() {
+clean_traps()
+{
   trap - 1 2 3 15 ERR EXIT
 }
 
 # Install filever
-install_support_tools() {
-  type wget cabextract install wine >/dev/null
-  wine filever >/dev/null && return
+install_support_tools()
+{
+  type wget cabextract install wine > /dev/null
+  wine filever > /dev/null && return
   local tools_url="https://github.com/EA31337/EA-Tester/releases/download/4.x/WindowsXP-KB838079-SupportTools-ENU.exe"
   local dtmp=$(mktemp -d)
   echo "Installing support tools..." >&2
@@ -46,11 +49,12 @@ install_support_tools() {
   cabextract -F filever.exe *.cab
   install -v filever.exe ~/.wine/drive_c/windows
   rm -fr "$dtmp"
-  cd - &>/dev/null
+  cd - &> /dev/null
 }
 
 # Join string by delimiter (see: http://stackoverflow.com/a/17841619).
-join_by() {
+join_by()
+{
   local d=$1
   shift
   echo -n "$1"
@@ -60,14 +64,16 @@ join_by() {
 
 # Check required files.
 # Usage: check_files
-check_files() {
+check_files()
+{
   if [ "$SERVER" != "default" ] && [ -w "$TERMINAL_HST/$SERVER" ]; then
     [ -s "$(get_path_symbols_raw)" ] && cp $VFLAG "$TERMINAL_HST/default/symbols.raw" "$TERMINAL_HST/$SERVER/symbols.raw"
   fi
 }
 
 # Check platform required directories.
-check_dirs() {
+check_dirs()
+{
   local args="-p $VFLAG"
   for dir in \
     "$EXPERTS_DIR" \
@@ -85,7 +91,8 @@ check_dirs() {
 
 # Get time from the terminal log in minutes.
 # Usage: get_time
-get_time() {
+get_time()
+{
   if [ -f "$TERMINAL_LOG" ]; then
     echo $(grep -o "^real[^m]\+" "$TERMINAL_LOG" | cut -f 2)
   else
@@ -95,19 +102,22 @@ get_time() {
 
 # Get the max of two values.
 # Usage: get_min (int) (int)
-get_min() {
+get_min()
+{
   echo $(($1 < ${2:-0} ? $1 : ${2:-0}))
 }
 
 # Get the max of two values.
 # Usage: get_max (int) (int)
-get_max() {
+get_max()
+{
   echo $(($1 > ${2:-0} ? $1 : ${2:-0}))
 }
 
 # Check logs for errors.
 # Usage: check_log_errors
-check_log_errors() {
+check_log_errors()
+{
   local errors=()
   errors+=("cannot open")
   errors+=("not initialized")
@@ -130,27 +140,33 @@ check_log_errors() {
   errors+=("Testing pass stopped .\+")
   cd "$TERMINAL_DIR"
   # shellcheck disable=SC2251
-  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  ! check_logs ".\+ no history data" || {
+    ini_del "bt_data" "$CUSTOM_INI"
+  }
   # shellcheck disable=SC2251
   ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
 }
 
 # Check logs for warnings.
 # Usage: check_log_warns
-check_log_warns() {
+check_log_warns()
+{
   local errors=()
   errors+=("leaked memory")
   errors+=("objects of type")
   errors+=("undeleted objects left")
   cd "$TERMINAL_DIR"
   # shellcheck disable=SC2251
-  ! check_logs ".\+ no history data" || { ini_del "bt_data" "$CUSTOM_INI"; }
+  ! check_logs ".\+ no history data" || {
+    ini_del "bt_data" "$CUSTOM_INI"
+  }
   # shellcheck disable=SC2251
   ! eval grep --color -iw -C2 "$(printf -- '-e "%s" ' "${errors[@]}")" */*.log */*/*.log
 }
 
 # Save time (in hours) and store in rule file if exists.
-save_time() {
+save_time()
+{
   mtime=$(eval get_time)
   htime=$((${mtime:-1} / 60))
   [ -n "$OPT_VERBOSE" ] && echo "ETA: ${htime}h" >&2
@@ -159,7 +175,8 @@ save_time() {
 
 # Read decimal value at given offset from the file.
 # Usage: read_value (file) (hex-offset) (length)
-read_value() {
+read_value()
+{
   local file=$1
   local offset=$((16#$2))
   local length="${3:-1}"
@@ -170,7 +187,8 @@ read_value() {
 
 # Read bytes in hex format at given offset from the file.
 # Usage: read_data file.bin (offset) (length)
-read_data() {
+read_data()
+{
   [ -n $offset ]
   local file="$1"
   local offset="$2"
@@ -180,7 +198,8 @@ read_data() {
 
 # Read double value at given offset from the file.
 # Usage: read_double (file) (dec-offset) (length)
-read_double() {
+read_double()
+{
   local file=$1
   local offset=$2
   local length="${3:-8}"
@@ -191,7 +210,8 @@ read_double() {
 
 # Write double value at given offset in the file.
 # Usage: write_double (file) (double) (dec-offset) (length)
-write_double() {
+write_double()
+{
   local file=$1
   local value="$2" # In decimal format.
   local offset=$3
@@ -204,7 +224,8 @@ write_double() {
 # Modify binary file given value in hex format at given offset.
 # Usage: write_data file.bin (hex-values) (hex-offset)
 # E.g. write_data file.bin $(printf "%02x\n" 123) "FC"
-write_data() {
+write_data()
+{
   local file="$1"
   local value="$2" # In hex format.
   local offset="$3"
@@ -217,14 +238,15 @@ write_data() {
   [ -n "$value" ]
   [ -n "$offset" ]
   [ $writable = $FALSE ] && chmod $VFLAG u+w "$file"
-  xxd -r - "$file" <<<"$offset: $value"
+  xxd -r - "$file" <<< "$offset: $value"
   [ $writable = $FALSE ] && chmod $VFLAG u-w "$file"
   return $TRUE
 }
 
 # Set read permissions for the test files.
 # Usage: set_read_perms
-set_read_perms() {
+set_read_perms()
+{
   # Make the backtest files read-only.
   echo "Setting read-only permissions for backtest files..." >&2
   find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' -or -name '*.exe' ')' -print0 | while IFS= read -r -d '' file; do
@@ -234,7 +256,8 @@ set_read_perms() {
 
 # Set write permissions for the test files.
 # Usage: set_write_perms
-set_write_perms() {
+set_write_perms()
+{
   echo "Setting write permissions for backtest files..." >&2
   find "$TERMINAL_DIR" '(' -name '*.fxt' -or -name '*.hst' ')' -print0 | while IFS= read -r -d '' file; do
     chmod $VFLAG u+w "$file"
@@ -244,7 +267,8 @@ set_write_perms() {
 # Returns substring.
 # Usage: substr start end <input
 # e.g. substr 2 2 <<<$"12345"
-substr() {
+substr()
+{
   set +x
   tail -c+${1:-0} | head -c-${2:-0}
 }
@@ -252,38 +276,44 @@ substr() {
 # Convert binary to hex string.
 # Usage: bin2hex <input
 # E.g. bin2hex <<<$"abc"
-bin2hex() {
+bin2hex()
+{
   perl -ne 'print unpack "H*", $_'
 }
 
 # Convert hex string to binary.
 # Usage: hex2bin <input
 # E.g. hex2bin <<<$"616263"
-hex2bin() {
+hex2bin()
+{
   perl -ne 'print pack "H*", $_'
 }
 
 # Convert stream from one encoding into another.
 # Usage: conv from to <input
 # E.g.: conv utf-16 utf-8 <input
-function conv() {
+function conv()
+{
   local from=${1:-utf-16}
   local to=${2:-utf-8}
   iconv -f "$from" -t "$to" | tr -d \\r
 }
 
 # Print last return code.
-get_return() {
+get_return()
+{
   printf "%d" $?
 }
 
 # Print last negated return code.
-get_return_neg() {
+get_return_neg()
+{
   printf "%d" $((1 - $?))
 }
 
 # Checks if process is running.
-is_process_up() {
+is_process_up()
+{
   local process=${1:-terminal}
   (
     set +e
@@ -293,19 +323,22 @@ is_process_up() {
 }
 
 # Restore IFS.
-restore_ifs() {
+restore_ifs()
+{
   IFS=$' \t\n'
 }
 
 # Show simple stack trace.
-show_trace() {
+show_trace()
+{
   while caller $((n++)); do :; done
   >&2
 }
 
 # Check logs in real-time and kill platform on pattern match.
 # Usage: kill_on_match (interval)
-kill_on_match() {
+kill_on_match()
+{
   local interval=${1:-10}
   local errors=("cannot open" "not initialized" "initialization failed" "uninit reason")
   # Check MQL4 logs for errors (e.g. MQL4/Logs/20180717.log).
@@ -327,17 +360,19 @@ kill_on_match() {
 
 # Kill any remaining background jobs.
 # Usage: kill_jobs
-kill_jobs() {
+kill_jobs()
+{
   kill_wine
   sleep 10 & # Run dummy process.
   # Kill any remaining background jobs.
-  kill $(jobs -p) 2>/dev/null || true
+  kill $(jobs -p) 2> /dev/null || true
 }
 
 # Kill the currently running wineserver.
 # Usage: kill_wine
-kill_wine() {
-  type wineserver &>/dev/null || {
+kill_wine()
+{
+  type wineserver &> /dev/null || {
     true
     return
   }
@@ -350,7 +385,8 @@ kill_wine() {
 
 # Kill display.
 # Usage: kill_display
-kill_display() {
+kill_display()
+{
   (
     pkill -e Xvfb || pkill Xvfb
     [ -w /tmp/.X0-lock ] && rm $VFLAG /tmp/.X0-lock
@@ -359,7 +395,8 @@ kill_display() {
 
 #--- on_exit()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-on_exit() {
+on_exit()
+{
   local exit_status=${1:-$?}
   # Invoke custom code on exit.
   if [ -n "$RUN_ON_EXIT" ]; then
@@ -374,7 +411,8 @@ on_exit() {
 
 #--- on_error()
 ##  @param $1 integer (optional) Exit status. If not set, use '$?'
-on_error() {
+on_error()
+{
   local exit_status=${1:-$?}
   local frame=0
   # Invoke custom code on error.
@@ -391,7 +429,8 @@ on_error() {
 }
 
 # Invoke on test fail.
-on_fail() {
+on_fail()
+{
   # Invoke custom code on test failure.
   if [ -n "$RUN_ON_FAIL" ]; then
     echo "Running code on failure ($RUN_ON_FAIL)..." >&2
@@ -400,7 +439,8 @@ on_fail() {
 }
 
 # Invoke on test warnings.
-on_warn() {
+on_warn()
+{
   # Invoke custom code on test warnings.
   if [ -n "$RUN_ON_WARN" ]; then
     echo "Running code on failure ($RUN_ON_WARN)..." >&2
@@ -409,7 +449,8 @@ on_warn() {
 }
 
 # Invoke on test finish.
-on_finish() {
+on_finish()
+{
   kill_jobs
   kill_wine
   kill_display

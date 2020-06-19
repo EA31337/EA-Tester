@@ -2,7 +2,7 @@
 # Script to clone a repo.
 # Usage: clone_repo.sh (git@repo/url) (args...)
 set -e
-type git >/dev/null
+type git > /dev/null
 CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO=$1
 DIR="$(basename "$REPO")"

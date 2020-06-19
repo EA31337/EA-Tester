@@ -9,19 +9,21 @@ CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 ARGS="45?b:B:c:Cd:D:e:E:f:FgGi:I:jl:L:m:M:p:P:r:Rs:S:oO:tT:vVxX:y:_"
 
 # Check dependencies.
-type git pgrep xargs ex xxd od perl xdpyinfo >/dev/null
+type git pgrep xargs ex xxd od perl xdpyinfo > /dev/null
 
 ## Define local functions. ##
 
 # Show script usage and exit.
-usage() {
+usage()
+{
   printf "Usage: %s (args)\n\n" "$0"
   cat $CWD/options.txt
   printf "\n\nExample: %s -v -t -e MACD -p EURUSD -c USD -d 2000 -y 2019 -m 1-2 -S 20 -b DS -T M30\n" "$0"
 }
 
 # Invoke on test success.
-on_success() {
+on_success()
+{
 
   # Fail on error in the logs.
   echo "INFO: Checking logs for warnings and errors..."
@@ -52,10 +54,10 @@ on_success() {
   fi
   while getopts $ARGS arg; do
     case $arg in
-    X) # Invoke file on exit after the successful test.
-      echo "INFO: Invoking script file after test..."
-      . "$OPTARG"
-      ;;
+      X) # Invoke file on exit after the successful test.
+        echo "INFO: Invoking script file after test..."
+        . "$OPTARG"
+        ;;
     esac
   done
   # Set exit status to 0.
@@ -63,7 +65,8 @@ on_success() {
 }
 
 # Invoke on test failure.
-on_failure() {
+on_failure()
+{
   echo "WARN: Something went wrong, a non-zero exit code returned."
   # Sometimes MT4 fails on success, therefore double checking.
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
@@ -91,7 +94,8 @@ on_failure() {
 }
 
 # Parse report files.
-parse_results() {
+parse_results()
+{
   TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
 
   echo "INFO: Checking the total time elapsed..."
@@ -189,35 +193,35 @@ parse_results() {
 while getopts $ARGS arg; do
   case ${arg} in
 
-  \?) # Display help.
-    usage
-    exit 0
-    ;;
+    \?) # Display help.
+      usage
+      exit 0
+      ;;
 
-  4) # MT4
-    MT_VER=4
-    ;;
+    4) # MT4
+      MT_VER=4
+      ;;
 
-  5) # MT5
-    MT_VER=5
-    ;;
+    5) # MT5
+      MT_VER=5
+      ;;
 
-  M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-    MT_VER=${OPTARG:-4.0.0.1010}
-    ;;
+    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
+      MT_VER=${OPTARG:-4.0.0.1010}
+      ;;
 
-  v) # Verbose mode.
-    OPT_VERBOSE=true
-    VFLAG="-v"
-    VPRINT="-print"
-    VDD="noxfer"
-    # EX_ARGS="-V1" # @see: https://github.com/vim/vim/issues/919
-    type html2text sed >/dev/null
-    ;;
+    v) # Verbose mode.
+      OPT_VERBOSE=true
+      VFLAG="-v"
+      VPRINT="-print"
+      VDD="noxfer"
+      # EX_ARGS="-V1" # @see: https://github.com/vim/vim/issues/919
+      type html2text sed > /dev/null
+      ;;
 
-  x) # Run the script in debug mode.
-    OPT_TRACE=1
-    ;;
+    x) # Run the script in debug mode.
+      OPT_TRACE=1
+      ;;
 
   esac
 done
@@ -241,7 +245,7 @@ initialize
 # Check if MT version has been specified.
 if [ -n "$MT_VER" ] && [ ${#MT_VER} -gt 8 ]; then
   # Install MT platform.
-  type unzip >/dev/null
+  type unzip > /dev/null
   install_mt $MT_VER
   . "$CWD"/.vars.inc.sh # Reload variables.
   check_dirs
@@ -272,50 +276,50 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-  b) # Source of backtest data to test.
-    BT_SRC=${OPTARG}
-    ;;
+    b) # Source of backtest data to test.
+      BT_SRC=${OPTARG}
+      ;;
 
-  B) # Specify early booting file.
-    # @fixme: Won't work for paths with spaces.
-    INCLUDE_BOOT+=("${OPTARG}")
-    ;;
+    B) # Specify early booting file.
+      # @fixme: Won't work for paths with spaces.
+      INCLUDE_BOOT+=("${OPTARG}")
+      ;;
 
-  C) # Clear previous backtest data files.
-    clean_bt
-    ;;
+    C) # Clear previous backtest data files.
+      clean_bt
+      ;;
 
-  e) # EA name (TestExpert).
-    TEST_EXPERT=${OPTARG}
-    ;;
+    e) # EA name (TestExpert).
+      TEST_EXPERT=${OPTARG}
+      ;;
 
-  E) # EA name (Expert).
-    EXPERT=${OPTARG}
-    ;;
+    E) # EA name (Expert).
+      EXPERT=${OPTARG}
+      ;;
 
-  f) # The .set file to run the test.
-    SETFILE="$(eval echo "$OPTARG")"
-    ;;
+    f) # The .set file to run the test.
+      SETFILE="$(eval echo "$OPTARG")"
+      ;;
 
-  I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
-    TEST_OPTS=${OPTARG}
-    ;;
+    I) # Change tester INI file with custom settings (e.g. Server=MetaQuotes-Demo,Login=123).
+      TEST_OPTS=${OPTARG}
+      ;;
 
-  m) # Which months to test (default: 1-12).
-    BT_MONTHS=${OPTARG}
-    ;;
+    m) # Which months to test (default: 1-12).
+      BT_MONTHS=${OPTARG}
+      ;;
 
-  p) # Symbol pair to test (e.g. EURUSD).
-    BT_SYMBOL=${OPTARG}
-    ;;
+    p) # Symbol pair to test (e.g. EURUSD).
+      BT_SYMBOL=${OPTARG}
+      ;;
 
-  s) # Script to run.
-    SCRIPT=${OPTARG}
-    ;;
+    s) # Script to run.
+      SCRIPT=${OPTARG}
+      ;;
 
-  y) # Year to test (e.g. 2018, 2019, 2011-2015).
-    BT_YEARS=${OPTARG}
-    ;;
+    y) # Year to test (e.g. 2018, 2019, 2011-2015).
+      BT_YEARS=${OPTARG}
+      ;;
 
   esac
 done
@@ -371,7 +375,7 @@ if [ -n "$TEST_EXPERT" ]; then
   fi
   # Use relative path to Experts dir.
   ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
-  cd - &>/dev/null
+  cd - &> /dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
   echo "INFO: Locating Expert file ("$EXPERT")..."
@@ -390,7 +394,7 @@ elif [ -n "$EXPERT" ]; then
   fi
   # Use relative path to Experts dir.
   ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
-  cd - &>/dev/null
+  cd - &> /dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
   echo "INFO: Locating Script file ("$SCRIPT")..."
@@ -409,7 +413,7 @@ elif [ -n "$SCRIPT" ]; then
   fi
   # Use relative path to Scripts dir.
   ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
-  cd - &>/dev/null
+  cd - &> /dev/null
 fi
 
 if [ -n "$BT_START_DATE" ]; then
@@ -502,118 +506,118 @@ OPTIND=1
 while getopts $ARGS arg; do
   case ${arg} in
 
-  b) ;; # Already parsed.
-  B) ;; # Already parsed.
+    b) ;; # Already parsed.
+    B) ;; # Already parsed.
 
-  c) # Base currency for test (e.g. USD).
-    BT_CURRENCY=${OPTARG}
-    ;;
+    c) # Base currency for test (e.g. USD).
+      BT_CURRENCY=${OPTARG}
+      ;;
 
-  C) ;; # Already parsed.
+    C) ;; # Already parsed.
 
-  d) # Deposit amount to test (e.g. 2000).
-    BT_DEPOSIT=${OPTARG}
-    ;;
+    d) # Deposit amount to test (e.g. 2000).
+      BT_DEPOSIT=${OPTARG}
+      ;;
 
-  D) # Specify market digits.
-    BT_DIGITS=${OPTARG}
-    ;;
+    D) # Specify market digits.
+      BT_DIGITS=${OPTARG}
+      ;;
 
-  F) # Convert test report file to full detailed text format.
-    type html2text sed >/dev/null
-    OPT_FORMAT_FULL=1
-    ;;
+    F) # Convert test report file to full detailed text format.
+      type html2text sed > /dev/null
+      OPT_FORMAT_FULL=1
+      ;;
 
-  g) # Post results to Gist.
-    type gist pup >/dev/null
-    OPT_GIST=true
-    OPT_FORMAT_BRIEF=true
-    OPT_FORMAT_JSON=true
-    ;;
+    g) # Post results to Gist.
+      type gist pup > /dev/null
+      OPT_GIST=true
+      OPT_FORMAT_BRIEF=true
+      OPT_FORMAT_JSON=true
+      ;;
 
-  G) # Enhances graph.
-    type convert >/dev/null
-    OPT_GIF_ENHANCE=1
-    ;;
+    G) # Enhances graph.
+      type convert > /dev/null
+      OPT_GIF_ENHANCE=1
+      ;;
 
-  i) # Invoke file with custom rules.
-    INCLUDE+=("${OPTARG}")
-    ;;
+    i) # Invoke file with custom rules.
+      INCLUDE+=("${OPTARG}")
+      ;;
 
-  j) # Convert test report file to JSON format.
-    type pup paste >/dev/null
-    OPT_FORMAT_JSON=1
-    ;;
+    j) # Convert test report file to JSON format.
+      type pup paste > /dev/null
+      OPT_FORMAT_JSON=1
+      ;;
 
-  l) # Lot step.
-    BT_LOTSTEP=${OPTARG}
-    ;;
+    l) # Lot step.
+      BT_LOTSTEP=${OPTARG}
+      ;;
 
-  L) # Common/limit test parameters (e.g. genetic=0, maxdrawdown=20.00).
-    EA_OPTS=${OPTARG}
-    ;;
+    L) # Common/limit test parameters (e.g. genetic=0, maxdrawdown=20.00).
+      EA_OPTS=${OPTARG}
+      ;;
 
-  o) # Run optimization test.
-    OPT_OPTIMIZATION=true
-    ;;
+    o) # Run optimization test.
+      OPT_OPTIMIZATION=true
+      ;;
 
-  O) # Output directory to save the test results.
-    BT_DEST=${OPTARG}
-    ;;
+    O) # Output directory to save the test results.
+      BT_DEST=${OPTARG}
+      ;;
 
-  P) # Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
-    SET_OPTS=${OPTARG}
-    ;;
+    P) # Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+      SET_OPTS=${OPTARG}
+      ;;
 
-  r) # The name of the test report file.
-    TEST_REPORT_NAME="tester/$(basename "${OPTARG}")"
-    ;;
+    r) # The name of the test report file.
+      TEST_REPORT_NAME="tester/$(basename "${OPTARG}")"
+      ;;
 
-  R) # Set files to read-only.
-    set_read_perms
-    ;;
+    R) # Set files to read-only.
+      set_read_perms
+      ;;
 
-  S) # Spread to test.
-    BT_SPREAD=${OPTARG}
-    ;;
+    S) # Spread to test.
+      BT_SPREAD=${OPTARG}
+      ;;
 
-  t) # Convert test report file into brief text format.
-    type html2text >/dev/null
-    OPT_FORMAT_BRIEF=true
-    ;;
+    t) # Convert test report file into brief text format.
+      type html2text > /dev/null
+      OPT_FORMAT_BRIEF=true
+      ;;
 
-  T) # Timeframe to test.
-    BT_PERIOD=${OPTARG}
-    ;;
+    T) # Timeframe to test.
+      BT_PERIOD=${OPTARG}
+      ;;
 
-  X)
-    echo "INFO: Checking whether after test script exists..."
-    [ -f "$OPTARG" ] || {
-      echo "ERROR: Script specified by -X parameter does no exist."
+    X)
+      echo "INFO: Checking whether after test script exists..."
+      [ -f "$OPTARG" ] || {
+        echo "ERROR: Script specified by -X parameter does no exist."
+        on_error 1
+      }
+      ;;
+
+    v) # Enables verbose mode.
+      OPT_VERBOSE=true
+      ;;
+
+    V) # Enables visual mode.
+      VISUAL_MODE=true
+      ;;
+
+    _) # Dry run.
+      OPT_DRY_RUN=true
+      ;;
+
+      # Placeholders for parameters used somewhere else.
+    b | B | C | e | E | f | I | m | M | p | s | x | y) ;;
+
+    *)
+      echo "WARN: Args: $@" >&2
+      usage
       on_error 1
-    }
-    ;;
-
-  v) # Enables verbose mode.
-    OPT_VERBOSE=true
-    ;;
-
-  V) # Enables visual mode.
-    VISUAL_MODE=true
-    ;;
-
-  _) # Dry run.
-    OPT_DRY_RUN=true
-    ;;
-
-    # Placeholders for parameters used somewhere else.
-  b | B | C | e | E | f | I | m | M | p | s | x | y) ;;
-
-  *)
-    echo "WARN: Args: $@" >&2
-    usage
-    on_error 1
-    ;;
+      ;;
 
   esac
 done
@@ -669,7 +673,7 @@ if [ -n "$SET_OPTS" ]; then
     done
   else
     # Create a new SET file if does not exist.
-    tr , "\n" <<<$SET_OPTS >"$TESTER_DIR/$EA_SETFILE"
+    tr , "\n" <<< $SET_OPTS > "$TESTER_DIR/$EA_SETFILE"
   fi
   if [ -n "$OPT_VERBOSE" ]; then
     # Print final version of the SET file.
@@ -758,7 +762,7 @@ if [ -n "$TEST_EXPERT" ]; then
     if [ -n "$OPT_VERBOSE" ]; then
       cd "$TERMINAL_DIR"
       find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
-      cd - &>/dev/null
+      cd - &> /dev/null
     fi
   fi
   # Assign variables.
@@ -797,8 +801,8 @@ fi
 
 # Final checks.
 if [ -n "$TEST_EXPERT" ]; then
-  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] ||
-    {
+  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
+    || {
       echo "ERROR: Missing backtest data files!"
       on_error 1
     }
@@ -852,7 +856,7 @@ fi
 echo "INFO: Starting..."
 {
   time wine "$TERMINAL_EXE" $TERMINAL_ARG $TERMINAL_ARG_CFG
-} 2>>"$TERMINAL_LOG" && exit_status=$? || exit_status=$?
+} 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.
 [ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@

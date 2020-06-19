@@ -3,10 +3,10 @@
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
 CWD="$(
-  cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2>/dev/null
+  cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2> /dev/null
   pwd -P
 )"
-type winetricks >/dev/null
+type winetricks > /dev/null
 
 # Load variables.
 export WINETRICKS_DOWNLOADER_RETRIES=${WINETRICKS_DOWNLOADER_RETRIES:-10}

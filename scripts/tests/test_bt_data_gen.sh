@@ -34,7 +34,7 @@ done
 ## Test generated files.
 for format in hst fxt hcc; do
   find "$dst" -name "*.${format}" -print0 | while IFS= read -r -d '' file; do
-    mt_read -f "$file" -t "${format}-header" >/dev/null
+    mt_read -f "$file" -t "${format}-header" > /dev/null
   done
 done
 

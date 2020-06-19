@@ -12,7 +12,8 @@ CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 
 # Set optimization params
 # Usage: set_opt_params [param] [start] [end] (step)
-set_opt_params() {
+set_opt_params()
+{
   # Optimization settings (F-On, 1-Min, 2-Step, 3-Max).
   input_set ^"$1",F 1         # On.
   input_set ^"$1",1 "$2"      # Min.
@@ -22,27 +23,29 @@ set_opt_params() {
 
 # Disables optimization params
 # Usage: dis_opt_params [param]
-dis_opt_params() {
+dis_opt_params()
+{
   input_set ^"$1",F 0 # Off.
 }
 
 # Set input value in the SET file.
 # Usage: input_set [key] [value] [file]
-input_set() {
+input_set()
+{
   local key="$1"
   local value="$2"
   local file="${3:-$TESTER_DIR/$EA_SETFILE}"
   file=${file:-$SETFILE}
   [ -w "$file" ] || {
     echo "ERROR: File $file is not writeable or does not exist" >&2
-    type on_error &>/dev/null && on_error 1 || exit 1
+    type on_error &> /dev/null && on_error 1 || exit 1
   }
-  read -ra vargs <<<$EX_ARGS
+  read -ra vargs <<< $EX_ARGS
   vargs+=("-u NONE")
   if [ -n "$value" ]; then
     echo "Setting '$key' to '$value' in $(basename "$file")" >&2
     ex +"%s/$key=\\zs.*$/$value/" -scwq! ${vargs[@]} "$file" >&2 || {
-      type on_error &>/dev/null && on_error 1 || exit 1
+      type on_error &> /dev/null && on_error 1 || exit 1
     }
   else
     echo "Value for '$key' is empty, ignoring." >&2
@@ -51,7 +54,8 @@ input_set() {
 
 # Get input value from the SET file.
 # Usage: input_get [key] [file]
-input_get() {
+input_get()
+{
   local key="$1"
   local file="${2:-$TESTER_DIR/$EA_SETFILE}"
   file=${file:-$SETFILE}
@@ -62,12 +66,13 @@ input_get() {
 
 # Copy input value from the SET file to MQL file.
 # Usage: input_copy [key] [src_file] [dst_file] (dst_file2...)
-input_copy() {
+input_copy()
+{
   local key=$1
   local file_src=$2
   local retries=5
-  read -ra files <<<${@:3}
-  read -ra vargs <<<$EX_ARGS
+  read -ra files <<< ${@:3}
+  read -ra vargs <<< $EX_ARGS
   vargs+=("-u NONE")
   [ -s "$file_src" ]
   for file_dst in "${files[@]}"; do
@@ -86,7 +91,8 @@ input_copy() {
 
 # Experts SET file. Returns exported filename.
 # Usage: export_set [EA/pattern] (dst/file) (...args)
-export_set() {
+export_set()
+{
   local name=${1:-$TEST_EXPERT}
   local dstfile=${2:-${name}.set}
   local ea_path=$name

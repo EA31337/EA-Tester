@@ -5,7 +5,7 @@ CWD="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # Check dependencies.
 set -e
-type curl grep sed tr >/dev/null
+type curl grep sed tr > /dev/null
 xargs=$(command -v gxargs || command -v xargs)
 
 # Validate settings.
@@ -19,7 +19,7 @@ xargs=$(command -v gxargs || command -v xargs)
   exit 1
 }
 [ -n "$OPT_TRACE" ] && set -x
-read owner repo tag name dest <<<$@
+read owner repo tag name dest <<< $@
 
 # Define variables.
 BT_DEST=${dest:-.}

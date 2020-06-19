@@ -5,7 +5,8 @@
 MT_VER=${MT_VER:-4}
 
 # Defines functions.
-get_scan_dirs() {
+get_scan_dirs()
+{
   printf "%s %s %s %s %s" "$ROOT" \
     $([ -d "$OPT" ] && printf "%s " "$OPT") \
     $([ -w "$HOME" ] && printf "%s " "$HOME") \
@@ -13,13 +14,22 @@ get_scan_dirs() {
     $([ -w "$WORKDIR" ] && printf "%s " "$WORKDIR")
 }
 # Determine VM.
-get_mtv() { printf "%s" "${MT_VER:0:1}"; }
-is_mt5() { [ "${MT_VER:0:1}" = 5 ]; }
-is_vm() { [ -d /vagrant -a -d /home/travis -a ! -f /.dockerenv ]; }
+get_mtv()
+{
+  printf "%s" "${MT_VER:0:1}"
+}
+is_mt5()
+{
+  [ "${MT_VER:0:1}" = 5 ]
+}
+is_vm()
+{
+  [ -d /vagrant -a -d /home/travis -a ! -f /.dockerenv ]
+}
 
 # Determine platform paths.
-SCR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P || pwd -P)"
-ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2>/dev/null || echo "$SCR/..")"
+SCR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2> /dev/null && pwd -P || pwd -P)"
+ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..")"
 WORKDIR="${WORKDIR:-$ROOT}"
 WINE_PATH="${WINE_PATH:-$HOME/.wine/drive_c}"
 OPT="/opt"
