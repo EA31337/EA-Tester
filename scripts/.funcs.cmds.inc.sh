@@ -1105,6 +1105,7 @@ set_data_value()
     | while IFS= read -r -d $'\0' file; do
       (
         base=$(basename "$file")
+        [ -f "$file" ]
         read _ _ prev_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key)
         [ "$prev_value" != "$value" ] && {
           mt_modify -f "$file" -t ${type}-header -m "$key=$value" \
