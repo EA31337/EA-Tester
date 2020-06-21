@@ -1100,8 +1100,8 @@ set_data_value()
   local type=${3:-"fxt"}
   [ -n "$key" ]
   [ -n "$value" ]
-  (
-    find "$TICKDATA_DIR" "$TERMINAL_HST/${SERVER:-"default"}" -type f -iname "*.${type}" -print0 | while IFS= read -r -d $'\0' file; do
+  find "$TICKDATA_DIR" "$TERMINAL_HST/${SERVER:-"default"}" -type f -iname "*.${type}" -print0 \
+    | while IFS= read -r -d $'\0' file; do
       (
         base=$(basename "$file")
         read _ _ prev_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key)
@@ -1110,17 +1110,16 @@ set_data_value()
             && read _ _ new_value < <(mt_read -f "$file" -t ${type}-header | grep -w ^$key) \
             && echo "Changed $key in $base from $prev_value into $new_value" >&2 \
             && [ $value != $new_value ] && {
-            echo "Error: Failed to set the correct $key for $base." >&2
+            echo "ERROR: Failed to set the correct $key for $base." >&2
             exit 1
           }
         } || true
       ) &
     done
-    # Lists the active background jobs.
-    jobs -l
-    # Waits for local background jobs to finish.
-    wait
-  )
+  # Lists the active background jobs.
+  jobs -l
+  # Waits for local background jobs to finish.
+  wait
 }
 
 # Set spread in ini and FXT files.
