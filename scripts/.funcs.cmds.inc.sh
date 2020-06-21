@@ -1100,6 +1100,7 @@ set_data_value()
   local type=${3:-"fxt"}
   [ -n "$key" ]
   [ -n "$value" ]
+  job_pids=()
   find "$TICKDATA_DIR" "$TERMINAL_HST/${SERVER:-"default"}" -type f -iname "*.${type}" -print0 \
     | while IFS= read -r -d $'\0' file; do
       (
@@ -1112,14 +1113,17 @@ set_data_value()
             && [ $value != $new_value ] && {
             echo "ERROR: Failed to set the correct $key for $base." >&2
             exit 1
-          }
+          } || true
         } || true
       ) &
+      job_pids+=($!)
     done
   # Lists the active background jobs.
   jobs -l
   # Waits for local background jobs to finish.
-  wait
+  for pid in ${job_pids[*]}; do
+    wait $pid
+  done
 }
 
 # Set spread in ini and FXT files.
