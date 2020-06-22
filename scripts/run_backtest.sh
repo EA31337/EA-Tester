@@ -162,7 +162,11 @@ parse_results()
   if [ -n "$OPT_VERBOSE" ]; then
     # Print test results in plain text.
     echo "INFO: Printing test report ($(basename "$TEST_REPORT_HTM"))..."
-    grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
+    if [ -s "$TEST_REPORT_TXT" ]; then
+      cat "$TEST_REPORT_TXT"
+    else
+      grep -v mso-number "$TEST_REPORT_HTM" | html2text -nobs -width 180 | sed "/\[Graph\]/q"
+    fi
     find "$TESTER_DIR/files" '(' -name "*.log" -o -name "*.txt" ')' $VPRINT -exec cat "{}" +
   fi
 
