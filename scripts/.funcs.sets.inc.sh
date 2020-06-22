@@ -80,7 +80,7 @@ input_copy()
     value=$(input_get "^$key" "$file_src")
     echo "Setting '$key' to '$value' in $(basename "$file_dst")" >&2
     retries=5
-    while ! ex +"%s/\\s${key}[^=]=[^0-9]\\zs[^;]\\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
+    while ! ex +"%s/\\<${key}[^=]\\?=[^0-9]\\?\\zs[^;$]\\+/${value}/" -scwq! ${vargs[@]} "$file_dst" >&2; do
       sleep 1
       ((retries -= 1))
       echo "Retrying ($retries left)..." >&2
