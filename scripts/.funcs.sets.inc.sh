@@ -10,6 +10,20 @@ CWD="${CWD:-$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)}"
 ## Define SET functions. ##
 #
 
+# Get the max of two values.
+# Usage: get_min (int/float...)
+get_min()
+{
+  printf "%s\n" "$@" | sort -g | head -n1
+}
+
+# Get the max of two values.
+# Usage: get_max (int/float...)
+get_max()
+{
+  printf "%s\n" "$@" | sort -gr | head -n1
+}
+
 # Set optimization params
 # Usage: set_opt_params [param] [start] [end] (step)
 set_opt_params()

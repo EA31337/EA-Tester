@@ -100,20 +100,6 @@ get_time()
   fi
 }
 
-# Get the max of two values.
-# Usage: get_min (int) (int)
-get_min()
-{
-  echo $(($1 < ${2:-0} ? $1 : ${2:-0}))
-}
-
-# Get the max of two values.
-# Usage: get_max (int) (int)
-get_max()
-{
-  echo $(($1 > ${2:-0} ? $1 : ${2:-0}))
-}
-
 # Check logs for errors.
 # Usage: check_log_errors
 check_log_errors()
