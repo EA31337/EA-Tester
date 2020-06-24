@@ -173,9 +173,20 @@ parse_results()
   if [ -d "$BT_DEST" ]; then
     # Copy the test results if the destination directory has been specified.
     echo "INFO: Copying report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..."
-    cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
-    [ -f "$TESTER_LOGS/$(date +%Y%m%d).log" ] && cp $VFLAG "$TESTER_LOGS/$(date +%Y%m%d).log" "$BT_DEST/${TEST_REPORT_BASE}.log"
-    find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
+    if [ -w "$BT_DEST" ]; then
+      cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
+      [ -f "$TESTER_LOGS/$(date +%Y%m%d).log" ] && cp $VFLAG "$TESTER_LOGS/$(date +%Y%m%d).log" "$BT_DEST/${TEST_REPORT_BASE}.log"
+      find "$TESTER_DIR/files" -type f $VPRINT -exec cp $VFLAG "{}" "$BT_DEST" ';'
+    elif [ "${HAS_SUDO:-0}" -eq 1 ] && sudo [ -w "$BT_DEST" ]; then
+      echo "WARN: Escalation using sudo rights to copy the report files (${TEST_REPORT_HTM%.*}* into: $BT_DEST)..."
+      sudo cp $VFLAG "${TEST_REPORT_HTM%.*}"* "$BT_DEST"
+      [ -f "$TESTER_LOGS/$(date +%Y%m%d).log" ] && sudo cp $VFLAG "$TESTER_LOGS/$(date +%Y%m%d).log" "$BT_DEST/${TEST_REPORT_BASE}.log"
+      find "$TESTER_DIR/files" -type f $VPRINT -exec sudo cp $VFLAG "{}" "$BT_DEST" ';'
+    else
+      echo "ERROR: Destination directory ($BT_DEST) not writeable and no sudo access is available!"
+      stat "$BT_DEST" >&2
+      on_error 1
+    fi
   fi
 
   if [ -n "$OPT_GIST" ]; then
@@ -626,6 +637,11 @@ while getopts $ARGS arg; do
   esac
 done
 
+# Check for the dry run.
+if [ -n "$OPT_DRY_RUN" ]; then
+  echo "INFO: Dry run activated."
+fi
+
 # Apply settings.
 if [ -n "$INCLUDE" ]; then
   echo "INFO: Invoking include file(s) (${INCLUDE[@]})..."
@@ -741,15 +757,21 @@ fi
 if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   echo "INFO: Checking destination directory ($BT_DEST)..."
   [ -d "$BT_DEST" ] || mkdir -p $VFLAG "$BT_DEST"
-  [ -f /.dockerenv -a -w "$BT_DEST" ] || {
+  if [ -f /.dockerenv ] && [ "${HAS_SUDO:-0}" -eq 1 ] && [ ! -w "$BT_DEST" ]; then
     echo "WARN: No write access! Attempting fixing the destination directory permissions ($BT_DEST)..."
-    timeout 1 sudo id && chmod $VFLAG a=rwx "$BT_DEST" || true
-  }
-  [ -w "$BT_DEST" ] || {
-    echo "ERROR: Destination directory ($BT_DEST) not writeable!"
     stat "$BT_DEST" >&2
-    on_error 1
-  }
+    if ! chmod $VFLAG a=rwx "$BT_DEST"; then
+      echo "WARN: Failed to fix the permissions for the destination directory ($BT_DEST)!"
+    fi
+  fi
+  if [ ! -w "$BT_DEST" ]; then
+    if [ "${HAS_SUDO:-0}" -eq 1 ] && sudo [ -w "$BT_DEST" ]; then
+      echo "WARN: We're going to use sudo access to write files to the destination directory ($BT_DEST)!"
+    else
+      echo "ERROR: Destination directory ($BT_DEST) not writeable!"
+      on_error 1
+    fi
+  fi
 fi
 
 # Check backtest data if required.

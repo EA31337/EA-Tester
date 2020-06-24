@@ -39,10 +39,14 @@ CONF_EXPERTS="experts.ini"
 CONF_LAST="lastparameters.ini"
 CONF_EA="ea.ini"
 CONF_CUSTOM="custom.ini"
+HAS_SUDO=$(
+  ! timeout 1 sudo true
+  echo $?
+)
+SCAN_DIR=$(get_scan_dirs)
 TPL_TEST="$ROOT/conf/$CONF_TEST"
 TPL_TERM="$ROOT/conf/$CONF_TERM"
 TPL_EA="$ROOT/conf/$CONF_EA"
-SCAN_DIR=$(get_scan_dirs)
 is_vm && set -x
 TERMINAL4_EXE="$(find $SCAN_DIR -not -path "*/WebInstall/*" -name terminal.exe -print -quit)"
 TERMINAL4_DIR="${TERMINAL4_DIR:-$([ -f "$TERMINAL4_EXE" ] && dirname "$TERMINAL4_EXE" || true)}"
