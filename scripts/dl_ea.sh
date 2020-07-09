@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-type wget >/dev/null || {
+type wget > /dev/null || {
   echo "Error: Please install wget before continuing." >&2
   exit 1
 }

@@ -13,7 +13,7 @@ Optimized parameter (`fitnes`):
 - 4 = Drawdown Percent
 - 5 = Custom
 
-Genetic algorїthm (`genetic`):
+Genetic algorithm (`genetic`):
 
 - 0 = Disable
 - 1 = Enable

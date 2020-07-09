@@ -10,7 +10,7 @@ initialize
 . ../.funcs.cmds.inc.sh
 
 # Asserts.
-help | grep "Usage" >/dev/null
+help | grep "Usage" > /dev/null
 
 # Load variables.
 . ../.vars.inc.sh
