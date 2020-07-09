@@ -20,7 +20,7 @@ get_mtv()
 }
 is_mt5()
 {
-  [ "${MT_VER:0:1}" = 5 ]
+  [ "$(get_mtv)" = 5 ]
 }
 is_vm()
 {
@@ -33,7 +33,6 @@ ROOT="$(cd "$SCR" && git rev-parse --show-toplevel 2> /dev/null || echo "$SCR/..
 WORKDIR="${WORKDIR:-$ROOT}"
 WINE_PATH="${WINE_PATH:-$HOME/.wine/drive_c}"
 OPT="/opt"
-CONF_TEST="mt$(get_mtv)-tester.ini"
 CONF_TERM="terminal.ini"
 CONF_EXPERTS="experts.ini"
 CONF_LAST="lastparameters.ini"
@@ -59,6 +58,12 @@ TERMINAL5_CNF="${TERMINAL5_DIR}/Config"
 TERMINAL5_HST="${TERMINAL5_DIR}/Bases/Default/History"
 MTEDITOR5_EXE="$([ -d "$TERMINAL5_DIR" ] && find "$TERMINAL5_DIR" -name metaeditor64.exe -print -quit || true)"
 MTTESTER5_EXE="$([ -d "$TERMINAL5_DIR" ] && find "$TERMINAL5_DIR" -name metatester64.exe -print -quit || true)"
+if [ -n "$TERMINAL4_EXE" ]; then
+  export MT_VER=4
+elif [ -n "$TERMINAL5_EXE" ]; then
+  export MT_VER=5
+fi
+CONF_TEST="mt$(get_mtv)-tester.ini"
 MQL_DIR="MQL$(get_mtv)"
 is_mt5 && {
   MTEDITOR_EXE="$MTEDITOR5_EXE"
