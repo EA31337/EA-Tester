@@ -66,9 +66,16 @@ join_by()
 # Usage: check_files
 check_files()
 {
-  if [ "$SERVER" != "default" ] && [ -w "$TERMINAL_HST/$SERVER" ]; then
-    [ -s "$(get_path_symbols_raw)" ] && cp $VFLAG "$TERMINAL_HST/default/symbols.raw" "$TERMINAL_HST/$SERVER/symbols.raw"
-  fi
+  local mt_ver=${MT_VER:-4}
+  case ${mt_ver:0:1} in
+    4)
+      if [ "$SERVER" != "default" ] && [ -w "$TERMINAL_HST/$SERVER" ]; then
+        [ -s "$(get_path_symbols_raw)" ] && cp $VFLAG "$TERMINAL_HST/default/symbols.raw" "$TERMINAL_HST/$SERVER/symbols.raw"
+      fi
+      ;;
+    5) ;;
+
+  esac
 }
 
 # Check platform required directories.
