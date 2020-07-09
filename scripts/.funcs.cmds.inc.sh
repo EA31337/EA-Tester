@@ -259,8 +259,10 @@ install_mt()
 # Show version of installed platform binaries.
 print_ver()
 {
-  MT_VER=$(filever $(basename "$TERMINAL_EXE"))
-  MTE_VER=$(filever $(basename "$MTEDITOR_EXE"))
+  MT_VER_NEW=$(filever $(basename "$TERMINAL_EXE"))
+  MTE_VER_NEW=$(filever $(basename "$MTEDITOR_EXE"))
+  export MT_VER=${MT_VER_NEW:-$MT_VER}
+  export MTE_VER=${MTE_VER_NEW:-$MTE_VER}
   echo "INFO: Installed Terminal: $MT_VER"
   echo "INFO: Installed MetaEditor: $MTE_VER"
 }
@@ -374,10 +376,9 @@ compile()
   local log_dir=$(dirname "$log_file")
   type iconv > /dev/null
 
-  local mt_ver=${MT_VER:-4}
+  local mt_ver=$(get_mtv)
   local rel_path=$name
   local target=$rel_path
-  mt_ver=${mt_ver:0:1}
   # Check access to log directory.
   [ ! -w "$log_dir" ] && {
     echo "ERROR: $(realpath "${log_dir}") directory not writeable!" >&2
@@ -513,7 +514,9 @@ ini_copy()
   [ -d "$TESTER_DIR" ] || mkdir -p $VFLAG "$TESTER_DIR"
   echo "Copying ini files..." >&2
   cp $VFLAG "$TPL_TEST" "$TESTER_INI" >&2
-  cp $VFLAG "$TPL_TERM" "$TERMINAL_INI" >&2
+  if [ $(get_mtv) = 4 ]; then
+    cp $VFLAG "$TPL_TERM" "$TERMINAL_INI" >&2
+  fi
 }
 
 # Find the EA file.
@@ -523,8 +526,7 @@ ea_find()
 {
   local file="${1:-$EA_FILE}"
   local dir="${2:-$EXPERTS_DIR}"
-  local mt_ver=${MT_VER:-4}
-  mt_ver=${mt_ver:0:1}
+  local mt_ver=$(get_mtv)
   [ -d "$EXPERTS_DIR" ] || mkdir -p $VFLAG "$EXPERTS_DIR"
   cd "$dir"
   if [[ "$file" =~ :// ]]; then
@@ -552,8 +554,7 @@ script_find()
 {
   local file="$1"
   local dir="${2:-$SCRIPTS_DIR}"
-  local mt_ver=${MT_VER:-4}
-  mt_ver=${mt_ver:0:1}
+  local mt_ver=$(get_mtv)
   [ -d "$SCRIPTS_DIR" ] || mkdir -p $VFLAG "$SCRIPTS_DIR"
   cd "$dir"
   if [[ "$file" =~ :// ]]; then
@@ -1147,17 +1148,23 @@ set_digits()
 {
   local digits=$1
   [ -n "$digits" ]
-  symbols_raw_file="$(get_path_symbols_raw)"
-  if [ -w "$symbols_raw_file" ]; then
-    echo "Setting digits to $digits in symbols.raw..." >&2
-    mt_modify -m "digits=$digits" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
-    psize="0.$(for ((i = 1; i <= digits - 1; i++)); do printf 0; done)1"
-    mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
-  fi
-  # Change digits in all HST files.
-  set_data_value digits $digits hst
-  # Change digits in all FXT files.
-  set_data_value digits $digits fxt
+  case $(get_mtv) in
+    4)
+      symbols_raw_file="$(get_path_symbols_raw)"
+      if [ -w "$symbols_raw_file" ]; then
+        echo "Setting digits to $digits in symbols.raw..." >&2
+        mt_modify -m "digits=$digits" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
+        psize="0.$(for ((i = 1; i <= digits - 1; i++)); do printf 0; done)1"
+        mt_modify -m "pointSize=$psize" -k ${BT_SYMBOL:-"EURUSD"} -t "symbols-raw" -f "$symbols_raw_file"
+      fi
+      # Change digits in all HST files.
+      set_data_value digits $digits hst
+      # Change digits in all FXT files.
+      set_data_value digits $digits fxt
+      ;;
+    5) ;;
+
+  esac
 }
 
 # Sets white-listed URLs. Separate URLs by a semicolon.
