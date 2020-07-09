@@ -16,7 +16,8 @@ get_scan_dirs()
 # Determine VM.
 get_mtv()
 {
-  printf "%s" "${MT_VER:0:1}"
+  local mt_ver=${MT_VER:-4}
+  printf "%s" "${mt_ver:0:1}"
 }
 is_mt5()
 {
@@ -43,9 +44,6 @@ HAS_SUDO=$(
   echo $?
 )
 SCAN_DIR=$(get_scan_dirs)
-TPL_TEST="$ROOT/conf/$CONF_TEST"
-TPL_TERM="$ROOT/conf/$CONF_TERM"
-TPL_EA="$ROOT/conf/$CONF_EA"
 is_vm && set -x
 TERMINAL4_EXE="$(find $SCAN_DIR -not -path "*/WebInstall/*" -name terminal.exe -print -quit)"
 TERMINAL4_DIR="${TERMINAL4_DIR:-$([ -f "$TERMINAL4_EXE" ] && dirname "$TERMINAL4_EXE" || true)}"
@@ -65,6 +63,9 @@ elif [ -n "$TERMINAL5_EXE" ]; then
 fi
 CONF_TEST="mt$(get_mtv)-tester.ini"
 MQL_DIR="MQL$(get_mtv)"
+TPL_TEST="$ROOT/conf/$CONF_TEST"
+TPL_TERM="$ROOT/conf/$CONF_TERM"
+TPL_EA="$ROOT/conf/$CONF_EA"
 is_mt5 && {
   MTEDITOR_EXE="$MTEDITOR5_EXE"
   TERMINAL_ARG_CFG="/config:Config/$CONF_TEST"
