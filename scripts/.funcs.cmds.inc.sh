@@ -198,13 +198,11 @@ clean_bt()
 # Usage: filever [file/terminal.exe]
 filever()
 {
-  type awk > /dev/null
-
-  timeout 10 wine filever &> /dev/null || install_support_tools >&2
+  type pev > /dev/null
   local file=$1
   find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir \
-    timeout 10 wine filever /v "$file" ';' -quit 2> /dev/null \
-    | grep ProductVersion | awk '{print $2}' | tr -d '\15'
+    pev "$file" ';' -quit 2> /dev/null \
+    | grep -w Product | grep -o "[45].*"
 }
 
 # Install platform.
