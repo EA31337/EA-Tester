@@ -202,7 +202,8 @@ filever()
 
   timeout 10 wine filever &> /dev/null || install_support_tools >&2
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir timeout 10 wine filever /v "$file" ';' -quit \
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir \
+    timeout 10 wine filever /v "$file" ';' -quit 2> /dev/null \
     | grep ProductVersion | awk '{print $2}' | tr -d '\15'
 }
 
