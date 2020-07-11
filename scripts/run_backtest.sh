@@ -69,7 +69,14 @@ on_failure()
 {
   echo "WARN: Something went wrong, a non-zero exit code returned."
   # Sometimes MT4 fails on success, therefore double checking.
-  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
+  case $(get_mtv) in
+    4)
+      TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
+      ;;
+    5)
+      TEST_REPORT_BASE="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Report)"
+      ;;
+  esac
 
   if [ -n "$TEST_REPORT_BASE" ]; then
     TEST_REPORT_HTM=$(find "$TESTER_DIR" "$TERMINAL_DIR" -maxdepth 2 -name "${TEST_REPORT_BASE//[][]/?}*.htm" -print -quit)
@@ -96,7 +103,14 @@ on_failure()
 # Parse report files.
 parse_results()
 {
-  TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
+  case $(get_mtv) in
+    4)
+      TEST_REPORT_BASE="$(basename "$(ini_get TestReport)" .htm)"
+      ;;
+    5)
+      TEST_REPORT_BASE="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Report)"
+      ;;
+  esac
 
   echo "INFO: Checking the total time elapsed..."
   save_time
@@ -118,46 +132,58 @@ parse_results()
 
   if [ -n "$OPT_OPTIMIZATION" ]; then
     # Parse and save the optimization test results.
-    echo "INFO: Sorting optimization test results..."
-    if [ "${MT_VER:0:1}" = 4 ]; then
-      sort_opt_results "$TEST_REPORT_HTM"
-    fi
-    echo "INFO: Saving optimization results..."
-    if [ -n "${param_list[*]}" ] || [ -n "$SET_PARAMS" ]; then
-      if [ -z "${param_list[*]}" ]; then
-        IFS=',' param_list=(${SET_PARAMS})
-        restore_ifs
+    case $(get_mtv) in
+      4)
+        echo "INFO: Sorting optimization test results..."
+        sort_opt_results "$TEST_REPORT_HTM"
+        echo "INFO: Saving optimization results..."
+        if [ -n "${param_list[*]}" ] || [ -n "$SET_PARAMS" ]; then
+          if [ -z "${param_list[*]}" ]; then
+            IFS=',' param_list=(${SET_PARAMS})
+            restore_ifs
+          fi
+          for input in ${param_list[@]}; do
+            value=$(htm_get "$input" "$TEST_REPORT_HTM")
+            echo "INFO: Setting '$input' to '$value' in '$(basename $SETFILE)'"
+            ini_set "^$input" "$value" "$SETFILE"
+          done
+        fi
+        ;;
+      5)
+        # @fixme
+        ;;
+    esac
+  fi
+
+  case $(get_mtv) in
+    4)
+      if [ -n "$OPT_FORMAT_FULL" ]; then
+        # Convert test report file to full detailed text format.
+        TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
+        echo "INFO: Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..."
+        convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
+      elif [ -n "$OPT_FORMAT_BRIEF" ]; then
+        # Convert test report file into brief text format.
+        TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
+        echo "INFO: Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..."
+        convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
       fi
-      for input in ${param_list[@]}; do
-        value=$(htm_get "$input" "$TEST_REPORT_HTM")
-        echo "INFO: Setting '$input' to '$value' in '$(basename $SETFILE)'"
-        ini_set "^$input" "$value" "$SETFILE"
-      done
-    fi
-  fi
 
-  if [ -n "$OPT_FORMAT_FULL" ]; then
-    # Convert test report file to full detailed text format.
-    TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
-    echo "INFO: Converting HTML report ($(basename "$TEST_REPORT_HTM")) into full text file ($(basename "$TEST_REPORT_TXT"))..."
-    convert_html2txt_full "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-  elif [ -n "$OPT_FORMAT_BRIEF" ]; then
-    # Convert test report file into brief text format.
-    TEST_REPORT_TXT="$TEST_REPORT_DIR/$TEST_REPORT_BASE.txt"
-    echo "INFO: Converting HTML report ($(basename "$TEST_REPORT_HTM")) into short text file ($(basename "$TEST_REPORT_TXT"))..."
-    convert_html2txt "$TEST_REPORT_HTM" "$TEST_REPORT_TXT"
-  fi
-
-  if [ -n "$OPT_GIF_ENHANCE" ]; then
-    # Enhance gif report files.
-    report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
-    echo "INFO: Enhancing report image ($TEST_REPORT_BASE.gif)..."
-    enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
-    if [ -f "$TEST_REPORT_TXT" ]; then
-      local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
-      enhance_gif "$report_gif" -t "$gif_text"
-    fi
-  fi
+      if [ -n "$OPT_GIF_ENHANCE" ]; then
+        # Enhance gif report files.
+        report_gif="$TEST_REPORT_DIR/$TEST_REPORT_BASE.gif"
+        echo "INFO: Enhancing report image ($TEST_REPORT_BASE.gif)..."
+        enhance_gif "$report_gif" ${GIF_ENHANCE:-"-n"}
+        if [ -f "$TEST_REPORT_TXT" ]; then
+          local gif_text=$(grep -wE '^\s*(Symbol|Period|Bars|Initial|Total|Profit|Absolute)' "$TEST_REPORT_TXT")
+          enhance_gif "$report_gif" -t "$gif_text"
+        fi
+      fi
+      ;;
+    5)
+      # @fixme
+      ;;
+  esac
 
   if [ -n "$OPT_VERBOSE" ]; then
     # Print test results in plain text.
@@ -228,6 +254,7 @@ while getopts $ARGS arg; do
     v) # Verbose mode.
       OPT_VERBOSE=true
       VFLAG="-v"
+      VFLAGFULL="--verbose"
       VPRINT="-print"
       VDD="noxfer"
       # EX_ARGS="-V1" # @see: https://github.com/vim/vim/issues/919
@@ -389,7 +416,14 @@ if [ -n "$TEST_EXPERT" ]; then
     EA_PATH=$(ea_find "$TEST_EXPERT")
   fi
   # Use relative path to Experts dir.
-  ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
+  case $(get_mtv) in
+    4)
+      ini_set "^TestExpert" "${EA_PATH%.*}" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" Tester Expert "${EA_PATH%.*}"
+      ;;
+  esac
   cd - &> /dev/null
 elif [ -n "$EXPERT" ]; then
   # Locate Expert if specified.
@@ -408,7 +442,14 @@ elif [ -n "$EXPERT" ]; then
     EA_PATH=$(ea_find "$EXPERT")
   fi
   # Use relative path to Experts dir.
-  ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
+  case $(get_mtv) in
+    4)
+      ini_set "^Expert" "${EA_PATH%.*}" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" StartUp Expert "${EA_PATH%.*}"
+      ;;
+  esac
   cd - &> /dev/null
 elif [ -n "$SCRIPT" ]; then
   # Locate Script if specified.
@@ -427,43 +468,105 @@ elif [ -n "$SCRIPT" ]; then
     SCR_PATH=$(script_find "$SCRIPT")
   fi
   # Use relative path to Scripts dir.
-  ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
+  case $(get_mtv) in
+    4)
+      ini_set "^Script" "${SCR_PATH%.*}" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" StartUp Script "${SCR_PATH%.*}"
+      ;;
+  esac
   cd - &> /dev/null
 fi
 
+# Configures test's start date.
 if [ -n "$BT_START_DATE" ]; then
   echo "INFO: Configuring start test period ($BT_START_DATE)..."
-  ini_set "^TestFromDate" "$BT_START_DATE" "$TESTER_INI"
-else
-  BT_START_DATE="$(ini_get TestFromDate)"
-  BT_YEARS=(${BT_START_DATE%%.*})
+  case $(get_mtv) in
+    4)
+      ini_set "^TestFromDate" "$BT_START_DATE" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" Tester FromDate "$BT_START_DATE"
+      ;;
+  esac
 fi
+case $(get_mtv) in
+  4)
+    BT_START_DATE="$(ini_get TestFromDate)"
+    ;;
+  5)
+    BT_START_DATE="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester FromDate)"
+    ;;
+esac
+BT_YEARS=(${BT_START_DATE%%.*})
+
+# Configures test's end date.
 if [ -n "$BT_END_DATE" ]; then
   echo "INFO: Configuring end test period ($BT_END_DATE)..."
-  ini_set "^TestToDate" "$BT_END_DATE" "$TESTER_INI"
-else
-  BT_END_DATE="$(ini_get TestToDate)"
-  if [[ "${BT_YEARS[0]}" != "${BT_END_DATE%%.*}" ]]; then
-    # Append ending year when the end date got a different year.
-    BT_YEARS+=(${BT_END_DATE%%.*})
-  fi
+  case $(get_mtv) in
+    4)
+      ini_set "^TestToDate" "$BT_END_DATE" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" Tester ToDate "$BT_END_DATE"
+      ;;
+  esac
+fi
+case $(get_mtv) in
+  4)
+    BT_END_DATE="$(ini_get TestToDate)"
+    ;;
+  5)
+    BT_END_DATE="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester ToDate)"
+    ;;
+esac
+if [[ "${BT_YEARS[0]}" != "${BT_END_DATE%%.*}" ]]; then
+  # Appends ending year when the end date got a different year.
+  BT_YEARS+=(${BT_END_DATE%%.*})
 fi
 
 # Configure symbol pair.
 if [ -n "$BT_SYMBOL" ]; then
   echo "INFO: Configuring symbol pair ($BT_SYMBOL)..."
-  ini_set "^TestSymbol" "$BT_SYMBOL" "$TESTER_INI"
-else
-  BT_SYMBOL="$(ini_get TestSymbol)"
+  case $(get_mtv) in
+    4)
+      ini_set "^TestSymbol" "$BT_SYMBOL" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" Tester Symbol "$BT_SYMBOL"
+      ;;
+  esac
 fi
+case $(get_mtv) in
+  4)
+    BT_SYMBOL="$(ini_get TestSymbol)"
+    ;;
+  5)
+    BT_SYMBOL="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Symbol)"
+    ;;
+esac
 
-# Configure testing mode.
+# Configures tick generation mode.
 if [ -n "$BT_TESTMODEL" ]; then
   echo "INFO: Configuring test model ($BT_TESTMODEL)..."
-  ini_set "^TestModel" "$BT_TESTMODEL" "$TESTER_INI"
-else
-  BT_TESTMODEL="$(ini_get TestModel)"
+  case $(get_mtv) in
+    4)
+      ini_set "^TestModel" "$BT_TESTMODEL" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" Tester Model "$BT_TESTMODEL"
+      ;;
+  esac
 fi
+case $(get_mtv) in
+  4)
+    BT_TESTMODEL="$(ini_get TestModel)"
+    ;;
+  5)
+    BT_TESTMODEL="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Model)"
+    ;;
+esac
 
 if [ -n "$TEST_OPTS" ]; then
   echo "INFO: Applying tester settings ($TEST_OPTS)..."
@@ -474,20 +577,40 @@ if [ -n "$TEST_OPTS" ]; then
     IFS='='
     test_option=($opt_pair)
     restore_ifs
-    ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+    case $(get_mtv) in
+      4)
+        ini_set "^${test_option[0]}" "${test_option[1]}" "$TESTER_INI"
+        ;;
+      5) ;;
+
+    esac
   done
 fi
 
 # Configure EA.
-TEST_EXPERT="$(ini_get TestExpert)"
-EXPERT="$(ini_get Expert)"
-EA_FILE="${TEST_EXPERT:-$EXPERT}"
-EA_INI="$TESTER_DIR/${EA_FILE##*/}.ini"
-SCRIPT="$(ini_get Script)"
-SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
-EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
-EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
-SERVER="${SERVER:-$(ini_get Server)}"
+case $(get_mtv) in
+  4)
+    TEST_EXPERT="$(ini_get TestExpert)"
+    EXPERT="$(ini_get Expert)"
+    EA_FILE="${TEST_EXPERT:-$EXPERT}"
+    EA_INI="$TESTER_DIR/${EA_FILE##*/}.ini"
+    SCRIPT="$(ini_get Script)"
+    SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
+    EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
+    EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
+    SERVER="${SERVER:-$(ini_get Server)}"
+    ;;
+  5)
+    TEST_EXPERT="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Expert)"
+    EXPERT="$(crudini $VFLAGFULL --get "$TESTER_INI" StartUp Expert)"
+    EA_FILE="${TEST_EXPERT:-$EXPERT}"
+    SCRIPT="$(crudini $VFLAGFULL --get "$TESTER_INI" StartUp Script)"
+    #SCR_INI="$SCRIPTS_DIR/${SCRIPT##*/}.ini"
+    #EA_SETFILE="${EA_FILE:-$SCRIPT}.set"
+    #EA_SETFILE=${EA_SETFILE##*/} # Drop the path.
+    SERVER="${SERVER:-$(ini_get Server)}"
+    ;;
+esac
 
 # Export SET file when SETFILE does not exist.
 if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
@@ -506,14 +629,23 @@ if [ -r "$SETFILE" ] && ! diff -u "$TESTER_DIR/$EA_SETFILE" "$SETFILE"; then
   cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
 fi
 
-# Copy the template INI file.
-if [ -n "$EA_FILE" -a ! -s "$EA_INI" ]; then
-  cp $VFLAG "$TPL_EA" "$EA_INI"
-elif [ -n "$SCRIPT" -a ! -s "$SCR_INI" ]; then
-  cp $VFLAG "$TPL_EA" "$SCR_INI"
-fi
+# Copies necessary files to platform dir.
+case $(get_mtv) in
+  4)
+    # Copies the template INI file.
+    if [ -n "$EA_FILE" -a ! -s "$EA_INI" ]; then
+      cp $VFLAG "$TPL_EA" "$EA_INI"
+    elif [ -n "$SCRIPT" -a ! -s "$SCR_INI" ]; then
+      cp $VFLAG "$TPL_EA" "$SCR_INI"
+    fi
+    # Copies server files.
+    srv_copy
+    ;;
+  5)
+    BT_TESTMODEL="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Model)"
+    ;;
+esac
 
-srv_copy
 check_files
 
 # Parse the main arguments.
@@ -654,7 +786,14 @@ fi
 # Configure test period.
 if [ -n "$BT_PERIOD" ]; then
   echo "INFO: Configuring test period ($BT_PERIOD)..."
-  ini_set "^TestPeriod" "$BT_PERIOD" "$TESTER_INI"
+  case $(get_mtv) in
+    4)
+      ini_set "^TestPeriod" "$BT_PERIOD" "$TESTER_INI"
+      ;;
+    5)
+      crudini $VFLAGFULL --set "$TESTER_INI" Tester Period "$BT_PERIOD"
+      ;;
+  esac
 fi
 
 # Action(s) to evaluate.
@@ -774,25 +913,47 @@ if [ -n "$EA_FILE" -a -n "$BT_DEST" ]; then
   fi
 fi
 
-# Check backtest data if required.
-BT_PERIOD=$(ini_get TestPeriod)
-BT_PERIOD_FXT=${BT_PERIOD_FXT:-$BT_PERIOD}
-BT_TESTMODEL_FXT=${BT_TESTMODEL_FXT:-0}
+# Check backtests data if required.
+case $(get_mtv) in
+  4)
+    BT_PERIOD=$(ini_get TestPeriod)
+    BT_PERIOD_FXT=${BT_PERIOD_FXT:-$BT_PERIOD}
+    BT_TESTMODEL_FXT=${BT_TESTMODEL_FXT:-0}
+    ;;
+  5)
+    BT_PERIOD="$(crudini $VFLAGFULL --get "$TESTER_INI" Tester Period)"
+    ;;
+esac
+
+# Checks backtest data.
 if [ -n "$TEST_EXPERT" ]; then
   echo "INFO: Checking backtest data (${BT_SRC:-DS})..."
   bt_key=$BT_SYMBOL-$(join_by - ${BT_YEARS[@]:-2019})-${BT_SRC:-DS}
   bt_data=$(ini_get "bt_data" "$CUSTOM_INI")
-  # Download backtest files if not present.
-  if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
-    bt_data_get "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2019}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
-    if [ -n "$OPT_VERBOSE" ]; then
-      cd "$TERMINAL_DIR"
-      find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
-      cd - &> /dev/null
-    fi
-  fi
-  # Assign variables.
-  FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
+  case $(get_mtv) in
+    4)
+      # Download backtest files if not present.
+      if [ -z "$(find "$TERMINAL_DIR" -name "${BT_SYMBOL}*_0.fxt" -print -quit)" ] || [ "${bt_data%.*}" != "$bt_key" ]; then
+        bt_data_get "$BT_SYMBOL" "$(join_by - "${BT_YEARS[@]:-2019}")" "${BT_SRC:-DS}" "${BT_PERIOD_FXT}" "${BT_TESTMODEL_FXT}"
+        if [ -n "$OPT_VERBOSE" ]; then
+          cd "$TERMINAL_DIR"
+          find . '(' -name "*.hst" -o -name "*.fxt" ')' -ls
+          cd - &> /dev/null
+        fi
+      fi
+      # Assign variables.
+      FXT_FILE=$(find "$TICKDATA_DIR" -name "*.fxt" -print -quit)
+      ;;
+    5)
+      # @fixme
+      ;;
+  esac
+fi
+
+# Sets currency/volume digits and point size (if specified).
+if [ -n "$BT_DIGITS" ]; then
+  echo "INFO: Configuring digits ($BT_DIGITS)..."
+  set_digits $BT_DIGITS
 fi
 
 # Sets a spread in FXT files (if specified).
@@ -801,22 +962,16 @@ if [ -n "$BT_SPREAD" ]; then
   set_spread $BT_SPREAD
 fi
 
-# Sets currency/volume digits and point size in symbol raw and FXT files (if specified).
-if [ -n "$BT_DIGITS" ]; then
-  echo "INFO: Configuring digits ($BT_DIGITS)..."
-  set_digits $BT_DIGITS
+# Sets an account leverage in FXT files (if specified).
+if [ -n "$BT_LEVERAGE" ]; then
+  echo "INFO: Setting account leverage in FXT files ($BT_LEVERAGE)..."
+  set_leverage $BT_LEVERAGE
 fi
 
 # Sets a lot step in FXT files (if specified).
 if [ -n "$BT_LOTSTEP" ]; then
   echo "INFO: Setting lot step in FXT files ($BT_LOTSTEP)..."
   set_lotstep $BT_LOTSTEP
-fi
-
-# Sets an account leverage in FXT files (if specified).
-if [ -n "$BT_LEVERAGE" ]; then
-  echo "INFO: Setting account leverage in FXT files ($BT_LEVERAGE)..."
-  set_leverage $BT_LEVERAGE
 fi
 
 # Sets white-listed web-request URLs (if specified).
@@ -826,13 +981,19 @@ if [ -n "$EA_WHITELIST_URLS" ]; then
 fi
 
 # Final checks.
-if [ -n "$TEST_EXPERT" ]; then
-  [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
-    || {
-      echo "ERROR: Missing backtest data files!"
-      on_error 1
-    }
-fi
+case $(get_mtv) in
+  4)
+    if [ -n "$TEST_EXPERT" ]; then
+      [ -n "$(find "$TERMINAL_DIR" '(' -name "*.hst" -o -name "*.fxt" ')' -size +1 -print -quit)" ] \
+        || {
+          echo "ERROR: Missing backtest data files!"
+          on_error 1
+        }
+    fi
+    ;;
+  5) ;;
+
+esac
 
 if [ -z "$TEST_EXPERT" -a -z "$EXPERT" -a -z "$SCRIPT" ]; then
   echo "ERROR: You need to specify TestExpert (-e), Expert (-E) or Script (-s)!"

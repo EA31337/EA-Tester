@@ -414,7 +414,7 @@ compile()
     trap '' ERR
     WINEDEBUG=fixme-all,err-winediag \
       WINEPATH="$(winepath -w "$TERMINAL_DIR")" \
-      wine metaeditor.exe /compile:"$target" /log:"$log_file" ${@:3} >&2
+      wine "$MTEDITOR_EXE" /compile:"$target" /log:"$log_file" ${@:3} >&2
     echo $?
   )
   # Reset errexit to the previous value.
@@ -1125,10 +1125,16 @@ set_spread()
 {
   local spread=${1:-BT_SPREAD}
   [ -n "$spread" ]
-  ini_set "^Spread" "$spread" "$TERMINAL_INI"
-  ini_set "^TestSpread" "$spread" "$TESTER_INI"
-  # Change spread in all FXT files at offset 0xFC.
-  set_data_value spread $spread fxt
+  case $(get_mtv) in
+    4)
+      ini_set "^Spread" "$spread" "$TERMINAL_INI"
+      ini_set "^TestSpread" "$spread" "$TESTER_INI"
+      # Change spread in all FXT files at offset 0xFC.
+      set_data_value spread $spread fxt
+      ;;
+    5) ;;
+
+  esac
 }
 
 # Set lot step in FXT files.
@@ -1138,7 +1144,13 @@ set_lotstep()
   local lotstep=$1
   [ -n "$lotstep" ]
   # Change lot step in all FXT files at given offset.
-  set_data_value lotStep $lotstep fxt
+  case $(get_mtv) in
+    4)
+      set_data_value lotStep $lotstep fxt
+      ;;
+    5) ;;
+
+  esac
 }
 
 # Set digits in symbol raw and FXT files.
@@ -1172,7 +1184,14 @@ add_url()
 {
   local url=$1
   [ -n "$url" ]
-  mt_modify -m "webRequestUrl=$url" -m "webRequestUrlEnabled=1" -t "experts-ini" -f "$EXPERTS_INI"
+  case $(get_mtv) in
+    4)
+      mt_modify -m "webRequestUrl=$url" -m "webRequestUrlEnabled=1" \
+        -t "experts-ini" -f "$EXPERTS_INI"
+      ;;
+    5) ;;
+
+  esac
 }
 
 # Set account leverage in FXT files.
@@ -1181,6 +1200,12 @@ set_leverage()
 {
   local leverage=$1
   [ -n "$leverage" ]
-  # Change lot step in all FXT files at given offset.
-  set_data_value accountLeverage $leverage fxt
+  case $(get_mtv) in
+    4)
+      # Change lot step in all FXT files at given offset.
+      set_data_value accountLeverage $leverage fxt
+      ;;
+    5) ;;
+
+  esac
 }
