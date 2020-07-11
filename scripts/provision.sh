@@ -137,10 +137,11 @@ case "$(uname -s)" in
 
     # Install necessary packages
     echo "Installing APT packages..." >&2
-    apt-get install -qq build-essential pev # Install C, C++ compilers and development (make).
-    apt-get install -qq dbus                # Required for Debian AMI on EC2.
-    apt-get install -qq fontconfig          # Required for fc-match command.
-    apt-get install -qq language-pack-en    # Language pack to prevent an invalid locale.
+    apt-get install -qq build-essential  # Install C, C++ compilers and development (make).
+    apt-get install -qq dbus             # Required for Debian AMI on EC2.
+    apt-get install -qq fontconfig       # Required for fc-match command.
+    apt-get install -qq language-pack-en # Language pack to prevent an invalid locale.
+    apt-get install -qq crudini pev      # Install CLI tools.
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
