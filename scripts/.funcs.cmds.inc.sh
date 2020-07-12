@@ -178,8 +178,10 @@ clean_files()
   # Remove log files.
   [ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f $VPRINT -delete
   find "$TERMINAL_DIR" '(' -name "*.log" -o -name "*.txt" -o -name "Report*.htm" -o -name "*.gif" ')' -type f $VPRINT -delete
-  # Remove selected symbol and group files, so they can be regenerated.
-  find "$TERMINAL_HST" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
+  if [ $(get_mtv) = 4 ]; then
+    # Remove selected symbol and group files, so they can be regenerated.
+    find "$TERMINAL_HST" '(' -name "symbols.sel" -o -name "symgroups.raw" ')' $VPRINT -delete
+  fi
 }
 
 # Deletes backtest data files.
