@@ -33,7 +33,6 @@ jobs:
           - TestEnvelopes
           - TestFXTHeader
           - TestHSTHeader
-          - TestLeverage
           - TestMargin
           - TestModellingQuality
           - TestTimeframes
@@ -56,10 +55,11 @@ jobs:
     strategy:
       matrix:
         test:
-          - TestBands  # @fixme: GH-206
-          - TestLotstep4
-          - TestLotstep5
-          - TestSpread
+          - TestBands     # @fixme: GH-206
+          - TestLeverage  # @fixme: GH-207
+          - TestLotstep4  # @fixme: GH-208
+          - TestLotstep5  # @fixme: GH-208
+          - TestSpread    # @fixme: GH-209
     steps:
       - uses: actions/checkout@v2
       - name: Check dependencies
