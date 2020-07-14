@@ -1,6 +1,7 @@
 ---
 name: Tests-Shell
 
+# yamllint disable-line rule:truthy
 on:
   pull_request:
     paths:
@@ -12,23 +13,24 @@ on:
       - '.github/workflows/tests-shell.yml'
 
 jobs:
-  Tests-Scripts:
+  Test-Scripts:
+    defaults:
+      run:
+        shell: bash
+        working-directory: scripts/tests
     runs-on: ubuntu-latest
     container:
       image: ea31337/ea-tester:dev
+    strategy:
+      matrix:
+        test:
+          - ./test_aliases.sh
+          - ./test_backtest.sh
+          - ./test_bt_data_gen.sh
+          - ./test_cmds.sh
+          - ./test_compile.sh
+          - ./test_eval.sh
+          - ./test_vars.sh
     steps:
       - uses: actions/checkout@v2
-      - run: ./test_aliases.sh
-        working-directory: scripts/tests
-      - run: ./test_backtest.sh
-        working-directory: scripts/tests
-      - run: ./test_bt_data_gen.sh
-        working-directory: scripts/tests
-      - run: ./test_cmds.sh
-        working-directory: scripts/tests
-      - run: ./test_compile.sh
-        working-directory: scripts/tests
-      - run: ./test_eval.sh
-        working-directory: scripts/tests
-      - run: ./test_vars.sh
-        working-directory: scripts/tests
+      - run: ${{ matrix.test }}
