@@ -162,6 +162,7 @@ clean_ea()
 clean_sources()
 {
   local subdir=$1
+  [ -d "$TERMINAL_DIR" ]
   echo "INFO: Cleaning EA/script source code files..."
   find "$TERMINAL_DIR/$subdir" -name "*.mq[45]" -type f $VPRINT -delete >&2
 }
