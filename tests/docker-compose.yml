@@ -121,50 +121,6 @@ services:
       BT_DAYS: 10-12
       BT_MONTHS: 1
       BT_YEARS: 2019
-  TestSymbolsRaw:
-    command: run_backtest -e TestSymbolsRaw
-    image: ea31337/ea-tester:dev
-    volumes:
-      - .:/opt/tests
-      - ../scripts:/opt/scripts
-      - ../conf:/opt/conf
-    environment:
-      BT_DAYS: 10-12
-      BT_MONTHS: 1
-      BT_YEARS: 2019
-  TestSymbolsSel:
-    command: run_backtest -e TestSymbolsSel
-    image: ea31337/ea-tester:dev
-    volumes:
-      - .:/opt/tests
-      - ../scripts:/opt/scripts
-      - ../conf:/opt/conf
-    environment:
-      BT_DAYS: 10-12
-      BT_MONTHS: 1
-      BT_YEARS: 2019
-  TestSymgroupsRaw:
-    command: run_backtest -e TestSymgroupsRaw
-    image: ea31337/ea-tester:dev
-    volumes:
-      - .:/opt/tests
-      - ../scripts:/opt/scripts
-      - ../conf:/opt/conf
-    environment:
-      BT_DAYS: 10-12
-      BT_MONTHS: 1
-      BT_YEARS: 2019
-  TestTicksRaw:
-    command: run_backtest -e TestTicksRaw
-    image: ea31337/ea-tester:dev
-    volumes:
-      - .:/opt/tests
-      - ../scripts:/opt/scripts
-      - ../conf:/opt/conf
-    environment:
-      BT_DAYS: 10-12
-      BT_MONTHS: 1
-      BT_YEARS: 2019
   TestTimeframes:
     command: for tf in M15 M30; do run_backtest -e TestTimeframes -T $$tf; done
     image: ea31337/ea-tester:dev
@@ -188,6 +144,34 @@ services:
       - ../conf:/opt/conf
   ScriptPrintPaths:
     command: run_backtest -s PrintPaths
+    image: ea31337/ea-tester:dev
+    volumes:
+      - .:/opt/tests
+      - ../scripts:/opt/scripts
+      - ../conf:/opt/conf
+  ScriptSymbolsRaw:
+    command: run_backtest -s TestSymbolsRaw
+    image: ea31337/ea-tester:dev
+    volumes:
+      - .:/opt/tests
+      - ../scripts:/opt/scripts
+      - ../conf:/opt/conf
+  ScriptSymbolsSel:
+    command: run_backtest -s TestSymbolsSel
+    image: ea31337/ea-tester:dev
+    volumes:
+      - .:/opt/tests
+      - ../scripts:/opt/scripts
+      - ../conf:/opt/conf
+  ScriptSymgroupsRaw:
+    command: run_backtest -s TestSymgroupsRaw
+    image: ea31337/ea-tester:dev
+    volumes:
+      - .:/opt/tests
+      - ../scripts:/opt/scripts
+      - ../conf:/opt/conf
+  ScriptTicksRaw:
+    command: run_backtest -s TestTicksRaw
     image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests

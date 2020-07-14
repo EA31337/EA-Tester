@@ -26,11 +26,16 @@ jobs:
         test:
           - ScriptDummy
           - ScriptPrintPaths
+          - ScriptSymbolsRaw
+          - ScriptSymbolsSel
+          - ScriptSymgroupsRaw
+          - ScriptTicksRaw
           - TestBands
           - TestEnvelopes
           - TestFXTHeader
           - TestHSTHeader
-          - TestLotstep4
+          - TestLeverage
+          - TestMargin
           - TestModellingQuality
           - TestTimeframes
     steps:
@@ -52,15 +57,9 @@ jobs:
     strategy:
       matrix:
         test:
-          - ScriptDummy
-          - TestLeverage
+          - TestLotstep4
           - TestLotstep5
-          - TestMargin
           - TestSpread
-          - TestSymbolsRaw
-          - TestSymbolsRaw
-          - TestSymgroupsRaw
-          - TestTicksRaw
     steps:
       - uses: actions/checkout@v2
       - name: Check dependencies
