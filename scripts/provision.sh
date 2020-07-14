@@ -220,6 +220,10 @@ case "$(uname -s)" in
     apt-get install -qq imagemagick                       # ImageMagick.
     apt-get install -qq vim                               # Vim.
 
+    # Configures ImageMagick.
+    # See: https://stackoverflow.com/q/42928765
+    [ -f /etc/ImageMagick-6/policy.xml ] && rm -v /etc/ImageMagick-6/policy.xml
+
     # Install required gems.
     apt-get install -qq ruby
     gem install gist

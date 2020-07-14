@@ -900,7 +900,7 @@ enhance_gif()
   local file="$1"
   local text=''
   local negate=0
-  local font=$(fc-match --format=%{file} Arial &> /dev/null || true)
+  local font=$(fc-match --format=%{file} Arial)
   local text_color=${GIF_TEXT_COLOR:-gray}
   type convert > /dev/null
   [ -f "$file" ]
@@ -909,7 +909,7 @@ enhance_gif()
     key="$1"
     case $key in
       -n | --negate)
-        convert -negate "$file" "$file"
+        convert "$file" -negate "$file"
         negate=$((1 - negate))
         ;;
       -cvl | --color-volume) # E.g. equity, volume.
