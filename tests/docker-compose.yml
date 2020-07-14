@@ -6,7 +6,7 @@ services:
   # MQL EA tests.
   TestBands:
     command: for tf in M15 M30; do run_backtest -e TestBands -T $$tf; done
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -14,10 +14,11 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
       RUN_ON_START: clean_ea
   TestEnvelopes:
     command: for tf in M15 M30; do run_backtest -e TestEnvelopes -T $$tf; done
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -25,10 +26,11 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
       RUN_ON_START: clean_ea
   TestFXTHeader:
     command: for tf in M1 M30; do run_backtest -e TestFXTHeader -T $$tf; done
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -36,11 +38,12 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
       BT_DIGITS: 5
       RUN_ON_START: clean_ea
   TestHSTHeader:
     command: for tf in M1 M30; do run_backtest -e TestHSTHeader -T $$tf; done
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -48,11 +51,12 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
       BT_DIGITS: 5
       RUN_ON_START: clean_ea
   TestLeverage:
     command: run_backtest -e TestLeverage
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -60,9 +64,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestLotstep4:
     command: run_backtest -e TestLotstep -D4 -l 1
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -70,9 +75,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestLotstep5:
     command: run_backtest -e TestLotstep -D5 -l 1
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -80,9 +86,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestMargin:
     command: run_backtest -e TestMargin
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -90,9 +97,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestModellingQuality:
     command: for tf in M1 M5 M15 M30; do run_backtest -e TestModellingQuality -T $$tf; done
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -100,10 +108,11 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
       RUN_ON_START: clean_ea
   TestSpread:
     command: run_backtest -e TestSpread
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -111,9 +120,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestSymbolsRaw:
     command: run_backtest -e TestSymbolsRaw
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -121,9 +131,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestSymbolsSel:
     command: run_backtest -e TestSymbolsSel
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -131,9 +142,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestSymgroupsRaw:
     command: run_backtest -e TestSymgroupsRaw
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -141,9 +153,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestTicksRaw:
     command: run_backtest -e TestTicksRaw
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -151,9 +164,10 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
   TestTimeframes:
     command: for tf in M15 M30; do run_backtest -e TestTimeframes -T $$tf; done
-    image: ea31337/ea-tester:EURUSD-2019-DS
+    image: ea31337/ea-tester:dev
     volumes:
       - .:/opt/tests
       - ../scripts:/opt/scripts
@@ -161,6 +175,7 @@ services:
     environment:
       BT_DAYS: 10-12
       BT_MONTHS: 1
+      BT_YEARS: 2019
       RUN_ON_START: clean_ea
 
   # MQL Scripts.
