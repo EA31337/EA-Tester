@@ -861,7 +861,7 @@ sort_opt_results()
   read -ra vargs <<< $EX_ARGS
   vargs+=("-u NONE")
   # Note: {1} - Profit; {2} - Profit factor; {3} - Expected Payoff; {4} - Drawdown $; {5} - Drawdown %
-  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{1}\1[^>]\+.\zs.*/' -scwq! ${vargs[@]} "$file"
+  ex +':/<table\_.\{-}<tr bgcolor\_.\{-}\zs<tr/;,/table>/sort! rn /\%(\(<td\).\{-}\)\{2}\1[^>]\+.\zs.*/' -scwq! ${vargs[@]} "$file"
 }
 
 # Post results to gist.
