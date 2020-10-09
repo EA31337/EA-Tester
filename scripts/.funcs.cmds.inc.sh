@@ -162,6 +162,7 @@ clean_ea()
 clean_sources()
 {
   local subdir=$1
+  [ -d "$TERMINAL_DIR" ]
   echo "INFO: Cleaning EA/script source code files..."
   find "$TERMINAL_DIR/$subdir" -name "*.mq[45]" -type f $VPRINT -delete >&2
 }
@@ -198,12 +199,11 @@ clean_bt()
 # Usage: filever [file/terminal.exe]
 filever()
 {
-  type awk > /dev/null
-
-  timeout 10 wine filever &> /dev/null || install_support_tools >&2
+  type pev > /dev/null
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir timeout 10 wine filever /v "$file" ';' -quit \
-    | grep ProductVersion | awk '{print $2}' | tr -d '\15'
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir \
+    pev "$file" ';' -quit 2> /dev/null \
+    | grep -w Product | grep -o "[45].*"
 }
 
 # Install platform.
@@ -901,7 +901,7 @@ enhance_gif()
   local file="$1"
   local text=''
   local negate=0
-  local font=$(fc-match --format=%{file} Arial &> /dev/null || true)
+  local font=$(fc-match --format=%{file} Arial)
   local text_color=${GIF_TEXT_COLOR:-gray}
   type convert > /dev/null
   [ -f "$file" ]
@@ -910,7 +910,7 @@ enhance_gif()
     key="$1"
     case $key in
       -n | --negate)
-        convert -negate "$file" "$file"
+        convert "$file" -negate "$file"
         negate=$((1 - negate))
         ;;
       -cvl | --color-volume) # E.g. equity, volume.

@@ -1,12 +1,12 @@
 ---
 name: Compile
 
+# yamllint disable-line rule:truthy
 on:
   pull_request:
     paths:
       - '**/*.mq?'
       - '.github/workflows/compile.yml'
-      - '.github/workflows/scripts/compile.ps1'
   push:
     branches:
       - 'master'
@@ -15,15 +15,12 @@ on:
     paths:
       - '**/*.mq?'
       - '.github/workflows/compile.yml'
-      - '.github/workflows/scripts/compile.ps1'
 
 jobs:
   Compile:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: fx31337/mql-compile-action@master
         with:
-          submodules: 'recursive'
-      - name: Compile
-        run: .\.github\workflows\scripts\compile.ps1
-        shell: powershell
+          verbose: true

@@ -141,6 +141,7 @@ case "$(uname -s)" in
     apt-get install -qq dbus             # Required for Debian AMI on EC2.
     apt-get install -qq fontconfig       # Required for fc-match command.
     apt-get install -qq language-pack-en # Language pack to prevent an invalid locale.
+    apt-get install -qq crudini pev      # Install CLI tools.
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
@@ -218,6 +219,10 @@ case "$(uname -s)" in
     apt-get install -qq html2text jq                      # Required parsers.
     apt-get install -qq imagemagick                       # ImageMagick.
     apt-get install -qq vim                               # Vim.
+
+    # Configures ImageMagick.
+    # See: https://stackoverflow.com/q/42928765
+    [ -f /etc/ImageMagick-6/policy.xml ] && rm -v /etc/ImageMagick-6/policy.xml
 
     # Install required gems.
     apt-get install -qq ruby

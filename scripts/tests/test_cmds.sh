@@ -12,8 +12,13 @@ initialize
 # Asserts.
 help | grep "Usage" > /dev/null
 
+# Installs both platforms.
+install_mt 4.0.0.1260 /opt
+install_mt 5.0.0.2361 /opt
+
 # Load variables.
 . ../.vars.inc.sh
+[ -d "$TERMINAL_DIR" ]
 
 echo INFO: Test finding EA files...
 clean_sources
