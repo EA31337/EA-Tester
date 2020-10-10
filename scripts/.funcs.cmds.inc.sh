@@ -199,11 +199,14 @@ clean_bt()
 # Usage: filever [file/terminal.exe]
 filever()
 {
-  type pev > /dev/null
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir \
-    pev "$file" ';' -quit 2> /dev/null \
-    | grep -w Product | grep -o "[45].*"
+  if type peres &> /dev/null; then
+    cmd='peres -v -f csv "%s" | cut -d, -f2'
+  elif type pev &> /dev/null; then
+    cmd='pev %s 2> /dev/null | grep -w Product | grep -o "[45].*"'
+  fi
+  # shellcheck disable=SC2059
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir bash -c "eval $(printf "$cmd" "$file")" ';' -quit
 }
 
 # Install platform.
