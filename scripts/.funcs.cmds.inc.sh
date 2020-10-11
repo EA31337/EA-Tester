@@ -133,7 +133,7 @@ live_logs()
     [ -f "$log_file" ] && break
   done && {
     echo "Showing live logs..." >&2
-    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter" | cat -v
   }
 }
 
@@ -145,7 +145,7 @@ live_stats()
   local interval=${1:-60}
   while sleep $interval; do
     # TERM=vt100 top | head -n4
-    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
+    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd, | cat -v
   done
 }
 
