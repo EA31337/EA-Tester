@@ -1,5 +1,9 @@
 Supported options:
 
+  -4
+    Runs test under MetaTrader 4. Same as: -M 4.
+  -5
+    Runs test under MetaTrader 5. Same as: -M 5.
   -b (option)
     Source of backtest data to test. Default: DS
     Variable (string): BT_SRC
@@ -18,10 +22,10 @@ Supported options:
     Specifies number of digits after decimal point for the current symbol prices (e.g. 4 or 5).
     Variable (uint): BT_DIGITS
   -e (filename/url/pattern)
-    EA name to test (TestExpert).
-    Variable (string): EXPERT
+    Specifies Expert Advisor to test (TestExpert).
+    Variable (string): TEST_EXPERT
   -E (filename/url/pattern)
-    EA name to run (Expert).
+    Specifies Expert Advisor to run (Expert).
     Variable (string): EXPERT
   -f (filename/auto)
     The .set file to run the test.
@@ -56,7 +60,8 @@ Supported options:
     Specifies range of months in each year to test. Default: 1-12.
     Variable (uint/string): BT_MONTHS
   -M (version)
-    Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
+    Specifies version of MetaTrader to use for the test (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
+    Variable (string): MT_VER
   -o
     Runs test in optimization mode.
     Variable (bool): OPT_OPTIMIZATION
@@ -67,24 +72,24 @@ Supported options:
     Symbol pair to test (e.g. EURUSD).
     Variable (string): BT_SYMBOL
   -P (param)
-    Set EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
+    Sets EA param in SET file (e.g. VerboseInfo=1,TakeProfit=0).
     Variable (string): SET_OPTS
   -r (string)
     Specifies the name of the test report file. Default: tester/Report
     Variable (string): TEST_REPORT_NAME
   -R
-    Set files to read-only.
+    Sets files to read-only.
   -s (file/url/pattern)
     Script to run (Script).
     Variable (string): SCRIPT
   -S (spread)
-    Spread to test in points.
+    Specifies spread to test in points.
     Variable (uint): BT_SPREAD
   -t
     Converts test report file to brief text format.
     Variable (bool): OPT_FORMAT_BRIEF
   -T (timeframe)
-    Timeframe (TestPeriod) to test. Default: M30
+    Specifies timeframe (TestPeriod) to use for the test. Default: M30
     Variable (string): BT_PERIOD
   -v
     Verbose mode.
