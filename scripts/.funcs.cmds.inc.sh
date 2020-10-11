@@ -117,7 +117,7 @@ live_logs()
       # shellcheck disable=SC2153
       log_file="$([ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
-    done && tail -f "$log_file"
+    done && tail -f "$log_file" | tr -d '\r' | cat -v
   } &
   # Prints MQL4 logs when available (e.g. MQL4/Logs/20180717.log).
   {
@@ -125,7 +125,7 @@ live_logs()
       # shellcheck disable=SC2153
       log_file="$([ -d "$MQLOG_DIR" ] && find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
-    done && tail -f "$log_file"
+    done && tail -f "$log_file" | tr -d '\r' | cat -v
   } &
   # Prints tester logs.
   while sleep $interval; do
@@ -133,7 +133,7 @@ live_logs()
     [ -f "$log_file" ] && break
   done && {
     echo "Showing live logs..." >&2
-    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter"
+    tail -f "$TESTER_DIR"/*/*.log | tr -d '\r' | cat -v | grep -vw "$filter"
   }
 }
 
@@ -199,11 +199,14 @@ clean_bt()
 # Usage: filever [file/terminal.exe]
 filever()
 {
-  type pev > /dev/null
   local file=$1
-  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir \
-    pev "$file" ';' -quit 2> /dev/null \
-    | grep -w Product | grep -o "[45].*"
+  if type peres &> /dev/null; then
+    cmd='peres -v -f csv "%s" | cut -d, -f2'
+  elif type pev &> /dev/null; then
+    cmd='pev %s 2> /dev/null | grep -w Product | grep -o "[45].*"'
+  fi
+  # shellcheck disable=SC2059
+  find "$PWD" "$TERMINAL_DIR" -name "$file" -type f -execdir bash -c "eval $(printf "$cmd" "$file")" ';' -quit
 }
 
 # Install platform.
@@ -310,7 +313,7 @@ EOF
 show_logs()
 {
   local no_lines=${1:-40}
-  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n${no_lines} "{}" +
+  find "$TERMINAL_DIR" -name "*.log" -type f $VPRINT -exec tail -n${no_lines} "{}" + | tr -d '\r' | cat -v
 }
 
 # Copy script file given the file path.
