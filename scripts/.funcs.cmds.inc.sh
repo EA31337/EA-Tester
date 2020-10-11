@@ -117,7 +117,7 @@ live_logs()
       # shellcheck disable=SC2153
       log_file="$([ -d "$LOG_DIR" ] && find "$LOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
-    done && tail -f "$log_file"
+    done && tail -f "$log_file" &> >(tr -d '\r' | cat -v)
   } &
   # Prints MQL4 logs when available (e.g. MQL4/Logs/20180717.log).
   {
@@ -125,7 +125,7 @@ live_logs()
       # shellcheck disable=SC2153
       log_file="$([ -d "$MQLOG_DIR" ] && find "$MQLOG_DIR" -type f -name "$(date +%Y%m%d)*.log" -print -quit)"
       [ -f "$log_file" ] && break
-    done && tail -f "$log_file"
+    done && tail -f "$log_file" &> >(tr -d '\r' | cat -v)
   } &
   # Prints tester logs.
   while sleep $interval; do
@@ -133,7 +133,7 @@ live_logs()
     [ -f "$log_file" ] && break
   done && {
     echo "Showing live logs..." >&2
-    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter" | cat -v
+    tail -f "$TESTER_DIR"/*/*.log | grep -vw "$filter" &> >(tr -d '\r' | cat -v)
   }
 }
 
@@ -145,7 +145,7 @@ live_stats()
   local interval=${1:-60}
   while sleep $interval; do
     # TERM=vt100 top | head -n4
-    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd, | cat -v
+    winedbg --command 'info wnd' | grep -v Empty | grep -w Static | cut -c67- | paste -sd,
   done
 }
 
