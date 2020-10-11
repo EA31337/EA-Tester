@@ -885,7 +885,7 @@ echo "INFO: Starting..."
 } 2>> "$TERMINAL_LOG" && exit_status=$? || exit_status=$?
 
 # Check the results.
-[ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@
+[ ${exit_status} -eq 0 ] && on_success $@ || on_failure $@ | cat -v
 
 # Invoke custom code on shutdown/final run.
 if [ -n "$RUN_ON_EXIT" ]; then
