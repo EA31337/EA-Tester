@@ -37,6 +37,7 @@ echo "OS: $(uname -a)"
 . /etc/*-release 2> /dev/null
 
 # Find a non-privileged user.
+id gitpod 2> /dev/null && user="gitpod"
 id runner 2> /dev/null && user="runner"
 id travis 2> /dev/null && user="travis"
 id ubuntu 2> /dev/null && user="ubuntu"
