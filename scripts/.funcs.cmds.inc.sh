@@ -367,6 +367,17 @@ file_get()
   wget -cP "$dest" $url
 }
 
+# Convert stream from one encoding into another.
+# Usage: conv from to <input
+# E.g.: conv utf-16 utf-8 <input
+function conv()
+{
+  type iconv > /dev/null
+  local from=${1:-utf-16}
+  local to=${2:-utf-8}
+  iconv -f "$from" -t "$to" | tr -d \\r
+}
+
 # Compile the source code file.
 # Usage: compile [file/dir] (log_file) (...args)
 compile()
