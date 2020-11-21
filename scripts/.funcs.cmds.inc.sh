@@ -437,12 +437,12 @@ compile()
   (
     [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
     if [ -f "$log_file" ]; then
-      if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv < "$log_file"); then
+      if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv utf-16 utf-8 < "$log_file"); then
         echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2
       fi
-      if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv < "$log_file"); then
+      if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv utf-16 utf-8 < "$log_file"); then
         echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2
-        [ -n "$OPT_VERBOSE" ] && conv < "$log_file"
+        [ -n "$OPT_VERBOSE" ] && conv utf-16 utf-8 < "$log_file"
         false
       fi
     fi
