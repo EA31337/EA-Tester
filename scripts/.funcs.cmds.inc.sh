@@ -710,8 +710,12 @@ read_result_value()
     "Image")
       basename "$(pup -f "$file" 'body > div > img attr{src}')"
       ;;
-    "Symbol" | "Period" | "Model" | "Initial deposit" | "Spread")
+    "Initial deposit" | "Period" | "Symbol" | "Spread")
       pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+      ;;
+    "Result params")
+      query="body > div > table > tbody > tr:nth-child(2) > td:nth-child(1) attr{title}"
+      pup -f "$file" "$query"
       ;;
     *)
       if [ -n "$OPT_OPTIMIZATION" ]; then
@@ -848,6 +852,7 @@ convert_html2json()
       keys+=("Expected Payoff")
       keys+=("Drawdown $")
       keys+=("Drawdown %")
+      keys+=("Result params")
       ;;
   esac
   json_res=$(
