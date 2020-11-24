@@ -714,12 +714,39 @@ read_result_value()
       pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
       ;;
     "Result params")
-      query="body > div > table > tbody > tr:nth-child(2) > td:nth-child(1) attr{title}"
+      query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(1) attr{title}"
       pup -f "$file" "$query"
       ;;
     *)
       if [ -n "$OPT_OPTIMIZATION" ]; then
-        pup -f "$file" 'td:contains("'"$key"'") text{}' | head -n1
+        # For optimization report only.
+        case "$key" in
+          "Pass")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(1) text{}"
+            ;;
+          "Profit")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(2) text{}"
+            ;;
+          "Total trades")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(3) text{}"
+            ;;
+          "Profit factor")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(4) text{}"
+            ;;
+          "Expected Payoff")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(5) text{}"
+            ;;
+          "Drawdown $")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(6) text{}"
+            ;;
+          "Drawdown %")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(7) text{}"
+            ;;
+          *)
+            query='td:contains("'"$key"'") text{}'
+            ;;
+        esac
+        pup -f "$file" "$query" | head -n1
       else
         pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
       fi
