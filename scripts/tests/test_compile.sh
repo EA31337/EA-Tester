@@ -10,7 +10,7 @@ initialize
 . ../.funcs.cmds.inc.sh
 
 # Installs both platforms.
-install_mt 4.0.0.1260 /opt
+install_mt 4.0.0.1280 /opt
 install_mt 5.0.0.2361 /opt
 
 # Load variables.

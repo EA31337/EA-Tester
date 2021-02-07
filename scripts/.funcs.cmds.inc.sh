@@ -367,6 +367,17 @@ file_get()
   wget -cP "$dest" $url
 }
 
+# Convert stream from one encoding into another.
+# Usage: conv from to <input
+# E.g.: conv utf-16 utf-8 <input
+function conv()
+{
+  type iconv > /dev/null
+  local from=${1:-utf-16}
+  local to=${2:-utf-8}
+  iconv -f "$from" -t "$to" | tr -d \\r
+}
+
 # Compile the source code file.
 # Usage: compile [file/dir] (log_file) (...args)
 compile()
@@ -426,12 +437,12 @@ compile()
   (
     [ ! -f "$log_file" ] && log_file="${log_file%.*}.log"
     if [ -f "$log_file" ]; then
-      if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv < "$log_file"); then
+      if grep -B10 "[1-9]\+[0-9]\? \(warning\)" <(conv utf-16 utf-8 < "$log_file"); then
         echo "Warning: There were some warnings while compiling ${rel_path:-$1}! Check '${log_file}' for more details." >&2
       fi
-      if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv < "$log_file"); then
+      if grep -B20 "[1-9]\+[0-9]\? \(error\)" <(conv utf-16 utf-8 < "$log_file"); then
         echo "Error: Compilation of ${rel_path:-$1} failed due to errors! Check '${log_file}' for more details." >&2
-        [ -n "$OPT_VERBOSE" ] && conv < "$log_file"
+        [ -n "$OPT_VERBOSE" ] && conv utf-16 utf-8 < "$log_file"
         false
       fi
     fi
@@ -699,12 +710,43 @@ read_result_value()
     "Image")
       basename "$(pup -f "$file" 'body > div > img attr{src}')"
       ;;
-    "Symbol" | "Period" | "Model" | "Initial deposit" | "Spread")
+    "Initial deposit" | "Period" | "Symbol" | "Spread")
       pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
+      ;;
+    "Result params")
+      query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(1) attr{title}"
+      pup -f "$file" "$query"
       ;;
     *)
       if [ -n "$OPT_OPTIMIZATION" ]; then
-        pup -f "$file" 'td:contains("'"$key"'") text{}' | head -n1
+        # For optimization report only.
+        case "$key" in
+          "Pass")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(1) text{}"
+            ;;
+          "Profit")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(2) text{}"
+            ;;
+          "Total trades")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(3) text{}"
+            ;;
+          "Profit factor")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(4) text{}"
+            ;;
+          "Expected Payoff")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(5) text{}"
+            ;;
+          "Drawdown $")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(6) text{}"
+            ;;
+          "Drawdown %")
+            query="body > div > table:nth-of-type(2) > tbody > tr:nth-child(2) > td:nth-child(7) text{}"
+            ;;
+          *)
+            query='td:contains("'"$key"'") text{}'
+            ;;
+        esac
+        pup -f "$file" "$query" | head -n1
       else
         pup -f "$file" 'td:contains("'"$key"'") + td text{}' | paste -sd,
       fi
@@ -837,6 +879,7 @@ convert_html2json()
       keys+=("Expected Payoff")
       keys+=("Drawdown $")
       keys+=("Drawdown %")
+      keys+=("Result params")
       ;;
   esac
   json_res=$(

@@ -37,6 +37,7 @@ echo "OS: $(uname -a)"
 . /etc/*-release 2> /dev/null
 
 # Find a non-privileged user.
+id gitpod 2> /dev/null && user="gitpod"
 id runner 2> /dev/null && user="runner"
 id travis 2> /dev/null && user="travis"
 id ubuntu 2> /dev/null && user="ubuntu"
@@ -146,7 +147,7 @@ case "$(uname -s)" in
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
     apt-get install -qq winehq-staging               # Install Wine.
-    apt-get install -qq wine-gecko winbind           # Install Wine recommended libraries.
+    apt-get install -qq wine-gecko winbind || true   # Install Wine recommended libraries.
     apt-get install -qq xvfb xdotool x11-utils xterm # Virtual frame buffer and X11 utils.
 
     # Install Winetricks.
@@ -215,7 +216,8 @@ case "$(uname -s)" in
     # Install other CLI tools.
     apt-get install -qq less binutils coreutils moreutils # Common CLI utils.
     apt-get install -qq cabextract zip unzip p7zip-full   # Compression tools.
-    apt-get install -qq git realpath links tree pv bc     # Required commands.
+    apt-get install -qq git links tree pv bc              # Required commands.
+    apt-get install -qq realpath || true                  # Install realpath if available.
     apt-get install -qq html2text jq                      # Required parsers.
     apt-get install -qq imagemagick                       # ImageMagick.
     apt-get install -qq vim                               # Vim.

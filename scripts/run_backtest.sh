@@ -123,11 +123,9 @@ parse_results()
       sort_opt_results "$TEST_REPORT_HTM"
     fi
     echo "INFO: Saving optimization results..."
-    if [ -n "${param_list[*]}" ] || [ -n "$SET_PARAMS" ]; then
-      if [ -z "${param_list[*]}" ]; then
-        IFS=',' param_list=(${SET_PARAMS})
-        restore_ifs
-      fi
+    if [ -n "$SET_PARAMS" ]; then
+      IFS=',' param_list=(${SET_PARAMS})
+      restore_ifs
       for input in ${param_list[@]}; do
         value=$(htm_get "$input" "$TEST_REPORT_HTM")
         echo "INFO: Setting '$input' to '$value' in '$(basename $SETFILE)'"
