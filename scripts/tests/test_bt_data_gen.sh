@@ -22,9 +22,9 @@ for type in none wave curve zigzag random; do
       # Convert to CSV.
       bt_data_gen -p $type -o "$file" -s $spread -D $digits 2020.01.01 2020.01.02 1.0 2.0
       # Convert to binary format.
-      for format in fxt4 hst4 hcc; do
+      for format in fxt hst hcc; do
         for tf in M1 M5 M15 M30 H1 H4 D1 W1 MN1; do
-          conv_csv_to_mt -i "$file" -d "$dst" -f $format -t $tf -s ${type^^}
+          conv_csv_to_mt -i "$file" -d "$dst" -f $format -t $tf -p ${type^^}
         done
       done
     done
