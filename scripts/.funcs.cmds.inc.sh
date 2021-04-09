@@ -42,14 +42,14 @@ clone_repo()
 # Usage: bt_data_dl [-v] [-D DEST] [-c] [-p PAIRS] [-h HOURS] [-d DAYS] [-m MONTHS] [-y YEARS]
 bt_data_dl()
 {
-  "$CWD"/py/bt_data_dl.py "$@"
+  "$CWD"/py/fx-data-download.py "$@"
 }
 
 # Generate backtest data.
 # Usage: bt_data_gen [-D DIGITS] [-s SPREAD] [-d DENSITY] [-p {none,wave,curve,zigzag,random}] [-v VOLATILITY] [-o OUTPUTFILE]
 bt_data_gen()
 {
-  "$CWD"/py/bt_data_gen.py "$@"
+  "$CWD"/py/fx-data-generate.py "$@"
 }
 
 # Download backtest data from GitHub
@@ -57,7 +57,7 @@ bt_data_gen()
 bt_data_get()
 {
   export SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE
-  "$CWD"/bt_data_get.sh "$@"
+  "$CWD"/fx-data-download.sh "$@"
 }
 
 # Read MT file.
