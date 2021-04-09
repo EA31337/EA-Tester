@@ -57,7 +57,7 @@ bt_data_gen()
 bt_data_get()
 {
   export SERVER=$SERVER OPT_VERBOSE=$OPT_VERBOSE OPT_TRACE=$OPT_TRACE
-  "$CWD"/fx-data-download.sh "$@"
+  "$CWD"/bt_data_get.sh "$@"
 }
 
 # Read MT file.
@@ -75,10 +75,10 @@ mt_modify()
 }
 
 # Convert CSV files to FXT/HST formats.
-# Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-s SYMBOL] [-t TIMEFRAME] [-p SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
+# Usage: conv_csv_to_mt -i INPUTFILE [-f OUTPUTFORMAT] [-p PAIR] [-t TIMEFRAME] [-s SPREAD] [-d OUTPUTDIR] [-S SERVER] [-v] [-m MODEL]
 conv_csv_to_mt()
 {
-  "$CWD"/py/conv_csv_to_mt.py "$@"
+  "$CWD"/py/fx-data-convert-from-csv.py "$@"
 }
 
 # Change the working directory.

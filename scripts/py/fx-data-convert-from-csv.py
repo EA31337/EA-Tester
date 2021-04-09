@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Script to convert CSV files into FXT/HST formats.
+# Python script to convert Forex files into different formats (e.g. FXT/HST/HCC).
 
-import argparse
-import sys
-import os
-import csv
-import re
 from struct import pack, pack_into, calcsize
-import time
+import argparse
+import bstruct
+import csv
 import datetime
 import mmap
+import os
+import re
+import sys
+import time
 
 
 class Spinner:
+    """Displays an ASCII spinner"""
+
     def __init__(self, step):
         self._n = self._x = 0
         self._chars = "\\|/-"
@@ -49,16 +52,19 @@ class Input:
                 % (e.strerror, e.filename)
             )
             sys.exit(1)
+        self.uniBars = []
 
     def __del__(self):
         self.path.close()
 
-    def _addBar(self, barTimestamp, tickTimestamp, open, high, low, close, volume):
+    def _addBar(
+        self, barTimestamp, tickTimestamp, uniBar_open, high, low, close, volume
+    ):
         self.uniBars += [
             {
                 "barTimestamp": barTimestamp,
                 "tickTimestamp": tickTimestamp,
-                "open": open,
+                "open": uniBar_open,
                 "high": high,
                 "low": low,
                 "close": close,
@@ -90,10 +96,7 @@ def string_to_timestamp(s):
 class CSV(Input):
     def __init__(self, path):
         super().__init__(path)
-        if os.name == "nt":
-            self._map_obj = mmap.mmap(self.path.fileno(), 0, access=mmap.ACCESS_READ)
-        else:
-            self._map_obj = mmap.mmap(self.path.fileno(), 0, prot=mmap.PROT_READ)
+        self._map_obj = mmap.mmap(self.path.fileno(), 0, access=mmap.ACCESS_READ)
 
     def __iter__(self):
         return self
@@ -103,8 +106,7 @@ class CSV(Input):
         if line:
             isLastRow = self._map_obj.tell() == self._map_obj.size()
             return (self._parseLine(line), isLastRow)
-        else:
-            raise StopIteration
+        raise StopIteration
 
     def _parseLine(self, line):
         tick = line.split(b",")
@@ -655,7 +657,7 @@ def config_argparser():
         "--input-file",
         action="store",
         dest="inputFile",
-        help="input file",
+        help="Input filename (in CSV format)",
         default=None,
         required=True,
     )
@@ -664,39 +666,39 @@ def config_argparser():
         "--output-format",
         action="store",
         dest="outputFormat",
-        help="format of output file (FXT/HST/Old HST/HCC), as: fxt4/hst4/hst4_509/hcc",
-        default="fxt4",
+        help="Format of the output file (fxt/hst/hst509/hcc)",
+        default="fxt",
     )
     argumentParser.add_argument(
-        "-s",
-        "--symbol",
+        "-p",
+        "--pair",
         action="store",
-        dest="symbol",
-        help="symbol code (maximum 12 characters)",
-        default="EURUSD",
+        dest="pair",
+        help="Symbol pair code (max. 12 chars)",
+        default="FOOBAR",
     )
     argumentParser.add_argument(
         "-t",
         "--timeframe",
         action="store",
         dest="timeframe",
-        help="one of the timeframe values: M1, M5, M15, M30, H1, H4, D1, W1, MN",
+        help="Timeframe (M1, M5, M15, M30, H1, H4, D1, W1, MN1)",
         default="M1",
     )
     argumentParser.add_argument(
-        "-p",
+        "-s",
         "--spread",
         action="store",
         dest="spread",
-        help="spread value in points",
-        default=20,
+        help="Spread value in points",
+        default=10,
     )
     argumentParser.add_argument(
         "-d",
         "--output-dir",
         action="store",
         dest="outputDir",
-        help="destination directory to save the output file",
+        help="Destination directory to save the output file",
         default=".",
     )
     argumentParser.add_argument(
@@ -704,7 +706,7 @@ def config_argparser():
         "--server",
         action="store",
         dest="server",
-        help="name of FX server",
+        help="Name of FX server",
         default="default",
     )
     argumentParser.add_argument(
@@ -712,14 +714,21 @@ def config_argparser():
         "--verbose",
         action="store_true",
         dest="verbose",
-        help="increase output verbosity",
+        help="Enables verbose messages",
+    )
+    argumentParser.add_argument(
+        "-D",
+        "--debug",
+        action="store_true",
+        dest="debug",
+        help="Enables debugging messages",
     )
     argumentParser.add_argument(
         "-m",
         "--model",
         action="store",
         dest="model",
-        help="one of the model values: 0, 1, 2",
+        help="Mode of modeling price for FXT format (0 - Every tick, 1 - Control points, 2 - Open prices)",
         default="0",
     )
     argumentParser.add_argument(
@@ -736,11 +745,11 @@ def construct_queue(timeframe_list):
         if multiple_timeframes:
             print("[INFO] Queueing the {}m timeframe for conversion".format(timeframe))
         # Checking output file format argument and doing conversion
-        if outputFormat == "hst4_509":
+        if outputFormat == "hst509":
             yield HST509(None, ".hst", args.outputDir, timeframe, symbol)
-        elif outputFormat == "hst4":
+        elif outputFormat == "hst":
             yield HST574(None, ".hst", args.outputDir, timeframe, symbol)
-        elif outputFormat == "fxt4":
+        elif outputFormat == "fxt":
             for m in args.model.split(","):
                 yield FXT(
                     None,
@@ -755,7 +764,7 @@ def construct_queue(timeframe_list):
         elif outputFormat == "hcc":
             yield HCC(".hcc", args.outputDir, timeframe, symbol)
         else:
-            print("[ERROR] Unknown output file format!")
+            print("[ERROR] Unknown output file format: {}!".format(outputFormat))
             sys.exit(1)
 
 
@@ -831,24 +840,24 @@ def process_queue(queue):
 
 
 if __name__ == "__main__":
-    # Parse the arguments
+    # Parse the arguments.
     arg_parser = config_argparser()
     args = arg_parser.parse_args()
 
-    # Checking input file argument
+    # Checking input file argument.
     if args.verbose:
         print("[INFO] Input file: %s" % args.inputFile)
 
-    # Checking symbol argument
-    if len(args.symbol) > 12:
+    # Checking symbol pair argument.
+    if args.pair and len(args.pair) > 12:
         print("[WARNING] Symbol is more than 12 characters, cutting its end off!")
-        symbol = args.symbol[0:12]
+        symbol = args.pair[0:12]
     else:
-        symbol = args.symbol
+        symbol = args.pair
     if args.verbose:
-        print("[INFO] Symbol name: %s" % symbol)
+        print("[INFO] Symbol pair name: %s" % symbol)
 
-    # Converting timeframe argument to minutes
+    # Converting timeframe argument to minutes.
     timeframe_list = []
 
     timeframe_conv = {
@@ -897,7 +906,7 @@ if __name__ == "__main__":
     if args.verbose:
         print("[INFO] Server name: %s" % server)
 
-    outputFormat = args.outputFormat.lower()
+    outputFormat = args.outputFormat.strip().lower()
     if args.verbose:
         print("[INFO] Output format: %s" % outputFormat)
 
