@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # Script to read various MT formats.
 
 import argparse
@@ -6,17 +7,21 @@ import sys
 
 from bstruct.bstruct_defs import *
 
+
 def dump_hcc_content(filename):
     try:
-        fp = open(filename, 'rb')
+        fp = open(filename, "rb")
     except OSError as e:
-            print("[ERROR] '%s' raised when tried to read the file '%s'" % (e.strerror, filename))
-            sys.exit(1)
+        print(
+            "[ERROR] '%s' raised when tried to read the file '%s'"
+            % (e.strerror, filename)
+        )
+        sys.exit(1)
 
     buf = fp.read(HccHeader._size)
     obj = HccHeader(buf)
 
-    assert(obj.magic == 501)
+    assert obj.magic == 501
 
     print(obj)
 
@@ -36,7 +41,7 @@ def dump_hcc_content(filename):
         buf = fp.read(HccRecordHeader._size)
         obj = HccRecordHeader(buf)
 
-        assert(obj.magic == 0x81)
+        assert obj.magic == 0x81
 
         print(obj)
 
@@ -44,7 +49,7 @@ def dump_hcc_content(filename):
             buf = fp.read(HccRecord._size)
             obj = HccRecord(buf)
 
-            assert(obj.separator & 0x00088884 == 0x00088884)
+            assert obj.separator & 0x00088884 == 0x00088884
 
             print(obj)
 
@@ -57,12 +62,16 @@ def dump_hcc_content(filename):
 
         fp.seek(was)
 
+
 def dump_srv_content(filename):
     try:
-        fp = open(filename, 'rb')
+        fp = open(filename, "rb")
     except OSError as e:
-            print("[ERROR] '%s' raised when tried to read the file '%s'" % (e.strerror, filename))
-            sys.exit(1)
+        print(
+            "[ERROR] '%s' raised when tried to read the file '%s'"
+            % (e.strerror, filename)
+        )
+        sys.exit(1)
 
     buf = fp.read(SrvHeader._size)
     obj = SrvHeader(buf)
@@ -78,16 +87,20 @@ def dump_srv_content(filename):
         obj = SrvRecord(buf)
         print(obj)
 
+
 def dump_content(filename, offset, count, strucc):
     """
     Dump the content of the file "filename" starting from offset and using the
     BStruct subclass pointed by strucc
     """
     try:
-        fp = open(filename, 'rb')
+        fp = open(filename, "rb")
     except OSError as e:
-            print("[ERROR] '%s' raised when tried to read the file '%s'" % (e.strerror, filename))
-            sys.exit(1)
+        print(
+            "[ERROR] '%s' raised when tried to read the file '%s'"
+            % (e.strerror, filename)
+        )
+        sys.exit(1)
 
     fp.seek(offset)
 
@@ -102,24 +115,50 @@ def dump_content(filename, offset, count, strucc):
         i += 1
         print(obj)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Parse the arguments.
     argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-f', '--file', action='store',
-        dest='inputFile', help='Input file', required=True)
-    argumentParser.add_argument('-t', '--type', action='store',
-        dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)', required=True)
-    argumentParser.add_argument('-h', '--help', action='help', help='Show this help message and exit')
+    argumentParser.add_argument(
+        "-f",
+        "--file",
+        action="store",
+        dest="inputFile",
+        help="Input file",
+        required=True,
+    )
+    argumentParser.add_argument(
+        "-t",
+        "--type",
+        action="store",
+        dest="inputType",
+        help="Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw)",
+        required=True,
+    )
+    argumentParser.add_argument(
+        "-h", "--help", action="help", help="Show this help message and exit"
+    )
     args = argumentParser.parse_args()
 
-    if   args.inputType == 'fxt-header':  dump_content(args.inputFile, 0, 1, FxtHeader)
-    elif args.inputType == 'hcc-header':  dump_hcc_content(args.inputFile)
-    elif args.inputType == 'hst-header':  dump_content(args.inputFile, 0, 1, HstHeader)
-    elif args.inputType == 'sel':         dump_content(args.inputFile, 4, 0, SymbolSel) # There's a 4-byte magic preceding the data.
-    elif args.inputType == 'srv':         dump_srv_content(args.inputFile)
-    elif args.inputType == 'symbols-raw': dump_content(args.inputFile, 0, 0, SymbolsRaw)
-    elif args.inputType == 'symgroups':   dump_content(args.inputFile, 0, 0, Symgroups)
-    elif args.inputType == 'ticks-raw':   dump_content(args.inputFile, 0, 0, TicksRaw)
-    elif args.inputType == 'experts-ini':   dump_content(args.inputFile, 0, 0, ExpertsIni)
+    if args.inputType == "fxt-header":
+        dump_content(args.inputFile, 0, 1, FxtHeader)
+    elif args.inputType == "hcc-header":
+        dump_hcc_content(args.inputFile)
+    elif args.inputType == "hst-header":
+        dump_content(args.inputFile, 0, 1, HstHeader)
+    elif args.inputType == "sel":
+        dump_content(
+            args.inputFile, 4, 0, SymbolSel
+        )  # There's a 4-byte magic preceding the data.
+    elif args.inputType == "srv":
+        dump_srv_content(args.inputFile)
+    elif args.inputType == "symbols-raw":
+        dump_content(args.inputFile, 0, 0, SymbolsRaw)
+    elif args.inputType == "symgroups":
+        dump_content(args.inputFile, 0, 0, Symgroups)
+    elif args.inputType == "ticks-raw":
+        dump_content(args.inputFile, 0, 0, TicksRaw)
+    elif args.inputType == "experts-ini":
+        dump_content(args.inputFile, 0, 0, ExpertsIni)
     else:
-        print('Not supported type: {}!'.format(args.inputType))
+        print("Not supported type: {}!".format(args.inputType))

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 # Script to modify various MT formats.
 
 import argparse
@@ -18,16 +19,21 @@ from bstruct.bstruct_defs import *
 class WrongStructFormat(Exception):
     pass
 
+
 class NoSuchField(Exception):
     pass
+
 
 class InvalidDataFormat(Exception):
     pass
 
+
 class InvalidArgument(Exception):
     pass
 
+
 #
+
 
 def modify_field(ss, field_name, value):
     """
@@ -49,42 +55,57 @@ def modify_field(ss, field_name, value):
         raise NoSuchField()
 
     # Try to perform the correct cast.
-    if fmts[-1] == 'c':
-        raise InvalidArgument('c fields aren\'t supported yet')
-    elif fmts[-1] == 's':
-        if len(_) >= 1 and _[0].__name__ == 'pretty_print_wstring':
-            value = value.encode('utf-16')
+    if fmts[-1] == "c":
+        raise InvalidArgument("c fields aren't supported yet")
+    elif fmts[-1] == "s":
+        if len(_) >= 1 and _[0].__name__ == "pretty_print_wstring":
+            value = value.encode("utf-16")
         else:
-            value = value.encode('utf-8')
-    elif fmts[-1] == 'I':
+            value = value.encode("utf-8")
+    elif fmts[-1] == "I":
         # That could be integer or date time which must be converted to timestamp.
         if value.isdigit():
             value = int(value, 0)
         elif re.match(r"""\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}""", value):
-            value = int(datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S').timestamp())
+            value = int(
+                datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S").timestamp()
+            )
         else:
-            raise InvalidArgument('Invalid value for field "{}". Valid types are: int or date time (Y-m-d H:i:s)'.format(field_name))
-    elif fmts[-1] == 'd':
+            raise InvalidArgument(
+                'Invalid value for field "{}". Valid types are: int or date time (Y-m-d H:i:s)'.format(
+                    field_name
+                )
+            )
+    elif fmts[-1] == "d":
         value = float(value)
-    elif fmts[-1] == 'i':
+    elif fmts[-1] == "i":
         value = int(value, 0)
-    elif fmts[-1] == 'B':
+    elif fmts[-1] == "B":
         # Unsigned 8-bit integer.
         if not value.isdigit() or int(value) < 0 or int(value) > 255:
-            raise InvalidArgument('Invalid value for field "{}". Valid value is from 0 to 255'.format(field_name))
+            raise InvalidArgument(
+                'Invalid value for field "{}". Valid value is from 0 to 255'.format(
+                    field_name
+                )
+            )
         value = int(value)
     else:
-        raise InvalidDataFormat('Parser for value format "{}" for field {} is not yet implemented'.format(fmts[-1], field_name))
+        raise InvalidDataFormat(
+            'Parser for value format "{}" for field {} is not yet implemented'.format(
+                fmts[-1], field_name
+            )
+        )
 
     # Validate the data first.
     try:
         struct.pack(fmts, value)
     except struct.error as e:
-        raise InvalidDataFormat('Invalid data format for field {}'.format(field_name))
+        raise InvalidDataFormat("Invalid data format for field {}".format(field_name))
     except:
         raise
 
     setattr(ss, field_name, value)
+
 
 def parse_file(name, strucc, offset, count):
     """
@@ -92,9 +113,9 @@ def parse_file(name, strucc, offset, count):
     BStruct subclass pointed by strucc.
     """
     try:
-        fp = open(name, 'rb')
+        fp = open(name, "rb")
     except OSError as e:
-        print('Cannot open file \'{}\' for reading'.format(name))
+        print("Cannot open file '{}' for reading".format(name))
         sys.exit(1)
 
     fp.seek(offset)
@@ -115,30 +136,31 @@ def parse_file(name, strucc, offset, count):
 
     return content
 
+
 def write_file(name, content):
     fp = None
     for r in content:
         try:
             start_from_end = fp is not None
-            fp = open(name, 'r+b')
-            if (start_from_end):
+            fp = open(name, "r+b")
+            if start_from_end:
                 fp.seek(0, os.SEEK_END)
-            if (r._truncate):
+            if r._truncate:
                 fp.truncate()
         except OSError as e:
-            print('Cannot open file \'{}\' for writing'.format(name))
+            print("Cannot open file '{}' for writing".format(name))
             sys.exit(1)
 
         fp.write(r.repack())
 
     fp.close()
 
+
 def find_in_content(content, field_name, value):
     struct_type = type(content[0])
 
     # Make sure the field exists and is a string.
-    ex = [x[0] for x in struct_type._fields
-            if x[0] == field_name and x[1][-1] == 's']
+    ex = [x[0] for x in struct_type._fields if x[0] == field_name and x[1][-1] == "s"]
 
     if len(ex) == 0:
         # The field isn't available in this BStruct.
@@ -147,18 +169,20 @@ def find_in_content(content, field_name, value):
     for r in content:
         v = getattr(r, ex[0])
         # Sanitize the value before checking the value.
-        if v.decode('utf-8').rstrip('\0') == value:
+        if v.decode("utf-8").rstrip("\0") == value:
             return r
 
     raise InvalidArgument(value)
 
+
 #
 # Filetype specific options.
 #
-class SymbolsRawBundle():
-    name_field = 'name'
-    sort_field = 'name'
+class SymbolsRawBundle:
+    name_field = "name"
+    sort_field = "name"
     need_sort = True
+
 
 #
 # Modify the content of the file.
@@ -171,22 +195,24 @@ def modify_content(strucc, args, offset, count, bundle=None):
     bundle Object  A bundle keeps track of various options that are filetype-specific.
     """
     try:
-        fp = open(args.inputFile, 'rb')
+        fp = open(args.inputFile, "rb")
     except OSError as e:
-        print("[ERROR] '%s' raised when tried to read the file '%s'" % (e.strerror, args.inputFile))
+        print(
+            "[ERROR] '%s' raised when tried to read the file '%s'"
+            % (e.strerror, args.inputFile)
+        )
         sys.exit(1)
 
     cont = parse_file(args.inputFile, strucc, offset, count)
 
     if bundle is None:
 
-
         if not args.doModify is None:
             for opt in args.doModify:
                 # Options are in the 'name=value' format.
-                val = opt.split('=')
+                val = opt.split("=")
 
-                val_name  = val[0].strip()
+                val_name = val[0].strip()
                 val_value = val[1].strip()
 
                 # Perform the modification in place.
@@ -194,14 +220,14 @@ def modify_content(strucc, args, offset, count, bundle=None):
                     modify_field(struc, val_name, val_value)
 
         else:
-            print('[ERROR] You need to specify the key=value by -m param!')
+            print("[ERROR] You need to specify the key=value by -m param!")
             sys.exit(1)
 
     else:
 
         # Check required -k param for bundle-based types.
         if args.keyGroup is None:
-            print('[ERROR] You need to specify the group by -k param!')
+            print("[ERROR] You need to specify the group by -k param!")
             sys.exit(1)
 
         # Find the key group first.
@@ -209,7 +235,7 @@ def modify_content(strucc, args, offset, count, bundle=None):
             key_group = find_in_content(cont, bundle.name_field, args.keyGroup)
 
         except InvalidArgument as e:
-            print('[ERROR] Could not find the -k group %s!' % args.keyGroup)
+            print("[ERROR] Could not find the -k group %s!" % args.keyGroup)
             sys.exit(1)
 
         if not args.doAdd is None:
@@ -220,7 +246,10 @@ def modify_content(strucc, args, offset, count, bundle=None):
             except InvalidArgument as e:
                 pass
             else:
-                print("[ERROR] The symbol '%s' is already in the file, cannot overwrite it!" % args.doAdd)
+                print(
+                    "[ERROR] The symbol '%s' is already in the file, cannot overwrite it!"
+                    % args.doAdd
+                )
                 sys.exit(1)
 
             # Clone the old object and modify its name.
@@ -236,9 +265,9 @@ def modify_content(strucc, args, offset, count, bundle=None):
         elif not args.doModify is None:
             for opt in args.doModify:
                 # Options are in the 'name=value' format.
-                val = opt.split('=')
+                val = opt.split("=")
 
-                val_name  = val[0].strip()
+                val_name = val[0].strip()
                 val_value = val[1].strip()
 
                 # Perform the modification in place.
@@ -246,33 +275,83 @@ def modify_content(strucc, args, offset, count, bundle=None):
 
         # Sort the file content if needed.
         if bundle.need_sort:
-            cont.sort(key = lambda x: getattr(x, bundle.sort_field))
+            cont.sort(key=lambda x: getattr(x, bundle.sort_field))
 
     # Serialize the file.
     write_file(args.inputFile, cont)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Parse the arguments.
     argumentParser = argparse.ArgumentParser(add_help=False)
-    argumentParser.add_argument('-f', '--file', action='store',
-        dest='inputFile', help='Input file', required=True)
-    argumentParser.add_argument('-t', '--type', action='store',
-        dest='inputType', help='Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw, experts-ini)'         , required=True)
-    argumentParser.add_argument('-k', '--key-group' , action='store'     , dest='keyGroup' , help='Group key'             , required=False)
-    argumentParser.add_argument('-d', '--delete'    , action='store_true', dest='doDelete' , help='Delete this record')
-    argumentParser.add_argument('-a', '--add'       , action='store'     , dest='doAdd'    , help='Add a new record'      , default=None)
-    argumentParser.add_argument('-m', '--modify'    , action='append'    , dest='doModify' , help='Modify the record data')
-    argumentParser.add_argument('-h', '--help'      , action='help'      , help='Show this help message and exit')
+    argumentParser.add_argument(
+        "-f",
+        "--file",
+        action="store",
+        dest="inputFile",
+        help="Input file",
+        required=True,
+    )
+    argumentParser.add_argument(
+        "-t",
+        "--type",
+        action="store",
+        dest="inputType",
+        help="Input type (fxt-header, hcc-header, hst-header, sel, srv, symbols-raw, symgroups, ticks-raw, experts-ini)",
+        required=True,
+    )
+    argumentParser.add_argument(
+        "-k",
+        "--key-group",
+        action="store",
+        dest="keyGroup",
+        help="Group key",
+        required=False,
+    )
+    argumentParser.add_argument(
+        "-d",
+        "--delete",
+        action="store_true",
+        dest="doDelete",
+        help="Delete this record",
+    )
+    argumentParser.add_argument(
+        "-a",
+        "--add",
+        action="store",
+        dest="doAdd",
+        help="Add a new record",
+        default=None,
+    )
+    argumentParser.add_argument(
+        "-m",
+        "--modify",
+        action="append",
+        dest="doModify",
+        help="Modify the record data",
+    )
+    argumentParser.add_argument(
+        "-h", "--help", action="help", help="Show this help message and exit"
+    )
     args = argumentParser.parse_args()
 
-    if   args.inputType == 'fxt-header':  modify_content(FxtHeader, args, 0, 1)
-    elif args.inputType == 'hcc-header':  modify_content(HccHeader, args, 0, 1, None)
-    elif args.inputType == 'hst-header':  modify_content(HstHeader, args, 0, 1)
-    elif args.inputType == 'sel':         modify_content(SymbolSel, args, 4, 0)
-    elif args.inputType == 'srv':         modify_content(SrvHeader, args, 0, 1)
-    elif args.inputType == 'symbols-raw': modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
-    elif args.inputType == 'symgroups':   modify_content(Symgroups, args, 0, 1)
-    elif args.inputType == 'ticks-raw':   modify_content(TicksRaw, args, 0, 1)
-    elif args.inputType == 'experts-ini':   modify_content(ExpertsIni, args, 0, 1)
+    if args.inputType == "fxt-header":
+        modify_content(FxtHeader, args, 0, 1)
+    elif args.inputType == "hcc-header":
+        modify_content(HccHeader, args, 0, 1, None)
+    elif args.inputType == "hst-header":
+        modify_content(HstHeader, args, 0, 1)
+    elif args.inputType == "sel":
+        modify_content(SymbolSel, args, 4, 0)
+    elif args.inputType == "srv":
+        modify_content(SrvHeader, args, 0, 1)
+    elif args.inputType == "symbols-raw":
+        modify_content(SymbolsRaw, args, 0, 0, SymbolsRawBundle)
+    elif args.inputType == "symgroups":
+        modify_content(Symgroups, args, 0, 1)
+    elif args.inputType == "ticks-raw":
+        modify_content(TicksRaw, args, 0, 1)
+    elif args.inputType == "experts-ini":
+        modify_content(ExpertsIni, args, 0, 1)
     else:
-        print('Not supported type: %s!' % args.inputType)
+        print("Not supported type: %s!" % args.inputType)
