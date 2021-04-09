@@ -277,12 +277,12 @@ set_display()
   export DISPLAY=${DISPLAY:-:0}                                                   # Select screen 0 by default.
   xdpyinfo &> /dev/null && return
   if command -v x11vnc &> /dev/null; then
-    ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY &
+    ! pgrep -a x11vnc && x11vnc -bg -forever -nopw -quiet -display WAIT$DISPLAY || true &
   fi 1>&2
-  ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 &
+  ! pgrep -a Xvfb && Xvfb $DISPLAY -screen 0 1024x768x16 || true &
   sleep 1
   if command -v fluxbox &> /dev/null; then
-    ! pgrep -a fluxbox && fluxbox 2> /dev/null &
+    ! pgrep -a fluxbox && fluxbox 2> /dev/null || true &
   fi
   echo "INFO: IP: $(hostname -I) ($(hostname))"
 }
