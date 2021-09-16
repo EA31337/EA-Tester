@@ -28,8 +28,8 @@ ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
 
 # Clean up.
-RUN find /var/lib/apt/lists -type f -delete
-RUN find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
+RUN find /var/lib/apt/lists -type f -delete && \
+    find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
 
 # Uses ubuntu as default user.
 USER ubuntu
@@ -44,8 +44,8 @@ COPY tests /opt/tests
 # Setup results directory.
 ARG BT_DEST=/opt/results
 ENV BT_DEST $BT_DEST
-RUN mkdir -v -m a=rwx $BT_DEST
-RUN chown ubuntu:root $BT_DEST
+RUN mkdir -v -m a=rwx $BT_DEST && \
+    chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
 
 # Install MT4 platform.
@@ -53,13 +53,13 @@ FROM ea-tester-base AS ea-tester-with-mt4
 
 # Install platform.
 ARG MT_VER=4.0.0.1280
-RUN eval.sh install_mt $MT_VER
-RUN run_backtest.sh -s PrintPaths -v
+RUN eval.sh install_mt $MT_VER && \
+    run_backtest.sh -s PrintPaths -v
 
 # Clean up.
-RUN eval.sh clean_bt
-RUN eval.sh clean_ea
-RUN eval.sh clean_files
+RUN eval.sh clean_bt && \
+    eval.sh clean_ea && \
+    eval.sh clean_files
 
 # Install MT5 platform.
 FROM ea-tester-base AS ea-tester-with-mt5
