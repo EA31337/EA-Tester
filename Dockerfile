@@ -52,7 +52,7 @@ VOLUME $BT_DEST
 FROM ea-tester-base AS ea-tester-with-mt4
 
 # Install platform.
-ARG MT_VER=4.0.0.1280
+ARG MT_VER=4.0.0.1320
 RUN eval.sh install_mt $MT_VER && \
     run_backtest.sh -s PrintPaths -v
 
