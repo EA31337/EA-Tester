@@ -499,9 +499,11 @@ if [ -n "$SETFILE" -a ! -s "$SETFILE" ]; then
   }
   cp -f $VFLAG "$TESTER_DIR/$exported_setfile" "$SETFILE"
 fi
-if [ -n "$SETFILE" -a -r "$SETFILE" ] && ! diff -u "$TESTER_DIR/$EA_SETFILE" "$SETFILE"; then
-  echo "INFO: Copying SET file..."
-  cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
+if [ -n "$SETFILE" -a -r "$SETFILE" ]; then
+  if ! diff -u "$SETFILE" "$TESTER_DIR/$EA_SETFILE"; then
+    echo "INFO: Copying SET file..."
+    cp -f $VFLAG "$SETFILE" "$TESTER_DIR/$EA_SETFILE"
+  fi
 fi
 
 # Copy the template INI file.
