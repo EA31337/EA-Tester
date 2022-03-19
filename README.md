@@ -2,7 +2,6 @@
 
 [![Release][github-release-image]][github-release-link]
 [![License][license-image]][license-link]
-[![Docker][docker-build-image]][docker-build-link]
 [![AppVeyor][appveyor-ci-build-image]][appveyor-ci-build-link]
 [![Status][gha-image-check-master]][gha-link-check-master]
 [![Status][gha-image-lint-master]][gha-link-lint-master]
@@ -52,9 +51,6 @@ Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters
 
 [license-image]: https://img.shields.io/github/license/EA31337/EA-Tester.svg
 [license-link]: https://tldrlegal.com/license/mit-license
-
-[docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
-[docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
 
 [appveyor-ci-build-link]: https://ci.appveyor.com/project/kenorb/ea-tester/branch/master
 [appveyor-ci-build-image]: https://ci.appveyor.com/api/projects/status/r4g7ughqovcv5ph5/branch/master?svg=true
