@@ -7,8 +7,9 @@
 [![Status][gha-image-lint-master]][gha-link-lint-master]
 [![Status][gha-image-shell-master]][gha-link-shell-master]
 [![Status][gha-image-mql-master]][gha-link-mql-master]
+[![Discuss][gh-discuss-badge]][gh-discuss-link]
 [![Channel][tg-channel-image]][tg-channel-link]
-[![Chat][tg-chat-image]][tg-chat-link]
+[![Twitter][twitter-image]][twitter-link]
 [![Edit Code][gitpod-image]][gitpod-link]
 
 ## About
@@ -41,23 +42,30 @@ Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters
 
 ### Support
 
-- For bugs/features, raise a [new issue at GitHub](https://github.com/EA31337/EA-Tester/issues).
-- Join our [Telegram group][tg-chat-link] and [channel][tg-channel-link] for help.
+- For help, open a [new discussion][gh-discuss-link] to ask questions.
+- For bugs/features, raise a [new issue at GitHub][gh-issues].
+- Join our [Telegram channel][tg-channel-link] for news and discussion group for help.
 
 <!-- Named links -->
 
 [github-release-image]: https://img.shields.io/github/release/EA31337/EA-Tester.svg?logo=github
 [github-release-link]: https://github.com/EA31337/EA-Tester/releases
 
+[tg-channel-image]: https://img.shields.io/badge/Telegram-join-0088CC.svg?logo=telegram
+[tg-channel-link]: https://t.me/EA31337
+
+[twitter-image]: https://img.shields.io/badge/EA31337-Follow-1DA1F2.svg?logo=Twitter
+[twitter-link]: https://twitter.com/EA31337
+
+[gh-discuss-badge]: https://img.shields.io/badge/Discussions-Q&A-blue.svg?logo=github
+[gh-discuss-link]: https://github.com/EA31337/EA-Tester/discussions
+[gh-issues]: https://github.com/EA31337/EA-Tester/issues
+
 [license-image]: https://img.shields.io/github/license/EA31337/EA-Tester.svg
 [license-link]: https://tldrlegal.com/license/mit-license
 
 [appveyor-ci-build-link]: https://ci.appveyor.com/project/kenorb/ea-tester/branch/master
 [appveyor-ci-build-image]: https://ci.appveyor.com/api/projects/status/r4g7ughqovcv5ph5/branch/master?svg=true
-
-[travis-ci-build-link]: https://travis-ci.org/EA31337/EA-Tester
-[travis-ci-build-image-master]: https://api.travis-ci.org/EA31337/EA-Tester.svg?branch=master
-[travis-ci-build-image-dev]: https://api.travis-ci.org/EA31337/EA-Tester.svg?branch=dev
 
 [gha-link-check-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ACheck+branch%3Amaster
 [gha-image-check-master]: https://github.com/EA31337/EA-Tester/workflows/Check/badge.svg
