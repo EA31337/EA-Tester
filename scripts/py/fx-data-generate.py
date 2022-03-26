@@ -220,8 +220,8 @@ def toCsv(rows, digits, output):
         csvWriter.writerow(
             [
                 row["timestamp"].strftime("%Y.%m.%d %H:%M:%S.%f")[:-3],
-                ("{:.%df}" % (digits)).format(max(row["bidPrice"], 10 ** -digits)),
-                ("{:.%df}" % (digits)).format(max(row["askPrice"], 10 ** -digits)),
+                ("{:.%df}" % (digits)).format(max(row["bidPrice"], 10**-digits)),
+                ("{:.%df}" % (digits)).format(max(row["askPrice"], 10**-digits)),
                 ("{:.%df}" % (digits)).format(row["bidVolume"]),
                 ("{:.%df}" % (digits)).format(row["askVolume"]),
             ]

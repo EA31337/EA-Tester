@@ -2,8 +2,7 @@
 
 [![Release][github-release-image]][github-release-link]
 [![License][license-image]][license-link]
-[![Docker image][docker-build-image]][docker-build-link]
-[![AppVeyor][appveyor-ci-build-link]][appveyor-ci-build-image]
+[![AppVeyor][appveyor-ci-build-image]][appveyor-ci-build-link]
 [![Status][gha-image-check-master]][gha-link-check-master]
 [![Status][gha-image-lint-master]][gha-link-lint-master]
 [![Status][gha-image-shell-master]][gha-link-shell-master]
@@ -53,18 +52,12 @@ Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters
 [license-image]: https://img.shields.io/github/license/EA31337/EA-Tester.svg
 [license-link]: https://tldrlegal.com/license/mit-license
 
-[docker-build-image]: https://images.microbadger.com/badges/image/ea31337/ea-tester.svg
-[docker-build-link]: https://microbadger.com/images/ea31337/ea-tester
-
 [appveyor-ci-build-link]: https://ci.appveyor.com/project/kenorb/ea-tester/branch/master
 [appveyor-ci-build-image]: https://ci.appveyor.com/api/projects/status/r4g7ughqovcv5ph5/branch/master?svg=true
 
 [travis-ci-build-link]: https://travis-ci.org/EA31337/EA-Tester
 [travis-ci-build-image-master]: https://api.travis-ci.org/EA31337/EA-Tester.svg?branch=master
 [travis-ci-build-image-dev]: https://api.travis-ci.org/EA31337/EA-Tester.svg?branch=dev
-
-[appveyor-ci-build-link]: https://ci.appveyor.com/api/projects/status/r4g7ughqovcv5ph5/branch/master?svg=true
-[appveyor-ci-build-image]: https://ci.appveyor.com/project/kenorb/ea-tester
 
 [gha-link-check-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ACheck+branch%3Amaster
 [gha-image-check-master]: https://github.com/EA31337/EA-Tester/workflows/Check/badge.svg

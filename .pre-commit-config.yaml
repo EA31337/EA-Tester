@@ -2,13 +2,13 @@
 repos:
 
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.26.1
+    rev: v1.26.3
     hooks:
       - id: yamllint
         args: ["-c", ".yamllint", "-s"]
 
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 22.1.0
     hooks:
       - id: black
         args: [--line-length=88]
@@ -24,12 +24,12 @@ repos:
   #        files: '(\.py)$'
 
   - repo: https://github.com/igorshubovych/markdownlint-cli.git
-    rev: v0.27.1
+    rev: v0.31.1
     hooks:
       - id: markdownlint
 
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 2.1.5
+    rev: 2.1.6
     hooks:
       - id: forbid-binary
         exclude: ^(lib|conf/servers)/.*$
@@ -41,7 +41,7 @@ repos:
       - id: shfmt
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.4.0
+    rev: v4.1.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
