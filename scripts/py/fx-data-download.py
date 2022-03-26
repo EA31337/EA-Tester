@@ -262,7 +262,7 @@ all_currencies = {
 
 
 class Dukascopy:
-    url_tpl = "http://www.dukascopy.com/datafeed/%s/%04d/%02d/%02d/%02dh_ticks.bi5"
+    url_tpl = "http://datafeed.dukascopy.com/datafeed/%s/%04d/%02d/%02d/%02dh_ticks.bi5"
 
     def __init__(self, pair, year, month, day, hour, dest="download/dukascopy"):
         if not os.path.exists(dest):
@@ -286,6 +286,9 @@ class Dukascopy:
         print("Downloading %s into: %s..." % (self.url, self.path))
         if os.path.isfile(self.path):
             print("File (%s) exists, so skipping." % self.path)
+            return True
+        elif os.path.isfile(self.path.replace("bi5", "csv")):
+            print("File (%s) exists, so skipping." % self.path.replace("bi5", "csv"))
             return True
         else:
             if not os.path.exists(os.path.dirname(self.path)):
@@ -370,6 +373,9 @@ class Dukascopy:
             if pair == sym:
                 point = 1000
                 break
+
+        if pair.endswith("JPY"):
+            point = 1000
 
         TICK_BYTES = 20
         for i in range(0, len(data) // TICK_BYTES):
@@ -476,9 +482,9 @@ if __name__ == "__main__":
         list(all_currencies.keys()) if args.pairs == "all" else args.pairs.split(",")
     )
     hours = range(0, 23 + 1) if args.hours == "all" else intlist(args.hours.split(","))
-    days = range(1, 31 + 1) if args.days == "all" else intlist(args.days.split(","))
+    days = range(1, 31) if args.days == "all" else intlist(args.days.split(","))
     months = (
-        range(1, 12 + 1) if args.months == "all" else intlist(args.months.split(","))
+        range(0, 12 + 1) if args.months == "all" else intlist(args.months.split(","))
     )
     years = (
         range(1997, curr_year + 1)
