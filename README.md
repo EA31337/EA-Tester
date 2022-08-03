@@ -51,9 +51,6 @@ Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters
 [github-release-image]: https://img.shields.io/github/release/EA31337/EA-Tester.svg?logo=github
 [github-release-link]: https://github.com/EA31337/EA-Tester/releases
 
-[tg-channel-image]: https://img.shields.io/badge/Telegram-join-0088CC.svg?logo=telegram
-[tg-channel-link]: https://t.me/EA31337
-
 [twitter-image]: https://img.shields.io/badge/EA31337-Follow-1DA1F2.svg?logo=Twitter
 [twitter-link]: https://twitter.com/EA31337
 
@@ -79,10 +76,8 @@ Check [`scripts/options.txt`](scripts/options.txt) file for supported parameters
 [gha-link-mql-master]: https://github.com/EA31337/EA-Tester/actions?query=workflow%3ATests-MQL+branch%3Amaster
 [gha-image-mql-master]: https://github.com/EA31337/EA-Tester/workflows/Tests-MQL/badge.svg
 
-[tg-channel-image]: https://img.shields.io/badge/Telegram-news-0088CC.svg?logo=telegram
-[tg-channel-link]: https://t.me/EA31337_News
-[tg-chat-image]: https://img.shields.io/badge/Telegram-chat-0088CC.svg?logo=telegram
-[tg-chat-link]: https://t.me/EA31337
+[tg-channel-image]: https://img.shields.io/badge/Telegram-join-0088CC.svg?logo=telegram
+[tg-channel-link]: https://t.me/EA31337
 
 [gitpod-image]: https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod
 [gitpod-link]: https://gitpod.io/#https://github.com/EA31337/EA-Tester
