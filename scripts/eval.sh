@@ -13,7 +13,7 @@ cd "$CWD" || exit 1
 
 initialize
 if [[ "$*" =~ ";" ]]; then
-  eval "$@"
+  "$@"
 elif [ -n "$*" ]; then
   $@
 fi
