@@ -237,7 +237,7 @@ install_mt()
       }
       cd "$dir_dest"
       mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
-      jq <<< $mt_releases_json > /dev/null || echo $mt_releases_json # Test JSON syntax.
+      jq <<< "$mt_releases_json" > /dev/null || echo "$mt_releases_json" # Test JSON syntax.
       mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<< "$mt_releases_json")
       if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
         mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<< "$mt_releases_json")
