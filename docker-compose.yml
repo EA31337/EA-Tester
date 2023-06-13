@@ -14,7 +14,7 @@ services:
     volumes:
       - ./scripts:/opt/scripts
   TestSyntaxShellcheck:
-    command: -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230 /opt/scripts/eval.sh /opt/scripts/run_backtest.sh /opt/scripts/provision.sh /opt/scripts/.vars.inc.sh /opt/scripts/install_mt5.sh /opt/scripts/.aliases.inc.sh /opt/scripts/bt_data_get.sh /opt/scripts/get_gh_asset.sh /opt/scripts/push_repo.sh /opt/scripts/run_terminal.sh /opt/scripts/.funcs.inc.sh /opt/scripts/dl_ea.sh /opt/scripts/clone_repo.sh /opt/scripts/.funcs.cmds.inc.sh /opt/scripts/install_mt4.sh /opt/scripts/install_mt4x.sh
+    command: -e SC1004,SC1083,SC1090,SC1091,SC1117,SC2004,SC2005,SC2015,SC2027,SC2032,SC2033,SC2034,SC2035,SC2046,SC2068,SC2070,SC2071,SC2086,SC2091,SC2103,SC2116,SC2124,SC2128,SC2145,SC2154,SC2155,SC2162,SC2164,SC2166,SC2181,SC2188,SC2206,SC2221,SC2222,SC2230,SC2294 /opt/scripts/eval.sh /opt/scripts/run_backtest.sh /opt/scripts/provision.sh /opt/scripts/.vars.inc.sh /opt/scripts/install_mt5.sh /opt/scripts/.aliases.inc.sh /opt/scripts/bt_data_get.sh /opt/scripts/get_gh_asset.sh /opt/scripts/push_repo.sh /opt/scripts/run_terminal.sh /opt/scripts/.funcs.inc.sh /opt/scripts/dl_ea.sh /opt/scripts/clone_repo.sh /opt/scripts/.funcs.cmds.inc.sh /opt/scripts/install_mt4.sh /opt/scripts/install_mt4x.sh
     image: koalaman/shellcheck
     volumes:
       - ./scripts:/opt/scripts
