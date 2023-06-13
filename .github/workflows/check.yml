@@ -10,7 +10,7 @@ jobs:
   Pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/cache@v1
         with:
           path: ~/.cache/pre-commit
