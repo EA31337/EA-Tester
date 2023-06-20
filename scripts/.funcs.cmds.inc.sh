@@ -236,7 +236,9 @@ install_mt()
         exit 1
       }
       cd "$dir_dest"
-      mt_releases_json=$(curl -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)
+      header=$([ -n "${GITHUB_API_TOKEN}" ] && echo "Authorization: Bearer ${GITHUB_API_TOKEN}" || echo "")
+      mt_releases_json="$(curl -H "Content-Type: application/json; $header" -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)"
+      jq ".[]" <<< "$mt_releases_json" > /dev/null || true # Test JSON syntax.
       mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<< "$mt_releases_json")
       if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
         mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<< "$mt_releases_json")
@@ -244,7 +246,11 @@ install_mt()
         (unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip") 1>&2
         clean_bt . '*'
       else
-        echo "Error: Not supported platform version. Supported: ${mt_releases_list[@]}" >&2
+        echo "Error: Cannot find supported platform version. Supported: ${mt_releases_list[@]}" >&2
+        if [ -z "${mt_releases_list[*]}" ]; then
+          echo "Error: Empty release list!"
+          echo $mt_releases_json
+        fi
       fi
       cd - &> /dev/null
       ;;
@@ -551,10 +557,10 @@ ea_find()
       echo "$file"
       return
     }
-  result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
+  result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
   cd - &> /dev/null
 }
@@ -580,10 +586,10 @@ script_find()
       echo "$file"
       return
     }
-  result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
-  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 4 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
+  result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f '(' -iname "$file" -o -iname "${file%.*}.mq${mt_ver}" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f '(' -iname "$file" -o -name "${file%.*}.ex${mt_ver}" ')' -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f -iname "*${file%.*}*.mq${mt_ver}" -print -quit)
+  [ -z "$result" ] && result=$(find -L . "$WORKDIR" "$ROOT" ~ -maxdepth 5 -type f -iname "*${file%.*}*.ex${mt_ver}" -print -quit)
   echo ${result#./}
   cd - &> /dev/null
 }
