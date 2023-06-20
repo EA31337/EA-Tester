@@ -32,9 +32,6 @@ jobs:
         with:
           dockerfile: Dockerfile
   Docker:
-    defaults:
-      run:
-        shell: bash
     runs-on: ubuntu-latest
     needs: Hadolint
     steps:
@@ -58,35 +55,28 @@ jobs:
       - run: docker images
       - name: Print GitHub actor, repository and ref
         run: echo "${{ github.actor }} @ ${{ github.repository }}:${{ github.ref }}"
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Push to Docker Hub
         if: >
           github.repository == 'EA31337/EA-Tester'
           && github.event_name != 'pull_request'
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v1
         with:
-          tags: ea31337/ea-tester:${{ github.ref_name }}
-
-      - name: Login to GitHub Packages Docker Registry
-        uses: docker/login-action@v1
-        with:
-          registry: docker.pkg.github.com
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: ea31337/ea-tester
+          tag_with_ref: true
       - name: Push to GitHub Packages
         if: >
           github.repository == 'EA31337/EA-Tester'
           && github.event_name != 'pull_request'
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v1
         with:
+          add_git_labels: true
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          tags: ea31337/ea-tester/ea-tester:${{ github.ref_name }}
-
+          repository: ea31337/ea-tester/ea-tester
+          tag_with_ref: true
   Test-Docker:
     runs-on: ubuntu-latest
     needs: Docker
