@@ -60,7 +60,8 @@ RUN eval.sh install_mt $MT_VER && \
 RUN eval.sh clean_bt && \
     eval.sh clean_ea && \
     eval.sh clean_files && \
-    find . -type l -print -delete
+    find . -type l -print -delete && \
+    find /tmp -mindepth 1 -print -delete
 
 # Install MT5 platform.
 FROM ea-tester-base AS ea-tester-with-mt5
