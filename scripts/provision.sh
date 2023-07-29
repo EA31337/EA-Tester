@@ -7,7 +7,7 @@
 # Initialize script.
 (("$OPT_NOERR")) || set -e
 (("$OPT_TRACE")) && set -x
-if [ -z "$CI" -a ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
+if [ -z "$CI" -a ! -d /vagrant -a ! -d /home/ubuntu -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
 elif [ -f ~/.provisioned -a -z "$OPT_FORCE" ]; then
