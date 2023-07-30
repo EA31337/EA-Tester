@@ -20,6 +20,9 @@ jobs:
         working-directory: scripts/tests
     runs-on: ubuntu-latest
     container:
+      env:
+        OPT_TRACE: ${{ runner.debug }}
+        OPT_VERBOSE: true
       image: ea31337/ea-tester:dev
     strategy:
       matrix:
