@@ -81,6 +81,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: Docker
     container:
+      env:
+        OPT_TRACE: ${{ runner.debug }}
+        OPT_VERBOSE: true
       image: ea31337/ea-tester:dev
       volumes:
         - ${{ github.workspace }}/scripts/tests:/opt/scripts

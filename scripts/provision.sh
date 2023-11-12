@@ -7,7 +7,7 @@
 # Initialize script.
 (("$OPT_NOERR")) || set -e
 (("$OPT_TRACE")) && set -x
-if [ -z "$CI" -a ! -d /vagrant -a ! -d /home/travis -a ! -f /.dockerenv ]; then
+if [ -z "$CI" -a ! -d /vagrant -a ! -d /home/ubuntu -a ! -d /home/travis -a ! -f /.dockerenv ]; then
   echo "Error: This script needs to be run within container." >&2
   exit 1
 elif [ -f ~/.provisioned -a -z "$OPT_FORCE" ]; then
@@ -124,7 +124,7 @@ case "$(uname -s)" in
       curl -L chls.pro/ssl > /usr/local/share/ca-certificates/charles.crt && update-ca-certificates
       # Adds GPG release key.
       apt-key add < <(curl -S https://www.charlesproxy.com/packages/apt/PublicKey)
-      # Adds APT Wine repository.
+      # Adds APT repository.
       add-apt-repository -y "deb https://www.charlesproxy.com/packages/apt/ charles-proxy main"
       # Install HTTPS transport driver.
       apt-get install -qq apt-transport-https
@@ -146,7 +146,7 @@ case "$(uname -s)" in
 
     # Install wine and dependencies.
     # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qq winehq-staging               # Install Wine.
+    apt-get install -qq winehq-devel                 # Install Wine.
     apt-get install -qq wine-gecko winbind || true   # Install Wine recommended libraries.
     apt-get install -qq xvfb xdotool x11-utils xterm # Virtual frame buffer and X11 utils.
 
