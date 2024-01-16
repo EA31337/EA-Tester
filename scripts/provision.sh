@@ -107,8 +107,8 @@ case "$(uname -s)" in
     command -v wget &> /dev/null || apt-get install -qq wget
 
     # CA certificates to allow SSL-based applications to check for the authenticity of SSL connections.
-    echo "Installing CA certificates..." >&2
-    apt-get install -qq ca-certificates
+    echo "Installing CA certificates and GnuPG..." >&2
+    apt-get install -qq ca-certificates gnupg
     # Add PPA/Wine repository.
     echo "Adding PPA/Wine repository..." >&2
     # Adds GPG release key.
