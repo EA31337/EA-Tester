@@ -114,7 +114,7 @@ case "$(uname -s)" in
     # Adds GPG release key.
     apt-key add < <(curl -S https://dl.winehq.org/wine-builds/winehq.key)
     # APT dependencies (for the add-apt-repository).
-    command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
+    command -v add-apt-repository || apt-get install -qq software-properties-common
     # Adds APT Wine repository.
     add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-bionic} main"
 
