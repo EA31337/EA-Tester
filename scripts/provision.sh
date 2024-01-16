@@ -116,7 +116,7 @@ case "$(uname -s)" in
     # APT dependencies (for the add-apt-repository).
     command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
     # Adds APT Wine repository.
-    add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
+    add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-bionic} main"
 
     # Install Charles proxy.
     if (("$PROVISION_CHARLES")); then

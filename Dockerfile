@@ -1,5 +1,5 @@
 # Set the base Ubuntu image.
-FROM ubuntu:xenial AS ubuntu-base
+FROM ubuntu:bionic AS ubuntu-base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Setup the default user.
