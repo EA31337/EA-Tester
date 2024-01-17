@@ -24,8 +24,8 @@ export RUN_ON_ERROR="tail $file_stdout $file_stderr"
 ## START TESTS
 
 # Installs both platforms.
-install_mt 4.0.0.1280 /opt 1> $file_stdout 2> $file_stderr
-install_mt 5.0.0.2361 /opt 1> $file_stdout 2> $file_stderr
+install_mt 4 /opt 1> $file_stdout 2> $file_stderr
+install_mt 5 /opt 1> $file_stdout 2> $file_stderr
 
 ## Checks backtest with missing parameters.
 ! run_backtest -_ 1> $file_stdout 2> $file_stderr
