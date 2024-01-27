@@ -1,11 +1,11 @@
 #!/bin/sh
 
-w_metadata install_mt4 apps \
+w_metadata mt4_install apps \
     title="MetaTrader 4" \
-    year="2020" \
+    year="2021" \
     media="download"
 
-load_install_mt4()
+load_mt4_install()
 {
     w_download ${MT_URL:-"https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe"}
 
