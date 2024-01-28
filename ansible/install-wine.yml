@@ -1,0 +1,4 @@
+---
+- hosts: localhost
+  roles:
+    - ea31337.wine

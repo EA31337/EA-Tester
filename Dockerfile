@@ -11,6 +11,20 @@ WORKDIR /home/ubuntu
 FROM ubuntu-base AS ubuntu-provisioned
 USER root
 
+# Build-time metadata as defined at http://label-schema.org
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="EA-Tester" \
+      org.label-schema.description="Headless Forex backtesting for MetaTrader platform" \
+      org.label-schema.url="https://github.com/EA31337/EA-Tester" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/EA31337/EA-Tester" \
+      org.label-schema.vendor="FX31337" \
+      org.label-schema.version=$VERSION \
+      org.label-schema.schema-version="1.0"
+
 # Build-time variables.
 ARG HTTPS_PROXY
 ARG HTTP_PROXY
@@ -44,54 +58,11 @@ RUN mkdir -v -m a=rwx $BT_DEST && \
     chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
 
-# Install MT4 platform.
-FROM ea-tester-base AS ea-tester-with-mt4
-
-# Install platform.
-#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=4 /opt/ansible/install-mt.yml -v \
-#ARG MT_VER=4
-#RUN eval.sh install_mt $MT_VER && run_backtest.sh -s PrintPaths -v
-
 # Clean up.
 RUN eval.sh clean_bt && \
     eval.sh clean_ea && \
     eval.sh clean_files && \
-    find /tmp -mindepth 1 -print -delete
-
-# Install MT5 platform.
-FROM ea-tester-base AS ea-tester-with-mt5
-
-# Install platform.
-ARG MT_VER=5
-ENV MT_VER $MT_VER
-#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=5 /opt/ansible/install-mt.yml -v \
-#RUN eval.sh install_mt $MT_VER
-#RUN run_backtest.sh -s PrintPaths -v
-
-# Clean up.
-#RUN eval.sh clean_bt
-#RUN eval.sh clean_ea
-#RUN eval.sh clean_files
-
-# Final EA Tester image.
-FROM ea-tester-with-mt4 as ea-tester
-
-# Build-time metadata as defined at http://label-schema.org
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="EA-Tester" \
-      org.label-schema.description="Headless Forex backtesting for MetaTrader platform" \
-      org.label-schema.url="https://github.com/EA31337/EA-Tester" \
-      org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/EA31337/EA-Tester" \
-      org.label-schema.vendor="FX31337" \
-      org.label-schema.version=$VERSION \
-      org.label-schema.schema-version="1.0"
-
-# Modify shell startup scripts.
-RUN echo source /opt/scripts/.funcs.cmds.inc.sh >> ~/.bashrc
+    rm -fr /tmp/*
 
 # Expose SSH and VNC when installed.
 EXPOSE 22 5900
