@@ -1,4 +1,6 @@
 ---
 - hosts: localhost
   roles:
-    - ea31337.wine
+    - name: ea31337.wine
+      vars:
+        wine_install_winetricks: true
