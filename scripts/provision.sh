@@ -103,9 +103,10 @@ case "$(uname -s)" in
       apt-get -qq update
     )
 
-    # Install curl and wget if not present.
+    # Install required commands if not present.
     command -v ansible &> /dev/null || apt-get install -qq ansible
     command -v curl &> /dev/null || apt-get install -qq curl
+    command -v git &> /dev/null || apt-get install -qq git
     command -v wget &> /dev/null || apt-get install -qq wget
 
     # Install MT runner.
