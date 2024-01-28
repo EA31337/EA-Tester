@@ -45,4 +45,5 @@ else
   echo "Installation failed!" >&2
   exit 1
 fi
+
 echo "${BASH_SOURCE[0]} done." >&2
