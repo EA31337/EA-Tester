@@ -58,12 +58,6 @@ RUN mkdir -v -m a=rwx $BT_DEST && \
     chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
 
-# Clean up.
-RUN eval.sh clean_bt && \
-    eval.sh clean_ea && \
-    eval.sh clean_files && \
-    rm -fr /tmp/*
-
 # Expose SSH and VNC when installed.
 EXPOSE 22 5900
 

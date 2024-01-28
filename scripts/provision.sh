@@ -194,7 +194,7 @@ case "$(uname -s)" in
 
     # Clean up.
     find /var/lib/apt/lists -type f -delete
-    rm -fr /tmp/*
+    #find /tmp -exec rm -rf {} +
     ;;
   Darwin)
     brew install git
