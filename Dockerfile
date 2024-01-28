@@ -1,5 +1,5 @@
 # Set the base Ubuntu image.
-FROM ubuntu:latest AS ubuntu-base
+FROM ubuntu:jammy AS ubuntu-base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Setup the default user.
