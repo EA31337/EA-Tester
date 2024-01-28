@@ -11,19 +11,21 @@ WORKDIR /home/ubuntu
 FROM ubuntu-base AS ubuntu-provisioned
 USER root
 
+# Build-time variables.
+ARG HTTPS_PROXY
+ARG HTTP_PROXY
+ARG PROVISION_AHK=0
+ARG PROVISION_CHARLES=0
+ARG PROVISION_MONO=0
+ARG PROVISION_SSH=0
+ARG PROVISION_SUDO=1
+ARG PROVISION_VNC=1
+
 # Provision container image.
 COPY ansible /opt/ansible
 COPY scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts:/opt/scripts/py
-#ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
-#RUN provision.sh
-
-RUN apt update \
-  && apt -qqq install ansible git \
-  && ansible-galaxy install git+https://github.com/EA31337/ansible-role-mt-runner.git,dev \
-  && ansible-playbook -i "localhost," -c local /opt/ansible/mt-install.yml -v \
-  && rm -fr ~/.ansible /tmp/* \
-  && find /var/lib/apt/lists -type f -delete
+RUN provision.sh
 
 # Uses ubuntu as default user.
 USER ubuntu
@@ -46,7 +48,7 @@ VOLUME $BT_DEST
 FROM ea-tester-base AS ea-tester-with-mt4
 
 # Install platform.
-RUN ansible-playbook -i "localhost," -c local -e metatrader_version=4 /opt/ansible/mt-install.yml -v \
+#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=4 /opt/ansible/mt-install.yml -v \
 #ARG MT_VER=4
 #RUN eval.sh install_mt $MT_VER && run_backtest.sh -s PrintPaths -v
 
@@ -62,7 +64,7 @@ FROM ea-tester-base AS ea-tester-with-mt5
 # Install platform.
 ARG MT_VER=5
 ENV MT_VER $MT_VER
-RUN ansible-playbook -i "localhost," -c local -e metatrader_version=5 /opt/ansible/mt-install.yml -v \
+#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=5 /opt/ansible/mt-install.yml -v \
 #RUN eval.sh install_mt $MT_VER
 #RUN run_backtest.sh -s PrintPaths -v
 
