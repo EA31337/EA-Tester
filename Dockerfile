@@ -48,7 +48,7 @@ VOLUME $BT_DEST
 FROM ea-tester-base AS ea-tester-with-mt4
 
 # Install platform.
-#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=4 /opt/ansible/mt-install.yml -v \
+#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=4 /opt/ansible/install-mt.yml -v \
 #ARG MT_VER=4
 #RUN eval.sh install_mt $MT_VER && run_backtest.sh -s PrintPaths -v
 
@@ -64,7 +64,7 @@ FROM ea-tester-base AS ea-tester-with-mt5
 # Install platform.
 ARG MT_VER=5
 ENV MT_VER $MT_VER
-#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=5 /opt/ansible/mt-install.yml -v \
+#RUN ansible-playbook -i "localhost," -c local -e metatrader_version=5 /opt/ansible/install-mt.yml -v \
 #RUN eval.sh install_mt $MT_VER
 #RUN run_backtest.sh -s PrintPaths -v
 

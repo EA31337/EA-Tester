@@ -113,7 +113,7 @@ case "$(uname -s)" in
     ansible-galaxy install git+https://github.com/EA31337/ansible-role-mt-runner.git,dev
 
     # Install platform.
-    ansible-playbook -i "localhost," -c local /opt/ansible/mt-install.yml -v
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-mt.yml -v
 
     # Install Charles proxy.
     if (("$PROVISION_CHARLES")); then
