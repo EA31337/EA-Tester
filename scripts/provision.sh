@@ -193,8 +193,8 @@ case "$(uname -s)" in
     apt-get clean
 
     # Clean up.
-    find /var/lib/apt/lists -type f -delete \
-      && find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
+    find /var/lib/apt/lists -type f -delete
+    rm -fr /tmp/*
     ;;
   Darwin)
     brew install git
