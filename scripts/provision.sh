@@ -114,6 +114,7 @@ case "$(uname -s)" in
 
     # Install platform.
     ansible-playbook -i "localhost," -c local /opt/ansible/install-wine.yml -v
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-xvfb.yml -v
 
     # Install Charles proxy.
     if (("$PROVISION_CHARLES")); then
