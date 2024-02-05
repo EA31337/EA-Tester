@@ -34,5 +34,5 @@ jobs:
           requirements: galaxy-requirements.yml
       - uses: fx31337/mql-compile-action@dev
         with:
-          mt-path: ~/.wine/drive_c
+          mt-path: ${{ env.GITHUB_HOME }}
           verbose: true
