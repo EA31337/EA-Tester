@@ -25,7 +25,7 @@ jobs:
       - name: Installs platform
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: platform-install.yml
+          playbook: install-platform.yml
           directory: ./ansible
           options: |
             --connection local
