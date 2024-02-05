@@ -10,7 +10,6 @@ on:
   push:
     branches:
       - 'master'
-      - 'ci'
       - '*dev*'
     paths:
       - '**/*.mq?'
@@ -18,9 +17,19 @@ on:
 
 jobs:
   Compile:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: fx31337/mql-compile-action@master
+      - uses: actions/checkout@v4
+      - name: Installs platform
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: platform-install.yml
+          directory: ./ansible
+          options: |
+            --connection local
+            --inventory localhost,
+            --verbose
+          requirements: galaxy-requirements.yml
+      - uses: fx31337/mql-compile-action@dev
         with:
           verbose: true

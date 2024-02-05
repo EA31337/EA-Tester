@@ -1,4 +1,0 @@
----
-- hosts: localhost
-  roles:
-    - name: ea31337.xvfb
