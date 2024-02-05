@@ -17,6 +17,8 @@ on:
 
 jobs:
   Compile:
+    env:
+      GITHUB_HOME: ${{ github.workspace }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,4 +34,5 @@ jobs:
           requirements: galaxy-requirements.yml
       - uses: fx31337/mql-compile-action@dev
         with:
+          mt-path: ~/.wine/drive_c
           verbose: true
