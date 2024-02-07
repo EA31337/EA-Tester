@@ -104,10 +104,11 @@ case "$(uname -s)" in
     )
 
     # Install required commands if not present.
-    command -v ansible &> /dev/null || apt-get install -qq ansible
     command -v curl &> /dev/null || apt-get install -qq curl
     command -v git &> /dev/null || apt-get install -qq git
+    command -v pip &> /dev/null || apt-get install -qq pip
     command -v wget &> /dev/null || apt-get install -qq wget
+    command -v ansible &> /dev/null || pip install ansible
 
     # Install MT runner.
     ansible-galaxy install git+https://github.com/EA31337/ansible-role-mt-runner.git,dev
