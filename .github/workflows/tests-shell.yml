@@ -46,3 +46,6 @@ jobs:
           # Refs: https://github.com/actions/checkout/issues/956
           GIT_CEILING_DIRECTORIES: /__w
       - run: ${{ matrix.test }}
+        env:
+          # Refs: https://stackoverflow.com/q/16818101/55075
+          WINEPREFIX: /tmp/.wine
