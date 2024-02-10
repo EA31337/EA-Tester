@@ -38,7 +38,11 @@ jobs:
           - ./test_eval.sh
           - ./test_vars.sh
     steps:
-      - uses: actions/checkout@v3
+      - name: Adds safe directory
+        # Refs: https://github.com/actions/checkout/issues/760
+        run: git config --global --add safe.directory /__w
+      - uses: actions/checkout@v4
         env:
+          # Refs: https://github.com/actions/checkout/issues/956
           GIT_CEILING_DIRECTORIES: /__w
       - run: ${{ matrix.test }}
