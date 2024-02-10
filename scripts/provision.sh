@@ -105,6 +105,7 @@ case "$(uname -s)" in
 
     # Install required commands if not present.
     command -v curl &> /dev/null || apt-get install -qq curl
+    command -v git &> /dev/null || apt-get install -qq git
     command -v pip &> /dev/null || apt-get install -qq pip
     command -v wget &> /dev/null || apt-get install -qq wget
     command -v ansible &> /dev/null || pip install ansible
