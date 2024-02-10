@@ -29,7 +29,7 @@ jobs:
       image: ea31337/ea-tester:dev
       options: --user root
       volumes:
-        - ${{ env.GITHUB_WORKSPACE }}/scripts:/opt/scripts
+        - /__w/EA-Tester/EA-Tester/scripts:/opt/scripts
     strategy:
       matrix:
         test:
@@ -47,7 +47,7 @@ jobs:
           GIT_CEILING_DIRECTORIES: /__w
         with:
           path: ${{ env.GITHUB_WORKSPACE }}
-      - run: find /opt -print
+      - run: find /__w /opt -print
       - run: ${{ matrix.test }}
         env:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
