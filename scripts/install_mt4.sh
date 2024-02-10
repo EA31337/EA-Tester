@@ -6,6 +6,7 @@ CWD="$(
   cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2> /dev/null
   pwd -P
 )"
+type ansible > /dev/null
 type winetricks > /dev/null
 
 # Load variables.
@@ -20,23 +21,9 @@ curl -s ifconfig.me/all.json
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
 
-# Activates display.
-echo "Configuring display..." >&2
-set_display
-
-# Updates Wine configuration.
-echo "Updating configuration..." >&2
-wineboot -u
-
-echo "Installing winhttp..." >&2
-winetricks -q winhttp
-
-echo "Installing .NET..." >&2
-winetricks -q dotnet472
-
 echo "Installing platform..." >&2
-#winetricks -q -v mt4
-winetricks -q "$CWD"/verb/install_mt4.verb
+ansible-playbook -c local -e metatrader_version=4
+\ -i "localhost," /opt/ansible/install-platform.yml -v
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL5_DIR" ]; then

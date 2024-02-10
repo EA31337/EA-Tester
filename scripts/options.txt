@@ -60,7 +60,7 @@ Supported options:
     Specifies range of months in each year to test. Default: 1-12.
     Variable (uint/string): BT_MONTHS
   -M (version)
-    Specifies version of MetaTrader to use for the test (e.g. 4, 4x, 5, 4.0.0.1010). Default: 4.0.0.1010
+    Specifies version of MetaTrader to use for the test (e.g. 4, 5). Default: 4
     Variable (string): MT_VER
   -o
     Runs test in optimization mode.

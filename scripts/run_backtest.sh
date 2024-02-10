@@ -219,8 +219,8 @@ while getopts $ARGS arg; do
       MT_VER=5
       ;;
 
-    M) # Specify version of MetaTrader (e.g. 4, 4x, 5, 4.0.0.1010).
-      MT_VER=${OPTARG:-4.0.0.1010}
+    M) # Specify version of MetaTrader (e.g. 4, 5).
+      MT_VER=${OPTARG:-4}
       ;;
 
     v) # Verbose mode.

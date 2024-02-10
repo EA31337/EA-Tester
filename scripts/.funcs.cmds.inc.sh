@@ -210,10 +210,10 @@ filever()
 }
 
 # Install platform.
-# Usage: install_mt [ver/4/5/v4.0.0.1260/v5.0.0.2361] (dest)
+# Usage: install_mt [ver/4/5] (dest)
 install_mt()
 {
-  type jq wget unzip > /dev/null
+  type jq wget > /dev/null
   local mt_ver=${1:-$MT_VER}
   local dir_dest=${2:-$WINE_PATH}
   dir_dest=${dir_dest:-$HOME}
@@ -222,43 +222,14 @@ install_mt()
     4)
       . "$CWD"/install_mt4.sh
       ;;
-    4x)
-      . "$CWD"/install_mt4x.sh
-      ;;
     5)
       . "$CWD"/install_mt5.sh
-      ;;
-    4.0.0.* | 5.0.0.*)
-      [ ! -d "$dir_dest" ] && mkdir $VFLAG -p "$dir_dest"
-      [ ! -w "$dir_dest" ] && {
-        echo "ERROR: Destination folder not writable!"
-        (id && stat "$dir_dest") >&2
-        exit 1
-      }
-      cd "$dir_dest"
-      header=$([ -n "${GITHUB_API_TOKEN}" ] && echo "Authorization: Bearer ${GITHUB_API_TOKEN}" || echo "")
-      mt_releases_json="$(curl -H "Content-Type: application/json; $header" -s https://api.github.com/repos/${REPO_MT-"EA31337/MT-Platforms"}/releases)"
-      jq ".[]" <<< "$mt_releases_json" > /dev/null || true # Test JSON syntax.
-      mapfile -t mt_releases_list < <(jq -r '.[]["tag_name"]' <<< "$mt_releases_json")
-      if [[ " ${mt_releases_list[*]} " =~ ${mt_ver} ]]; then
-        mt_release_url=$(jq -r '.[]|select(.tag_name == "'${mt_ver}'")["assets"][0]["browser_download_url"]' <<< "$mt_releases_json")
-        wget -nv -c "$mt_release_url"
-        (unzip -ou "mt-$mt_ver.zip" && rm $VFLAG "mt-$mt_ver.zip") 1>&2
-        clean_bt . '*'
-      else
-        echo "Error: Cannot find supported platform version. Supported: ${mt_releases_list[@]}" >&2
-        if [ -z "${mt_releases_list[*]}" ]; then
-          echo "Error: Empty release list!"
-          echo $mt_releases_json
-        fi
-      fi
-      cd - &> /dev/null
       ;;
     *)
       if [ -z "$MT_VER" ]; then
         echo "Error: Platform not specified!" >&2
       else
-        echo "Error: Not supported platform version ($MT_VER). Supported: 4, 4x, 4.0.0.x, 5 or 5.0.0.x." >&2
+        echo "Error: Not supported platform version ($MT_VER). Supported: 4, 5." >&2
       fi
       exit 1
       ;;
