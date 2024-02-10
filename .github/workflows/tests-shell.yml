@@ -45,6 +45,8 @@ jobs:
         env:
           # Refs: https://github.com/actions/checkout/issues/956
           GIT_CEILING_DIRECTORIES: /__w
+        with:
+          path: ${{ github.workspace }}
       - run: ${{ matrix.test }}
         env:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
