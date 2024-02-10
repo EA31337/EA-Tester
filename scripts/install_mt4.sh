@@ -23,7 +23,7 @@ curl -s ifconfig.me/all.json
 . "$CWD/.funcs.cmds.inc.sh"
 
 echo "Installing platform..." >&2
-ansible-galaxy install git+https://github.com/EA31337/ansible-role-metatrader.git,dev
+ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 ansible-playbook -c local -e metatrader_version=4 -e wine_install_winetricks=1 \
   -i "localhost," /opt/ansible/install-platform.yml -v
 
