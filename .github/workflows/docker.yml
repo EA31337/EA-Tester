@@ -27,7 +27,7 @@ jobs:
   Hadolint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: brpaz/hadolint-action@master
         with:
           dockerfile: Dockerfile
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: Hadolint
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build ubuntu-base
         run: docker build --target ubuntu-base -t ubuntu-base .
       - name: Build ubuntu-provisioned
