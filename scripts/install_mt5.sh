@@ -7,6 +7,7 @@ CWD="$(
   pwd -P
 )"
 type ansible > /dev/null
+type ansible-galaxy > /dev/null
 type winetricks > /dev/null
 
 # Load variables.
@@ -22,8 +23,9 @@ curl -s ifconfig.me/all.json
 . "$CWD/.funcs.cmds.inc.sh"
 
 echo "Installing platform..." >&2
-ansible-playbook -c local -e metatrader_version=5
-\ -i "localhost," /opt/ansible/install-platform.yml -v
+ansible-galaxy install git+https://github.com/EA31337/ansible-role-metatrader.git,dev
+ansible-playbook -c local -e metatrader_version=5 -e wine_install_winetricks=1 \
+  -i "localhost," /opt/ansible/install-platform.yml -v
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL5_DIR" ]; then
