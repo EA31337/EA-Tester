@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test .funcs.cmds.inc.sh file.
-set -eE -o pipefail
+set -eEx -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh
@@ -13,6 +13,7 @@ initialize
 help | grep "Usage" > /dev/null
 
 # Installs both platforms.
+tail -f "${file_stderr}" &
 install_mt 4 /opt
 install_mt 5 /opt
 
@@ -48,3 +49,6 @@ echo INFO: Test finding script files after copying...
 [ -f "$SCRIPTS_DIR/$(script_find Dummy)" ]
 [ -f "$SCRIPTS_DIR/$(MT_VER=4 script_find Dummy.mq4)" ]
 [ -f "$SCRIPTS_DIR/$(MT_VER=5 script_find Dummy.mq5)" ]
+
+kill_jobs
+echo "${BASH_SOURCE[0]} done."
