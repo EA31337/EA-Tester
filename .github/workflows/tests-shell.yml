@@ -39,4 +39,6 @@ jobs:
           - ./test_vars.sh
     steps:
       - uses: actions/checkout@v3
+        env:
+          GIT_CEILING_DIRECTORIES: /__w
       - run: ${{ matrix.test }}
