@@ -47,6 +47,7 @@ jobs:
           GIT_CEILING_DIRECTORIES: /__w
         with:
           path: ${{ github.workspace }}
+      - run: find /opt -print
       - run: ${{ matrix.test }}
         env:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
