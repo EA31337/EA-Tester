@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test run_backtest.sh file.
-set -eEx -o pipefail
+set -ex -o pipefail
 
 # Initialize.
 . ../.funcs.inc.sh
