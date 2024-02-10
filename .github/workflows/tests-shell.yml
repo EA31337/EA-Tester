@@ -29,7 +29,7 @@ jobs:
       image: ea31337/ea-tester:dev
       options: --user root
       volumes:
-        - ${GITHUB_WORKSPACE}/scripts:/opt/scripts
+        - ${{ env.GITHUB_WORKSPACE }}/scripts:/opt/scripts
     strategy:
       matrix:
         test:
@@ -46,7 +46,7 @@ jobs:
           # Refs: https://github.com/actions/checkout/issues/956
           GIT_CEILING_DIRECTORIES: /__w
         with:
-          path: ${{ github.workspace }}
+          path: ${{ env.GITHUB_WORKSPACE }}
       - run: find /opt -print
       - run: ${{ matrix.test }}
         env:
