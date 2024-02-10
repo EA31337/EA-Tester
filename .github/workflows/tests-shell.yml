@@ -29,7 +29,7 @@ jobs:
       image: ea31337/ea-tester:dev
       options: --user root
       volumes:
-        - ${{ github.workspace }}/scripts:/opt/scripts
+        - ${GITHUB_WORKSPACE}/scripts:/opt/scripts
     strategy:
       matrix:
         test:
