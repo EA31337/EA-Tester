@@ -114,8 +114,7 @@ case "$(uname -s)" in
     ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 
     # Install platform.
-    ansible-playbook -i "localhost," -c local /opt/ansible/install-wine.yml -v \
-      -e wine_install_winetricks=1
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-wine.yml -v
     ansible-playbook -i "localhost," -c local /opt/ansible/install-xvfb.yml -v
 
     # Install Charles proxy.
