@@ -215,7 +215,7 @@ install_mt()
 {
   type jq wget > /dev/null
   local mt_ver=${1:-$MT_VER}
-  local dir_dest=${2:-$WINE_PATH}
+  local dir_dest=${2:-$WINEPREFIX/drive_c}
   dir_dest=${dir_dest:-$HOME}
   set_display
   case $mt_ver in
