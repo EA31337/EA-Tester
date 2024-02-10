@@ -47,5 +47,6 @@ jobs:
           GIT_CEILING_DIRECTORIES: /__w
       - run: ${{ matrix.test }}
         env:
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
           # Refs: https://stackoverflow.com/q/16818101/55075
           WINEPREFIX: /tmp/.wine
