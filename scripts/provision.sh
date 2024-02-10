@@ -105,7 +105,6 @@ case "$(uname -s)" in
 
     # Install required commands if not present.
     command -v curl &> /dev/null || apt-get install -qq curl
-    command -v git &> /dev/null || apt-get install -qq git
     command -v pip &> /dev/null || apt-get install -qq pip
     command -v wget &> /dev/null || apt-get install -qq wget
     command -v ansible &> /dev/null || pip install ansible
@@ -212,9 +211,6 @@ set +x
   git config --system user.email "$user@$HOSTNAME"
   git config --system core.sharedRepository group
 ) &
-
-# Add version control for /opt.
-git init /opt &
 
 # Give user write permission for /opt.
 chown -R $user /opt &
