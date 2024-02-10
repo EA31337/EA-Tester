@@ -22,6 +22,10 @@ curl -s ifconfig.me/all.json
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
 
+# Install Ansible Galaxy requirements.
+ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
+
+# Install platform.
 echo "Installing platform..." >&2
 ansible-playbook -c local -e metatrader_version=4 -e wine_install_winetricks=1 \
   -i "localhost," /opt/ansible/install-platform.yml -v
