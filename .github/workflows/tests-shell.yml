@@ -24,6 +24,7 @@ jobs:
         OPT_TRACE: ${{ runner.debug }}
         OPT_VERBOSE: true
       image: ea31337/ea-tester:dev
+      options: --user root
       volumes:
         - ${{ github.workspace }}/scripts/tests:/opt/scripts
     strategy:
