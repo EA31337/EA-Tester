@@ -24,6 +24,7 @@ export RUN_ON_ERROR="tail $file_stdout $file_stderr"
 ## START TESTS
 
 # Installs both platforms.
+tail -f "${file_stderr}" &
 install_mt 4 /opt 1> $file_stdout 2> $file_stderr
 install_mt 5 /opt 1> $file_stdout 2> $file_stderr
 
@@ -41,4 +42,5 @@ run_backtest -_ -e Dummy 1> $file_stdout 2> $file_stderr
 grep "compiled: 1" $file_stdout
 ! grep ^ERROR $file_stderr
 
+kill_jobs
 echo "${BASH_SOURCE[0]} done."
