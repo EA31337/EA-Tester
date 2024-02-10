@@ -1,3 +1,5 @@
 ---
 - hosts: all
   roles: [ea31337.xvfb]
+  vars:
+    xvfb_install_x11_utils: true
