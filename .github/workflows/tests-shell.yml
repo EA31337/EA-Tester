@@ -41,9 +41,6 @@ jobs:
           - ./test_eval.sh
           - ./test_vars.sh
     steps:
-      - name: Adds safe directory
-        # Refs: https://github.com/actions/checkout/issues/760
-        run: git config --global --add safe.directory /__w
       - uses: actions/checkout@v4
         env:
           # Refs: https://github.com/actions/checkout/issues/956
