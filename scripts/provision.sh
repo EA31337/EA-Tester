@@ -110,8 +110,8 @@ case "$(uname -s)" in
     command -v wget &> /dev/null || apt-get install -qq wget
     command -v ansible &> /dev/null || pip install ansible
 
-    # Install MT runner.
-    ansible-galaxy install git+https://github.com/EA31337/ansible-role-mt-runner.git,dev
+    # Install Ansible Galaxy requirements.
+    ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 
     # Install platform.
     ansible-playbook -i "localhost," -c local /opt/ansible/install-wine.yml -v \
