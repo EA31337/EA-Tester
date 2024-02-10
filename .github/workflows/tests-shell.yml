@@ -28,8 +28,6 @@ jobs:
         WINEPREFIX: /tmp/.wine
       image: ea31337/ea-tester:dev
       options: --user root
-      volumes:
-        - /__w/EA-Tester/EA-Tester/scripts:/opt/scripts
     strategy:
       matrix:
         test:
@@ -45,8 +43,8 @@ jobs:
         env:
           # Refs: https://github.com/actions/checkout/issues/956
           GIT_CEILING_DIRECTORIES: /__w
-        with:
-          path: ${{ env.GITHUB_WORKSPACE }}
+      - name: Link scripts directory to /opt/scripts
+        run: ln -fsv /__w/EA-Tester/EA-Tester/scripts /opt/scripts
       - run: find /__w /opt -print
       - run: ${{ matrix.test }}
         env:
