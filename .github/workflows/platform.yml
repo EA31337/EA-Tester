@@ -1,0 +1,66 @@
+---
+name: Platform
+
+env:
+  ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
+  VERSION: ${{ inputs.version || 5 }}
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/platform.yml'
+  push:
+    branches:
+      - 'master'
+      - '*dev*'
+    paths:
+      - '.github/workflows/platform.yml'
+  workflow_call:
+    inputs:
+      artifact:
+        default: platform
+        description: Artifact name
+        required: false
+        type: string
+      version:
+        default: 5
+        description: Version to install
+        type: number
+
+jobs:
+  platform-linux:
+    name: Platform (Linux)
+    outputs:
+      workdir: ${{ github.workspace }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Runs playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          configuration: |
+            [defaults]
+            nocows = false
+            stdout_callback = yaml
+          options: |
+            --connection local
+            --inventory localhost,
+            --verbose
+          playbook: molecule/mt${{ env.VERSION }}/converge.yml
+          requirements: ansible/galaxy-requirements.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            ~/.wine/drive_c/Program Files*/**/*MT*
+            ~/.wine/drive_c/Program Files*/**/*Meta*
+    timeout-minutes: 20
+  cleanup:
+    if: ${{ github.event_name != 'workflow_call' }}
+    name: Clean-up
+    needs: [platform-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: geekyeggo/delete-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
