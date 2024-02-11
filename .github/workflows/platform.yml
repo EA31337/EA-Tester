@@ -37,7 +37,7 @@ on:
 
 jobs:
   platform-linux:
-    name: Platform ${{ env.VERSION }} (Linux)
+    name: Platform ${VERSION} (Linux)
     outputs:
       workdir: ${{ github.workspace }}
     runs-on: ubuntu-latest
