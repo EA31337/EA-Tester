@@ -1,5 +1,5 @@
 ---
-name: Platform
+name: Platform (Linux)
 
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
@@ -37,7 +37,7 @@ on:
 
 jobs:
   platform-linux:
-    name: Platform (Linux)
+    name: Platform
     outputs:
       workdir: ${{ github.workspace }}
     runs-on: ubuntu-latest
