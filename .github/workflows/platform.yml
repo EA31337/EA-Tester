@@ -3,6 +3,8 @@ name: Platform
 
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
+  CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  REPOSITORY: EA31337/EA-Tester
   VERSION: ${{ inputs.version || 5 }}
 
 # yamllint disable-line rule:truthy
@@ -23,6 +25,11 @@ on:
         description: Artifact name
         required: false
         type: string
+      ref:
+        default: dev
+        description: The branch, tag or SHA to checkout.
+        required: false
+        type: string
       version:
         default: 5
         description: Version to install
@@ -35,6 +42,10 @@ jobs:
       workdir: ${{ github.workspace }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+          repository: ${{ env.REPOSITORY }}
       - name: Runs playbook
         uses: dawidd6/action-ansible-playbook@v2
         with:
@@ -42,12 +53,13 @@ jobs:
             [defaults]
             nocows = false
             stdout_callback = yaml
+          directory: ansible
           options: |
             --connection local
             --inventory localhost,
             --verbose
-          playbook: molecule/mt${{ env.VERSION }}/converge.yml
-          requirements: ansible/galaxy-requirements.yml
+          playbook: install-mt${{ env.VERSION }}.yml
+          requirements: galaxy-requirements.yml
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
