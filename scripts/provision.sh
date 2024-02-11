@@ -104,11 +104,11 @@ case "$(uname -s)" in
     )
 
     # Install required commands if not present.
-    command -v curl &> /dev/null || apt-get install -qq curl
-    command -v git &> /dev/null || apt-get install -qq git
     command -v pip &> /dev/null || apt-get install -qq pip
-    command -v wget &> /dev/null || apt-get install -qq wget
     command -v ansible &> /dev/null || pip install ansible
+
+    # Install required utilities.
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-utils.yml -v
 
     # Install Ansible Galaxy requirements.
     ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
@@ -151,15 +151,6 @@ case "$(uname -s)" in
       echo "Installing VNC..." >&2
       apt-get install -qq x11vnc fluxbox
     fi
-
-    # Install other CLI tools.
-    apt-get install -qq less binutils coreutils moreutils # Common CLI utils.
-    apt-get install -qq cabextract zip p7zip-full         # Compression tools.
-    apt-get install -qq git links tree pv bc              # Required commands.
-    apt-get install -qq realpath || true                  # Install realpath if available.
-    apt-get install -qq html2text jq                      # Required parsers.
-    apt-get install -qq imagemagick                       # ImageMagick.
-    apt-get install -qq vim                               # Vim.
 
     # Configures ImageMagick.
     # See: https://stackoverflow.com/q/42928765
