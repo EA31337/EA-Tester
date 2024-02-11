@@ -68,7 +68,7 @@ jobs:
             ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
   cleanup:
-    if: ${{ github.event_name != 'workflow_call' }}
+    if: ${{ github.event.inputs == undefined }}
     name: Clean-up
     needs: [platform-linux]
     runs-on: ubuntu-latest
