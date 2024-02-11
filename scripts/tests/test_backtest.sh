@@ -25,8 +25,8 @@ export RUN_ON_ERROR="tail $file_stdout $file_stderr"
 
 # Installs both platforms.
 tail -f "${file_stderr}" &
-install_mt 4 /opt 1> $file_stdout 2> $file_stderr
-install_mt 5 /opt 1> $file_stdout 2> $file_stderr
+install_mt 4 /opt 2> $file_stderr | tee -a $file_stdout
+install_mt 5 /opt 2> $file_stderr | tee -a $file_stdout
 
 ## Checks backtest with missing parameters.
 ! run_backtest -_ 1> $file_stdout 2> $file_stderr
