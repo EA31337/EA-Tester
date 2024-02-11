@@ -4,7 +4,7 @@ name: Platform (Linux)
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
-  CLEANUP: ${{ inputs.cleanup || false }}
+  CLEANUP: ${{ inputs.cleanup || true }}
   REPOSITORY: EA31337/EA-Tester
   VERSION: ${{ inputs.version || 5 }}
 
@@ -79,6 +79,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
-        if: env.CLEANUP
+        if: env.CLEANUP && github.repository == env.REPOSITORY
         with:
           name: ${{ env.ARTIFACT_NAME }}
