@@ -11,13 +11,13 @@ env:
 on:
   pull_request:
     paths:
-      - '.github/workflows/platform.yml'
+      - '.github/workflows/platform-linux.yml'
   push:
     branches:
       - 'master'
       - '*dev*'
     paths:
-      - '.github/workflows/platform.yml'
+      - '.github/workflows/platform-linux.yml'
   workflow_call:
     inputs:
       artifact:
