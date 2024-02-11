@@ -68,11 +68,12 @@ jobs:
             ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
   cleanup:
-    if: ${{ github.event.inputs.version == null }}
+    if: ${{ ! github.event.inputs.artifact }}
     name: Clean-up
     needs: [platform-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
+        if: ${{ ! github.event.inputs.artifact }}
         with:
           name: ${{ env.ARTIFACT_NAME }}
