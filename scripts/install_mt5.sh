@@ -27,8 +27,7 @@ ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 
 # Install platform.
 echo "Installing platform..." >&2
-ansible-playbook -c local -e metatrader_version=5 -e wine_install_winetricks=1 \
-  -i "localhost," /opt/ansible/install-platform.yml -v
+ansible-playbook -c local -i "localhost," /opt/ansible/install-mt5.yml -v
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL5_DIR" ]; then

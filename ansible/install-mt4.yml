@@ -1,0 +1,6 @@
+---
+- hosts: all
+  roles: [ea31337.metatrader]
+  vars:
+    metatrader_setup_url: https://download.mql5.com/cdn/web/8472/mt4/xmuk4setup.exe
+    metatrader_version: 4

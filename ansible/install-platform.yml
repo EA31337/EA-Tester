@@ -1,3 +1,0 @@
----
-- hosts: all
-  roles: [ea31337.metatrader]

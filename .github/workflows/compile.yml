@@ -16,14 +16,32 @@ on:
       - '.github/workflows/compile.yml'
 
 jobs:
-  Compile:
+  Compile-MT4:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Installs platform
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: install-platform.yml
+          playbook: install-mt4.yml
+          directory: ./ansible
+          options: |
+            --connection local
+            --inventory localhost,
+            --verbose
+          requirements: galaxy-requirements.yml
+      - uses: fx31337/mql-compile-action@dev
+        with:
+          mt-path: ${{ github.workspace }}/../../../.wine/drive_c
+          verbose: true
+  Compile-MT5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installs platform
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: install-mt5.yml
           directory: ./ansible
           options: |
             --connection local
