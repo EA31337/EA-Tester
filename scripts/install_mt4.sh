@@ -31,7 +31,7 @@ ansible-playbook -c local -i "localhost," /opt/ansible/install-mt4.yml -v
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL4_DIR" ]; then
-  echo "Terminal path: $TERMINAL5_DIR" >&2
+  echo "Terminal path: $TERMINAL4_DIR" >&2
   echo "Installation successful." >&2
 else
   echo "Installation failed!" >&2
