@@ -4,6 +4,7 @@ name: Platform (Linux)
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  CLEANUP: ${{ inputs.cleanup || false }}
   REPOSITORY: EA31337/EA-Tester
   VERSION: ${{ inputs.version || 5 }}
 
@@ -25,6 +26,11 @@ on:
         description: Artifact name
         required: false
         type: string
+      cleanup:
+        default: false
+        description: Whether to run clean-up job
+        required: false
+        type: boolean
       ref:
         default: dev
         description: The branch, tag or SHA to checkout.
@@ -68,12 +74,11 @@ jobs:
             ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
   cleanup:
-    if: not(github.event.inputs.artifact)
     name: Clean-up
     needs: [platform-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
-        if: not(github.event.inputs.artifact)
+        if: env.CLEANUP
         with:
           name: ${{ env.ARTIFACT_NAME }}
