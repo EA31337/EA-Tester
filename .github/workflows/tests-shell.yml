@@ -49,3 +49,4 @@ jobs:
       - run: ${{ matrix.test }}
         env:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
+    timeout-minutes: 20
