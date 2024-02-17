@@ -2,7 +2,7 @@
 name: Platform (Linux)
 
 env:
-  ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'platform' }}
   ARTIFACT_OVERWRITE: ${{ inputs.artifact_overwrite || false }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
   CLEANUP: ${{ inputs.cleanup || true }}
@@ -22,7 +22,7 @@ on:
       - '.github/workflows/platform-linux.yml'
   workflow_call:
     inputs:
-      artifact:
+      artifact_name:
         default: platform
         description: Artifact name.
         required: false
