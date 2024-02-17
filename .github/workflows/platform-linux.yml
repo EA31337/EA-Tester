@@ -3,6 +3,7 @@ name: Platform (Linux)
 
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
+  ARTIFACT_OVERWRITE: ${{ inputs.artifact_overwrite || false }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
   CLEANUP: ${{ inputs.cleanup || true }}
   REPOSITORY: EA31337/EA-Tester
@@ -23,12 +24,17 @@ on:
     inputs:
       artifact:
         default: platform
-        description: Artifact name
+        description: Artifact name.
         required: false
         type: string
+      artifact_overwrite:
+        default: false
+        description: Whether to overwrite artifact.
+        required: false
+        type: boolean
       cleanup:
         default: false
-        description: Whether to run clean-up job
+        description: Whether to run clean-up job.
         required: false
         type: boolean
       ref:
@@ -38,7 +44,7 @@ on:
         type: string
       version:
         default: 5
-        description: Version to install
+        description: Version to install.
         type: number
 
 jobs:
@@ -72,6 +78,7 @@ jobs:
           path: |
             ~/.wine/drive_c/Program Files*/**/*MT*
             ~/.wine/drive_c/Program Files*/**/*Meta*
+          overwrite: ${{ env.ARTIFACT_OVERWRITE }}
     timeout-minutes: 20
   cleanup:
     name: Clean-up
