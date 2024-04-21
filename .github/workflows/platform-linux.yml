@@ -68,8 +68,10 @@ jobs:
         if: env.CACHE
         uses: actions/cache@v4
         with:
-          path: ~/.wine/drive_c
-          key: ${{ env.ARTIFACT_NAME }}/${{ env.CHECKOUT_REF }}/${{ env.VERSION }}
+          path: |
+            /etc/ansible/facts.d
+            ~/.wine/drive_c
+          key: ${{ env.ARTIFACT_NAME }}/${{ env.CHECKOUT_REF }}/${{ env.VERSION }}/${{ hashFiles('/etc/ansible/facts.d') }}
       - if: steps.cache-mt.outputs.cache-hit != 'true'
         name: Runs playbook
         uses: dawidd6/action-ansible-playbook@v2
