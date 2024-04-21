@@ -4,6 +4,7 @@ name: Platform (Linux)
 env:
   ARTIFACT_NAME: ${{ inputs.artifact_name || 'platform' }}
   ARTIFACT_OVERWRITE: ${{ inputs.artifact_overwrite || false }}
+  CACHE: ${{ inputs.cache || true }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
   CLEANUP: ${{ inputs.cleanup || true }}
   REPOSITORY: EA31337/EA-Tester
@@ -32,6 +33,11 @@ on:
         description: Whether to overwrite artifact.
         required: false
         type: boolean
+      cache:
+        default: true
+        description: Whether to use cache.
+        required: false
+        type: boolean
       cleanup:
         default: false
         description: Whether to run clean-up job.
@@ -58,7 +64,14 @@ jobs:
         with:
           ref: ${{ env.CHECKOUT_REF }}
           repository: ${{ env.REPOSITORY }}
-      - name: Runs playbook
+      - id: cache-mt
+        if: env.CACHE
+        uses: actions/cache@v4
+        with:
+          path: ~/.wine/drive_c
+          key: ${{ env.ARTIFACT_NAME }}-${{ env.CHECKOUT_REF }}-${{ env.VERSION }}
+      - if: steps.cache-mt.outputs.cache-hit != 'true'
+        name: Runs playbook
         uses: dawidd6/action-ansible-playbook@v2
         with:
           configuration: |
