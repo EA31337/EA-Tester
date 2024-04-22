@@ -52,12 +52,18 @@ on:
         default: 5
         description: Version to install.
         type: number
+    # Map the workflow outputs to job outputs.
+    outputs:
+      platform:
+        description: Platform details.
+        value: ${{ jobs.platform-linux.outputs.platform || '{}' }}
 
 jobs:
   platform-linux:
     name: Platform
+    # Map the job outputs to step outputs.
     outputs:
-      workdir: ${{ github.workspace }}
+      platform: ${{ steps.out-mt-fact.outputs.platform }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -87,8 +93,12 @@ jobs:
             --verbose
           playbook: install-mt${{ env.VERSION }}.yml
           requirements: galaxy-requirements.yml
+      - id: out-mt-fact
+        name: Sets output
+        run: echo "platform=$(cat /etc/ansible/facts.d/metatrader.fact)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
+          if-no-files-found: error
           name: ${{ env.ARTIFACT_NAME }}
           path: |
             ~/.wine/drive_c/Program Files*/**/*MT*
