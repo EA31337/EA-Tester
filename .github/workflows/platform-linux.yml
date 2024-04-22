@@ -6,8 +6,8 @@ env:
   ARTIFACT_OVERWRITE: ${{ inputs.artifact_overwrite || false }}
   CACHE: ${{ inputs.cache || true }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
-  CLEANUP: ${{ inputs.cleanup || true }}
   REPOSITORY: EA31337/EA-Tester
+  SKIP_CLEANUP: ${{ inputs.skip_cleanup || false }}
   VERSION: ${{ inputs.version || 5 }}
 
 # yamllint disable-line rule:truthy
@@ -38,16 +38,16 @@ on:
         description: Whether to use cache.
         required: false
         type: boolean
-      cleanup:
-        default: false
-        description: Whether to run clean-up job.
-        required: false
-        type: boolean
       ref:
         default: dev
         description: The branch, tag or SHA to checkout.
         required: false
         type: string
+      skip_cleanup:
+        default: false
+        description: Whether to skip a clean-up job.
+        required: false
+        type: boolean
       version:
         default: 5
         description: Version to install.
@@ -94,11 +94,11 @@ jobs:
           overwrite: ${{ env.ARTIFACT_OVERWRITE }}
     timeout-minutes: 20
   cleanup:
+    if: inputs.skip_cleanup != true
     name: Clean-up
     needs: [platform-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
-        if: env.CLEANUP && github.repository == env.REPOSITORY
         with:
           name: ${{ env.ARTIFACT_NAME }}
