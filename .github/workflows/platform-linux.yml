@@ -55,7 +55,7 @@ on:
     # Map the workflow outputs to job outputs.
     outputs:
       platform:
-        description: Platform details.
+        description: Platform fact output.
         value: ${{ jobs.platform-linux.outputs.platform || '{}' }}
 
 jobs:
@@ -111,6 +111,6 @@ jobs:
     needs: [platform-linux]
     runs-on: ubuntu-latest
     steps:
-      - uses: geekyeggo/delete-artifact@v4
+      - uses: geekyeggo/delete-artifact@v5
         with:
           name: ${{ env.ARTIFACT_NAME }}
