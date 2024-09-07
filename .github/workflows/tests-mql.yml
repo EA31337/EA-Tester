@@ -45,7 +45,7 @@ jobs:
           && apt-get -qq install python-pip
           && pip install docker-compose
       - name: Run ${{ matrix.test }}
-        run: docker-compose run ${{ matrix.test }}
+        run: docker compose run ${{ matrix.test }}
   Tests-MT4-Ignored:
     defaults:
       run:
@@ -69,4 +69,4 @@ jobs:
           && apt-get -qq install python-pip
           && pip install docker-compose
       - name: Run ${{ matrix.test }}
-        run: docker-compose run ${{ matrix.test }} || true
+        run: docker compose run ${{ matrix.test }} || true
