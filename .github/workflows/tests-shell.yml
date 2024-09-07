@@ -23,7 +23,11 @@ jobs:
       env:
         OPT_TRACE: ${{ runner.debug }}
         OPT_VERBOSE: true
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
+        # Refs: https://stackoverflow.com/q/16818101/55075
+        WINEPREFIX: /tmp/.wine
       image: ea31337/ea-tester:dev
+      options: --user root
     strategy:
       matrix:
         test:
@@ -35,5 +39,14 @@ jobs:
           - ./test_eval.sh
           - ./test_vars.sh
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+        env:
+          # Refs: https://github.com/actions/checkout/issues/956
+          GIT_CEILING_DIRECTORIES: /__w
+      - name: Link scripts directory to /opt/scripts
+        run: ln -fsv /__w/EA-Tester/EA-Tester/scripts /opt/scripts
+      - run: find /__w /opt -print
       - run: ${{ matrix.test }}
+        env:
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts:/opt/scripts/py
+    timeout-minutes: 20

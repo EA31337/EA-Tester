@@ -37,7 +37,7 @@ jobs:
           - TestModellingQuality
           - TestTimeframes
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check dependencies
         if: github.actor == 'nektos/act'
         run: >
@@ -45,7 +45,7 @@ jobs:
           && apt-get -qq install python-pip
           && pip install docker-compose
       - name: Run ${{ matrix.test }}
-        run: docker-compose run ${{ matrix.test }}
+        run: docker compose run ${{ matrix.test }}
   Tests-MT4-Ignored:
     defaults:
       run:
@@ -61,7 +61,7 @@ jobs:
           - TestLotstep5  # @fixme: GH-208
           - TestSpread    # @fixme: GH-209
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check dependencies
         if: github.actor == 'nektos/act'
         run: >
@@ -69,4 +69,4 @@ jobs:
           && apt-get -qq install python-pip
           && pip install docker-compose
       - name: Run ${{ matrix.test }}
-        run: docker-compose run ${{ matrix.test }} || true
+        run: docker compose run ${{ matrix.test }} || true

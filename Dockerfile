@@ -1,5 +1,5 @@
 # Set the base Ubuntu image.
-FROM ubuntu:xenial AS ubuntu-base
+FROM ubuntu:jammy AS ubuntu-base
 ENV DEBIAN_FRONTEND noninteractive
 
 # Setup the default user.
@@ -10,6 +10,20 @@ WORKDIR /home/ubuntu
 # Provision.
 FROM ubuntu-base AS ubuntu-provisioned
 USER root
+
+# Build-time metadata as defined at http://label-schema.org
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="EA-Tester" \
+      org.label-schema.description="Headless Forex backtesting for MetaTrader platform" \
+      org.label-schema.url="https://github.com/EA31337/EA-Tester" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/EA31337/EA-Tester" \
+      org.label-schema.vendor="FX31337" \
+      org.label-schema.version=$VERSION \
+      org.label-schema.schema-version="1.0"
 
 # Build-time variables.
 ARG HTTPS_PROXY
@@ -22,14 +36,10 @@ ARG PROVISION_SUDO=1
 ARG PROVISION_VNC=1
 
 # Provision container image.
+COPY ansible /opt/ansible
 COPY scripts /opt/scripts
 ENV PATH $PATH:/opt/scripts:/opt/scripts/py
-ENV PROVISION_HASH KwFCBBn659lGNLNiIGd5131XnknI
 RUN provision.sh
-
-# Clean up.
-RUN find /var/lib/apt/lists -type f -delete && \
-    find /tmp -mindepth 1 '(' -type d -o -type f ')' -delete
 
 # Uses ubuntu as default user.
 USER ubuntu
@@ -47,54 +57,6 @@ ENV BT_DEST $BT_DEST
 RUN mkdir -v -m a=rwx $BT_DEST && \
     chown ubuntu:root $BT_DEST
 VOLUME $BT_DEST
-
-# Install MT4 platform.
-FROM ea-tester-base AS ea-tester-with-mt4
-
-# Install platform.
-ARG MT_VER=4.0.0.1382
-RUN eval.sh install_mt $MT_VER && \
-    run_backtest.sh -s PrintPaths -v
-
-# Clean up.
-RUN eval.sh clean_bt && \
-    eval.sh clean_ea && \
-    eval.sh clean_files && \
-    find /tmp -mindepth 1 -print -delete
-
-# Install MT5 platform.
-FROM ea-tester-base AS ea-tester-with-mt5
-
-# Install platform.
-ARG MT_VER=5.0.0.3802
-ENV MT_VER $MT_VER
-RUN eval.sh install_mt $MT_VER
-#RUN run_backtest.sh -s PrintPaths -v
-
-# Clean up.
-#RUN eval.sh clean_bt
-#RUN eval.sh clean_ea
-#RUN eval.sh clean_files
-
-# Final EA Tester image.
-FROM ea-tester-with-mt4 as ea-tester
-
-# Build-time metadata as defined at http://label-schema.org
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.name="EA-Tester" \
-      org.label-schema.description="Headless Forex backtesting for MetaTrader platform" \
-      org.label-schema.url="https://github.com/EA31337/EA-Tester" \
-      org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/EA31337/EA-Tester" \
-      org.label-schema.vendor="FX31337" \
-      org.label-schema.version=$VERSION \
-      org.label-schema.schema-version="1.0"
-
-# Modify shell startup scripts.
-RUN echo source /opt/scripts/.funcs.cmds.inc.sh >> ~/.bashrc
 
 # Expose SSH and VNC when installed.
 EXPOSE 22 5900

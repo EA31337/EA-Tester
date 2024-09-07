@@ -1,0 +1,6 @@
+---
+- hosts: all
+  roles:
+    - role: ea31337.wine
+      vars:
+        wine_install_winetricks: true

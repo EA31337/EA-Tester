@@ -2,7 +2,12 @@
 # Script to install MT4 platform using winetricks.
 [ -n "$OPT_NOERR" ] || set -e
 [ -n "$OPT_TRACE" ] && set -x
-CWD="$( (cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2> /dev/null && pwd -P) || pwd -P)"
+CWD="$(
+  cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2> /dev/null
+  pwd -P
+)"
+type ansible > /dev/null
+type ansible-galaxy > /dev/null
 type winetricks > /dev/null
 
 # Load variables.
@@ -17,22 +22,20 @@ curl -s ifconfig.me/all.json
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
 
-# Activates display.
-echo "Configuring display..." >&2
-set_display
+# Install Ansible Galaxy requirements.
+ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 
-# Updates Wine configuration.
-echo "Updating configuration..." >&2
-wineboot -u
-
-echo "Installing winhttp..." >&2
-winetricks -q winhttp
-
-echo "Installing .NET..." >&2
-winetricks -q dotnet472
-
+# Install platform.
 echo "Installing platform..." >&2
-winetricks -q -v mt4
+ansible-playbook -c local -i "localhost," /opt/ansible/install-mt4.yml -v
 
-echo "Installation successful." >&2
+. "$CWD"/.vars.inc.sh
+if [ -n "$TERMINAL4_DIR" ]; then
+  echo "Terminal path: $TERMINAL4_DIR" >&2
+  echo "Installation successful." >&2
+else
+  echo "Installation failed!" >&2
+  exit 1
+fi
+
 echo "${BASH_SOURCE[0]} done." >&2

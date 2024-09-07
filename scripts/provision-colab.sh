@@ -145,16 +145,16 @@ case "$(uname -s)" in
 
     # Install Mono.
     if (("$PROVISION_MONO")); then
-      echo "Installing Wine Mono..." >&2
-      apt-get install -qq wine-mono
+      echo "Installing Mono..." >&2
+      apt-get install -qq mono-complete
       su - $user -c "
         set -x
         export DISPLAY=:1.0
         export WINEDLLOVERRIDES=mscoree,mshtml=
         echo \$DISPLAY
         xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
-        wget -qP /tmp -nc 'http://dl.winehq.org/wine/wine-mono/4.8.3/wine-mono-4.8.3.msi' && \
-        wine64 msiexec /i /tmp/wine-mono-4.8.3.msi
+        wget -qP /tmp -nc 'http://dl.winehq.org/wine/wine-mono/8.1.0/wine-mono-8.1.0-x86.msi' && \
+        wine64 msiexec /i /tmp/wine-mono-8.1.0-x86.msi
         rm -v /tmp/*.msi && \
         (pkill Xvfb || true)
       "

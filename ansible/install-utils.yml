@@ -1,0 +1,25 @@
+---
+- hosts: all
+  tasks:
+    - name: Ensures required utils are installed
+      ansible.builtin.package:
+        name:
+          - bc
+          - binutils
+          - cabextract
+          - coreutils
+          - curl
+          - git
+          - html2text
+          - imagemagick
+          - jq
+          - less
+          - links
+          - moreutils
+          - p7zip-full
+          - pv
+          - tree
+          - unzip
+          - vim
+          - wget
+          - zip

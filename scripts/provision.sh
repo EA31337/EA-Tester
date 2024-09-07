@@ -76,6 +76,7 @@ case "$(uname -s)" in
     echo "Configuring APT..." >&2
     apt-config dump | grep -we Recommends -e Suggests | sed s/1/0/ | tee /etc/apt/apt.conf.d/99norecommend
     apt-config dump | grep -we Recommends -e Suggests
+
     if command -v dpkg-reconfigure > /dev/null; then
 
       # Perform an unattended installation of a Debian packages.
@@ -102,81 +103,19 @@ case "$(uname -s)" in
       apt-get -qq update
     )
 
-    # Install curl and wget if not present.
-    command -v curl &> /dev/null || apt-get install -qq curl
-    command -v wget &> /dev/null || apt-get install -qq wget
+    # Install required commands if not present.
+    command -v pip &> /dev/null || apt-get install -qq pip
+    command -v ansible &> /dev/null || pip install ansible
 
-    # CA certificates to allow SSL-based applications to check for the authenticity of SSL connections.
-    echo "Installing CA certificates..." >&2
-    apt-get install -qq ca-certificates
-    # Add PPA/Wine repository.
-    echo "Adding PPA/Wine repository..." >&2
-    # Adds GPG release key.
-    apt-key add < <(curl -S https://dl.winehq.org/wine-builds/winehq.key)
-    # APT dependencies (for the add-apt-repository).
-    command -v add-apt-repository || apt-get install -qq software-properties-common python-software-properties
-    # Adds APT Wine repository.
-    add-apt-repository -y "deb http://dl.winehq.org/wine-builds/ubuntu/ ${DISTRIB_CODENAME:-xenial} main"
+    # Install required utilities.
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-utils.yml -v
 
-    # Install Charles proxy.
-    if (("$PROVISION_CHARLES")); then
-      # Install Charles Root Certificate (if available).
-      curl -L chls.pro/ssl > /usr/local/share/ca-certificates/charles.crt && update-ca-certificates
-      # Adds GPG release key.
-      apt-key add < <(curl -S https://www.charlesproxy.com/packages/apt/PublicKey)
-      # Adds APT repository.
-      add-apt-repository -y "deb https://www.charlesproxy.com/packages/apt/ charles-proxy main"
-      # Install HTTPS transport driver.
-      apt-get install -qq apt-transport-https
-    fi
+    # Install Ansible Galaxy requirements.
+    ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 
-    # Update APT index.
-    ! (("${NO_APT_UPDATE:-0}")) && (
-      echo "Updating APT packages..." >&2
-      apt-get -qq update
-    )
-
-    # Install necessary packages
-    echo "Installing APT packages..." >&2
-    apt-get install -qq build-essential  # Install C, C++ compilers and development (make).
-    apt-get install -qq dbus             # Required for Debian AMI on EC2.
-    apt-get install -qq fontconfig       # Required for fc-match command.
-    apt-get install -qq language-pack-en # Language pack to prevent an invalid locale.
-    apt-get install -qq crudini pev      # Install CLI tools.
-
-    # Install wine and dependencies.
-    # @see: https://wiki.winehq.org/Ubuntu
-    apt-get install -qq winehq-devel                 # Install Wine.
-    apt-get install -qq wine-gecko winbind || true   # Install Wine recommended libraries.
-    apt-get install -qq xvfb xdotool x11-utils xterm # Virtual frame buffer and X11 utils.
-
-    # Install Winetricks.
-    winetricks_url="https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks"
-    curl -sL ${winetricks_url} | install /dev/stdin /usr/local/bin/winetricks
-
-    # Install AHK.
-    if (("$PROVISION_AHK")); then
-      echo "Installing AutoHotkey..." >&2
-      su - $user -c "
-        set -x
-        export DISPLAY=:1.0
-        export WINEDLLOVERRIDES=mscoree,mshtml=
-        echo \$DISPLAY
-        xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
-        wineboot -i
-        wget -qP /tmp -nc 'https://github.com/Lexikos/AutoHotkey_L/releases/download/v1.1.30.01/AutoHotkey_1.1.30.01_setup.exe' && \
-        wine64 /tmp/AutoHotkey_*.exe /S /D='C:\\Apps\\AHK' && \
-        rm -v /tmp/AutoHotkey_*.exe && \
-        (pkill Xvfb || true)
-      "
-      ahk_path=$(su - $user -c 'winepath -u "C:\\Apps\\AHK"')
-      if [ -d "$ahk_path" ]; then
-        echo "AutoHotkey installed successfully!" >&2
-      else
-        echo "Error: AutoHotkey installation failed!" >&2
-        exit 1
-      fi
-    fi
+    # Install platform.
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-wine.yml -v
+    ansible-playbook -i "localhost," -c local /opt/ansible/install-xvfb.yml -v
 
     # Install Charles proxy.
     if (("$PROVISION_CHARLES")); then
@@ -185,16 +124,16 @@ case "$(uname -s)" in
 
     # Install Mono.
     if (("$PROVISION_MONO")); then
-      echo "Installing Wine Mono..." >&2
-      apt-get install -qq wine-mono
+      echo "Installing Mono..." >&2
+      apt-get install -qq mono-complete
       su - $user -c "
         set -x
         export DISPLAY=:1.0
         export WINEDLLOVERRIDES=mscoree,mshtml=
         echo \$DISPLAY
         xdpyinfo &>/dev/null || (! pgrep -a Xvfb && Xvfb \$DISPLAY -screen 0 1024x768x16) &
-        wget -qP /tmp -nc 'http://dl.winehq.org/wine/wine-mono/4.8.3/wine-mono-4.8.3.msi' && \
-        wine64 msiexec /i /tmp/wine-mono-4.8.3.msi
+        wget -qP /tmp -nc 'http://dl.winehq.org/wine/wine-mono/8.1.0/wine-mono-8.1.0-x86.msi' && \
+        wine64 msiexec /i /tmp/wine-mono-8.1.0-x86.msi
         rm -v /tmp/*.msi && \
         (pkill Xvfb || true)
       "
@@ -212,15 +151,6 @@ case "$(uname -s)" in
       echo "Installing VNC..." >&2
       apt-get install -qq x11vnc fluxbox
     fi
-
-    # Install other CLI tools.
-    apt-get install -qq less binutils coreutils moreutils # Common CLI utils.
-    apt-get install -qq cabextract zip unzip p7zip-full   # Compression tools.
-    apt-get install -qq git links tree pv bc              # Required commands.
-    apt-get install -qq realpath || true                  # Install realpath if available.
-    apt-get install -qq html2text jq                      # Required parsers.
-    apt-get install -qq imagemagick                       # ImageMagick.
-    apt-get install -qq vim                               # Vim.
 
     # Configures ImageMagick.
     # See: https://stackoverflow.com/q/42928765
@@ -255,6 +185,9 @@ case "$(uname -s)" in
     # Erase downloaded archive files.
     apt-get clean
 
+    # Clean up.
+    find /var/lib/apt/lists -type f -delete
+    #find /tmp -exec rm -rf {} +
     ;;
   Darwin)
     brew install git
@@ -269,9 +202,6 @@ set +x
   git config --system user.email "$user@$HOSTNAME"
   git config --system core.sharedRepository group
 ) &
-
-# Add version control for /opt.
-git init /opt &
 
 # Give user write permission for /opt.
 chown -R $user /opt &

@@ -6,6 +6,8 @@ CWD="$(
   cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" 2> /dev/null
   pwd -P
 )"
+type ansible > /dev/null
+type ansible-galaxy > /dev/null
 type winetricks > /dev/null
 
 # Load variables.
@@ -20,22 +22,12 @@ curl -s ifconfig.me/all.json
 . "$CWD/.funcs.inc.sh"
 . "$CWD/.funcs.cmds.inc.sh"
 
-# Activates display.
-echo "Configuring display..." >&2
-set_display
+# Install Ansible Galaxy requirements.
+ansible-galaxy install -r /opt/ansible/galaxy-requirements.yml
 
-# Updates Wine configuration.
-echo "Updating configuration..." >&2
-wineboot -u
-
-echo "Installing winhttp..." >&2
-winetricks -q winhttp
-
-echo "Installing .NET..." >&2
-winetricks -q dotnet472
-
+# Install platform.
 echo "Installing platform..." >&2
-winetricks -q "$CWD"/verb/install_mt5.verb
+ansible-playbook -c local -i "localhost," /opt/ansible/install-mt5.yml -v
 
 . "$CWD"/.vars.inc.sh
 if [ -n "$TERMINAL5_DIR" ]; then
@@ -45,4 +37,5 @@ else
   echo "Installation failed!" >&2
   exit 1
 fi
+
 echo "${BASH_SOURCE[0]} done." >&2

@@ -1,0 +1,114 @@
+---
+name: Platform (Linux)
+
+env:
+  ARTIFACT_NAME: ${{ inputs.artifact_name || 'platform' }}
+  ARTIFACT_OVERWRITE: ${{ inputs.artifact_overwrite || false }}
+  CACHE: ${{ inputs.cache || true }}
+  CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  REPOSITORY: EA31337/EA-Tester
+  SKIP_CLEANUP: ${{ inputs.skip_cleanup || false }}
+  VERSION: ${{ inputs.version || 5 }}
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/platform-linux.yml'
+  push:
+    branches:
+      - 'master'
+      - '*dev*'
+    paths:
+      - '.github/workflows/platform-linux.yml'
+  workflow_call:
+    inputs:
+      artifact_name:
+        default: platform
+        description: Artifact name.
+        required: false
+        type: string
+      artifact_overwrite:
+        default: false
+        description: Whether to overwrite artifact.
+        required: false
+        type: boolean
+      cache:
+        default: true
+        description: Whether to use cache.
+        required: false
+        type: boolean
+      ref:
+        default: dev
+        description: The branch, tag or SHA to checkout.
+        required: false
+        type: string
+      skip_cleanup:
+        default: false
+        description: Whether to skip a clean-up job.
+        required: false
+        type: boolean
+      version:
+        default: 5
+        description: Version to install.
+        type: number
+    # Map the workflow outputs to job outputs.
+    outputs:
+      platform:
+        description: Platform fact output.
+        value: ${{ jobs.platform-linux.outputs.platform || '{}' }}
+
+jobs:
+  platform-linux:
+    name: Platform
+    # Map the job outputs to step outputs.
+    outputs:
+      platform: ${{ steps.out-mt-fact.outputs.platform }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+          repository: ${{ env.REPOSITORY }}
+      - id: cache-mt
+        if: env.CACHE
+        uses: actions/cache@v4
+        with:
+          path: ~/.wine/drive_c
+          key: ${{ env.CHECKOUT_REF }}/${{ env.VERSION }}/${{ hashFiles('.github/workflows/platform-linux.yml') }}
+      - if: steps.cache-mt.outputs.cache-hit != 'true'
+        name: Runs playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          configuration: |
+            [defaults]
+            nocows = false
+            stdout_callback = yaml
+          directory: ansible
+          options: |
+            --connection local
+            --inventory localhost,
+            --verbose
+          playbook: install-mt${{ env.VERSION }}.yml
+          requirements: galaxy-requirements.yml
+      - id: out-mt-fact
+        name: Sets output
+        run: echo "platform=$(cat /etc/ansible/facts.d/metatrader.fact)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            ~/.wine/drive_c/Program Files*/**/*MT*
+            ~/.wine/drive_c/Program Files*/**/*Meta*
+          overwrite: ${{ env.ARTIFACT_OVERWRITE }}
+    timeout-minutes: 20
+  cleanup:
+    if: inputs.skip_cleanup != true
+    name: Clean-up
+    needs: [platform-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: geekyeggo/delete-artifact@v5
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
